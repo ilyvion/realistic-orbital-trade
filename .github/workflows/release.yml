@@ -1,0 +1,103 @@
+name: Release
+
+on:
+    push:
+        tags:
+            # This will only run the release workflow when it's tagged with a version
+            # tag.
+            - "v*"
+
+jobs:
+    build:
+        name: Build
+        runs-on: windows-latest
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v3
+
+            - name: Setup Dotnet
+              uses: actions/setup-dotnet@v3
+              with:
+                  dotnet-version: 6.0.x
+
+            - name: Build Mod for 1.5
+              env:
+                  RimWorldVersion: 1.5
+              run: dotnet build .vscode --configuration Release
+
+            - name: Upload Mod Artifacts
+              uses: actions/upload-artifact@v3
+              with:
+                  name: RealisticOrbitalTrade-Release
+                  path: |
+                      About/
+                      1.5/
+                      Common/
+                      Defs/
+                      Patches/
+                      LICENSE
+                      LICENSE.Apache-2.0
+                      LICENSE.MIT
+                      README.md
+                      CHANGELOG.md
+                      !**/.*
+                      !About/*.pdn
+                      !About/*.svg
+                      !About/*.ttf
+
+    package:
+        name: Release
+        needs: build
+        runs-on: ubuntu-latest
+        steps:
+            - name: Set Environment Variables
+              run: |
+                  echo "MOD_PATH=$HOME/RealisticOrbitalTrade" >> $GITHUB_ENV
+                  echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
+                  echo "NO_PREFIX_VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+
+            - name: Create Mod Folder
+              run: mkdir -p ${{ env.MOD_PATH }}
+
+            - name: Download Mod Artifacts from Build Step
+              uses: actions/download-artifact@v3
+              with:
+                  name: RealisticOrbitalTrade-Release
+                  path: ${{ env.MOD_PATH }}
+
+            - name: Zip Mod
+              run: |
+                  cd $HOME
+                  zip -r ./RealisticOrbitalTrade.zip ./RealisticOrbitalTrade/*
+
+            - name: Checkout Repository
+              uses: actions/checkout@v3
+
+            - name: Get Changelog Entry
+              id: changelog_reader
+              uses: mindsers/changelog-reader-action@v2
+              with:
+                  version: ${{ env.NO_PREFIX_VERSION }}
+                  path: ./CHANGELOG.md
+
+            - name: Create Release
+              id: create_release
+              uses: actions/create-release@v1
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              with:
+                  tag_name: ${{ env.VERSION }}
+                  release_name: Release ${{ env.VERSION }}
+                  body: ${{ steps.changelog_reader.outputs.changes }}
+                  draft: false
+                  prerelease: false
+
+            - name: Upload Release Asset
+              uses: actions/upload-release-asset@v1
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              with:
+                  upload_url: ${{ steps.create_release.outputs.upload_url }}
+                  asset_path: ${{ env.MOD_PATH }}.zip
+                  asset_name: RealisticOrbitalTrade-${{ env.VERSION }}.zip
+                  asset_content_type: application/zip

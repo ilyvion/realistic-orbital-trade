@@ -1,0 +1,42 @@
+using UnityEngine;
+using Verse;
+
+namespace RealisticOrbitalTrade
+{
+    internal class Settings : ModSettings
+    {
+        private static int _minTicksUntilDepartureBeforeGraceTime = 20000;
+        private static int _departureGraceTimeTicks = 40000;
+
+        internal static int MinTicksUntilDepartureBeforeGraceTime { get => _minTicksUntilDepartureBeforeGraceTime; set => _minTicksUntilDepartureBeforeGraceTime = value; }
+        internal static int DepartureGraceTimeTicks { get => _departureGraceTimeTicks; set => _departureGraceTimeTicks = value; }
+
+        public override void ExposeData()
+        {
+            base.ExposeData();
+
+            Scribe_Values.Look(ref _minTicksUntilDepartureBeforeGraceTime, "minTicksUntilDeparture", 20000);
+            Scribe_Values.Look(ref _departureGraceTimeTicks, "departureGraceTimeTicks", 40000);
+        }
+
+        public static void DoSettingsWindowContents(Rect inRect)
+        {
+            Listing_Standard listingStandard = new();
+            listingStandard.Begin(inRect);
+
+            var minHoursUntilDepartureBeforeGraceTime = _minTicksUntilDepartureBeforeGraceTime / 2500f;
+            listingStandard.Label(string.Format("RealisticOrbitalTrade.MinTimeUntilDepartureBeforeGraceTimeLabel".Translate(), minHoursUntilDepartureBeforeGraceTime), -1f, "RealisticOrbitalTrade.MinTimeUntilDepartureBeforeGraceTimeTooltip".Translate());
+            minHoursUntilDepartureBeforeGraceTime = listingStandard.Slider(minHoursUntilDepartureBeforeGraceTime, 1, 16);
+            _minTicksUntilDepartureBeforeGraceTime = (int)(minHoursUntilDepartureBeforeGraceTime * 2500f);
+
+            listingStandard.Gap(4);
+
+            var departureGraceTime = _departureGraceTimeTicks / 2500f;
+            listingStandard.Label(string.Format("RealisticOrbitalTrade.DepartureGraceTimeLabel".Translate(), departureGraceTime), -1f, "RealisticOrbitalTrade.DepartureGraceTimeTooltip".Translate());
+            departureGraceTime = listingStandard.Slider(departureGraceTime, 4, 24);
+            _departureGraceTimeTicks = (int)(departureGraceTime * 2500f);
+
+            listingStandard.End();
+        }
+    }
+}

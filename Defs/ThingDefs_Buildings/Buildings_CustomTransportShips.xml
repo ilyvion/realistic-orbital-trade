@@ -1,0 +1,40 @@
+<Defs>
+    <ThingDef Name="ROT_TradeShuttleBase" ParentName="ShuttleBase">
+        <comps>
+            <li>
+                <compClass>RealisticOrbitalTrade.Comps.CompTradeShuttle</compClass>
+            </li>
+        </comps>
+        <inspectorTabs Inherit="false">
+            <li>RealisticOrbitalTrade.ITabs.ITab_ContentsTransporterCustom</li>
+        </inspectorTabs>
+    </ThingDef>
+    <ThingDef ParentName="ROT_TradeShuttleBase">
+        <defName>ROT_TradeShuttle</defName>
+    </ThingDef>
+    <ThingDef Name="ROT_ExplosiveRiggedTradeShuttleBase" ParentName="ROT_TradeShuttleBase">
+        <defName>ROT_ExplosiveRiggedTradeShuttle</defName>
+        <comps>
+            <li Class="CompProperties_Explosive">
+                <explodeOnKilled>true</explodeOnKilled>
+                <explosiveRadius>6.9</explosiveRadius>
+                <explosiveDamageType>Flame</explosiveDamageType>
+                <chanceToStartFire>1</chanceToStartFire>
+                <propagationSpeed>0.6</propagationSpeed>
+            </li>
+            <li Class="CompProperties_InspectString">
+                <inspectString>This shuttle is very obviously rigged with some kind of improvised explosive device.</inspectString>
+            </li>
+        </comps>
+    </ThingDef>
+    <ThingDef ParentName="ROT_ExplosiveRiggedTradeShuttleBase">
+        <defName>ROT_ExplosiveRiggedAmendmentTradeShuttle</defName>
+        <!--
+            In order to discourage "farming" shuttles for items, in addition to the explosives,
+            the amendment shuttle will leave only scraps
+        -->
+        <killedLeavings Inherit="false">
+            <ChunkSlagSteel>2</ChunkSlagSteel>
+        </killedLeavings>
+    </ThingDef>
+</Defs>

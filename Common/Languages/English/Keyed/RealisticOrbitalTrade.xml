@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LanguageData>
+    <RealisticOrbitalTrade.MinTimeUntilDepartureBeforeGraceTimeLabel>Minimum time until departure before adding grace time: {0} hours</RealisticOrbitalTrade.MinTimeUntilDepartureBeforeGraceTimeLabel>
+    <RealisticOrbitalTrade.MinTimeUntilDepartureBeforeGraceTimeTooltip>If a trade is made when there is less time left before an orbital trader leaves than this setting, the orbital trader will extend their stay with an additional amount of time configurable below. For the sake of balance, the orbital trader will still stop accepting new trades once the original departure time is reached.</RealisticOrbitalTrade.MinTimeUntilDepartureBeforeGraceTimeTooltip>
+    <RealisticOrbitalTrade.DepartureGraceTimeLabel>Grace time added if below minimum time: {0} hours</RealisticOrbitalTrade.DepartureGraceTimeLabel>
+    <RealisticOrbitalTrade.DepartureGraceTimeTooltip>If a trade is made when there is less time left before an orbital trader leaves than the amount of time configurable above, the orbital trader will extend their stay with this additional amount of time. For the sake of balance, the orbital trader will still stop accepting new trades once the original departure time is reached.</RealisticOrbitalTrade.DepartureGraceTimeTooltip>
+
+    <RealisticOrbitalTrade.NotAnsweringForGraceTime>{0} is only waiting around to finish an already started agreement and is not interesting in initiating any new trades.</RealisticOrbitalTrade.NotAnsweringForGraceTime>
+    <RealisticOrbitalTrade.NotAnsweringForActiveTrade>{0} reminds you to finish up your current trade agreement before starting another.</RealisticOrbitalTrade.NotAnsweringForActiveTrade>
+
+    <RealisticOrbitalTrade.RequiredThings>Required specific items</RealisticOrbitalTrade.RequiredThings>
+
+    <RealisticOrbitalTrade.CancelTradeAgreementLabel>Cancel trade agreement</RealisticOrbitalTrade.CancelTradeAgreementLabel>
+    <RealisticOrbitalTrade.CancelTradeAgreementDesc>Cancels the trade agreement associated with this shuttle. Any partially loaded items will be unloaded first, then the shuttle will leave.</RealisticOrbitalTrade.CancelTradeAgreementDesc>
+
+    <RealisticOrbitalTrade.NotAnsweringForActiveAmendment>{0} reminds you that you're already in the middle of amending your blacklisting status.</RealisticOrbitalTrade.NotAnsweringForActiveAmendment>
+    <RealisticOrbitalTrade.PayBlacklistRemovalFeeDialogText>You were blacklisted from trading with orbital traders for destroying one of our shuttles. In order to have your good standing with us reinstated, you will have to pay us back for the parts it takes to produce a shuttle plus the cost of the labor, and finally we charge a nominal fee for the inconvenience you have caused us. The fixed costs are:\n\n{0}</RealisticOrbitalTrade.PayBlacklistRemovalFeeDialogText>
+    <RealisticOrbitalTrade.LaborCost>Labor: {0}</RealisticOrbitalTrade.LaborCost>
+    <RealisticOrbitalTrade.NominalFeeCost>Nominal fee: {0} (1% of player wealth)</RealisticOrbitalTrade.NominalFeeCost>
+    <RealisticOrbitalTrade.CostOfParts>You've chosen to pay us back in the following manner:</RealisticOrbitalTrade.CostOfParts>
+    <RealisticOrbitalTrade.PayForWith>{0}: {1}</RealisticOrbitalTrade.PayForWith>
+    <RealisticOrbitalTrade.PayWith.Parts>Returning</RealisticOrbitalTrade.PayWith.Parts>
+    <RealisticOrbitalTrade.PayWith.Silver>Paying for with {0}</RealisticOrbitalTrade.PayWith.Silver>
+    <RealisticOrbitalTrade.HowPayForParts>How would you like to pay for the {0}?</RealisticOrbitalTrade.HowPayForParts>
+    <RealisticOrbitalTrade.PayForPartsWithParts>Return the {0}</RealisticOrbitalTrade.PayForPartsWithParts>
+    <RealisticOrbitalTrade.PayForPartsWithSilver>Pay for the {0} ({1})</RealisticOrbitalTrade.PayForPartsWithSilver>
+    <RealisticOrbitalTrade.AreYouReadyToPay>You've made your choices, are you ready to pay us back?</RealisticOrbitalTrade.AreYouReadyToPay>
+    <RealisticOrbitalTrade.IAmReadyToPay>I'm ready</RealisticOrbitalTrade.IAmReadyToPay>
+    <RealisticOrbitalTrade.ResetPaymentChoices>I'd like to choose differently</RealisticOrbitalTrade.ResetPaymentChoices>
+
+    <RealisticOrbitalTrade.CancelAmendmentLabel>Cancel amendment offer
+    </RealisticOrbitalTrade.CancelAmendmentLabel>
+    <RealisticOrbitalTrade.CancelAmendmentDesc>Cancels the amendment offer associated with this shuttle. Any partially loaded items will be unloaded first, then the shuttle will leave.</RealisticOrbitalTrade.CancelAmendmentDesc>
+</LanguageData>
