@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2024-05-01
+
 ### Changed
 
 -   Assume that if a trade is taking place but a Realistic Orbital Trade agreement isn't in place, that a different mod is in effect and ignore it. Fixes a discovered incompatibility with the Trade Ships mod.
@@ -15,11 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Typo in Preview image
 
-## [0.1.0]
+## [0.1.0] - 2024-04-30
 
 ### Added
 
 -   First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.1.1...v0.1.1
 [0.1.0]: https://github.com/ilyvion/realistic-orbital-trade/releases/tag/v0.1.0
