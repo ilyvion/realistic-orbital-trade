@@ -8,61 +8,61 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   inkscape:export-ydpi="96"
-   inkscape:export-xdpi="96"
-   inkscape:export-filename="C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\RealisticOrbitalTrade\About\LogoText.png"
-   sodipodi:docname="LogoText.svg"
-   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
-   id="svg8"
-   version="1.1"
-   viewBox="0 0 111.12499 55.562501"
+   width="420"
    height="210"
-   width="420">
+   viewBox="0 0 111.12499 55.562501"
+   version="1.1"
+   id="svg8"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
+   sodipodi:docname="LogoText.svg"
+   inkscape:export-filename="C:\Users\alexs\Documents\Projects\RealisticOrbitalTrade\About\LogoText.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96">
   <defs
      id="defs2">
     <linearGradient
-       id="linearGradient845"
-       inkscape:collect="always">
+       inkscape:collect="always"
+       id="linearGradient845">
       <stop
-         id="stop841"
+         style="stop-color:#f6f4f4;stop-opacity:1"
          offset="0"
-         style="stop-color:#f6f4f4;stop-opacity:1" />
+         id="stop841" />
       <stop
-         id="stop843"
+         style="stop-color:#cfcdcc;stop-opacity:1"
          offset="1"
-         style="stop-color:#cfcdcc;stop-opacity:1" />
+         id="stop843" />
     </linearGradient>
     <linearGradient
-       gradientTransform="matrix(0.9191484,0,0,0.9191484,-6.1149645,-3.3699902)"
-       gradientUnits="userSpaceOnUse"
-       y2="64.092857"
-       x2="63.115456"
-       y1="3.6899467"
-       x1="63.115456"
-       id="linearGradient847"
+       inkscape:collect="always"
        xlink:href="#linearGradient845"
-       inkscape:collect="always" />
+       id="linearGradient847"
+       x1="63.115456"
+       y1="3.6899467"
+       x2="63.115456"
+       y2="64.092857"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.9191484,0,0,0.9191484,-6.1149645,-3.3699902)" />
   </defs>
   <sodipodi:namedview
-     inkscape:window-maximized="1"
-     inkscape:window-y="-8"
-     inkscape:window-x="-8"
-     inkscape:window-height="1377"
-     inkscape:window-width="3440"
-     units="px"
-     showgrid="false"
-     inkscape:document-rotation="0"
-     inkscape:current-layer="layer1"
-     inkscape:document-units="mm"
-     inkscape:cy="148.7868"
-     inkscape:cx="209.20733"
-     inkscape:zoom="1.979899"
-     inkscape:pageshadow="2"
-     inkscape:pageopacity="0"
-     borderopacity="1.0"
-     bordercolor="#666666"
+     id="base"
      pagecolor="#ffffff"
-     id="base" />
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.979899"
+     inkscape:cx="209.20733"
+     inkscape:cy="148.7868"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     inkscape:document-rotation="0"
+     showgrid="false"
+     units="px"
+     inkscape:window-width="3440"
+     inkscape:window-height="1377"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
   <metadata
      id="metadata5">
     <rdf:RDF>
@@ -71,34 +71,36 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
   <g
-     id="layer1"
+     inkscape:label="Layer 1"
      inkscape:groupmode="layer"
-     inkscape:label="Layer 1">
+     id="layer1">
     <text
-       id="text835"
-       y="12.045153"
-       x="56.605244"
+       inkscape:export-ydpi="96"
+       inkscape:export-xdpi="96"
+       xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16.5546px;line-height:1.25;font-family:RimWordFont;-inkscape-font-specification:RimWordFont;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:url(#linearGradient847);fill-opacity:1;stroke:#393939;stroke-width:0.486383;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       xml:space="preserve"><tspan
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:RimWordFont;-inkscape-font-specification:RimWordFont;text-align:center;text-anchor:middle;fill:url(#linearGradient847);fill-opacity:1;stroke:#393939;stroke-width:0.486383;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         y="12.045153"
-         x="56.605244"
+       x="56.605244"
+       y="12.045153"
+       id="text835"><tspan
+         sodipodi:role="line"
          id="tspan833"
-         sodipodi:role="line">Realisic</tspan><tspan
-         id="tspan837"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:RimWordFont;-inkscape-font-specification:RimWordFont;text-align:center;text-anchor:middle;fill:url(#linearGradient847);fill-opacity:1;stroke:#393939;stroke-width:0.486383;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         x="56.605244"
+         y="12.045153"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:RimWordFont;-inkscape-font-specification:RimWordFont;text-align:center;text-anchor:middle;fill:url(#linearGradient847);fill-opacity:1;stroke:#393939;stroke-width:0.486383;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1">RealisTic</tspan><tspan
+         sodipodi:role="line"
+         x="56.605244"
          y="32.738403"
-         x="56.605244"
-         sodipodi:role="line">Orbital</tspan><tspan
-         id="tspan839"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:RimWordFont;-inkscape-font-specification:RimWordFont;text-align:center;text-anchor:middle;fill:url(#linearGradient847);fill-opacity:1;stroke:#393939;stroke-width:0.486383;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         y="53.431652"
+         id="tspan837">Orbital</tspan><tspan
+         sodipodi:role="line"
          x="56.605244"
-         sodipodi:role="line">Trade</tspan></text>
+         y="53.431652"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:RimWordFont;-inkscape-font-specification:RimWordFont;text-align:center;text-anchor:middle;fill:url(#linearGradient847);fill-opacity:1;stroke:#393939;stroke-width:0.486383;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="tspan839">Trade</tspan></text>
   </g>
 </svg>
