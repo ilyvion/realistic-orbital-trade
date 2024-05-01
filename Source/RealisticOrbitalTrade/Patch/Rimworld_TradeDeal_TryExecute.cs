@@ -15,7 +15,6 @@ internal static class Rimworld_TradeDeal_TryExecute
             return;
         }
 
-
         if (__result)
         {
             if (actuallyTraded)

@@ -48,6 +48,11 @@ internal class RealisticOrbitalTradeMod : Mod
         Log.Warning("[Realistic Orbital Trade] " + msg);
     }
 
+    public static void WarningOnce(string msg, int key)
+    {
+        Log.WarningOnce("[Realistic Orbital Trade] " + msg, Constants.MessageKeyBase + key);
+    }
+
     public static void Error(string msg)
     {
         Log.Error("[Realistic Orbital Trade] " + msg);

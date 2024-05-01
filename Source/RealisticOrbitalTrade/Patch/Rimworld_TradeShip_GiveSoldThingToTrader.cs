@@ -10,7 +10,13 @@ internal static class Rimworld_TradeShip_GiveSoldThingToTrader
 {
     private static bool Prefix(Thing toGive, int countToGive, Pawn playerNegotiator)
     {
-        var tradeAgreement = TradeShipData.tradeAgreementForQuest!;
+        var tradeAgreement = TradeShipData.tradeAgreementForQuest;
+        if (tradeAgreement == null)
+        {
+            RealisticOrbitalTradeMod.WarningOnce("Trade ship did not have a trade agreement arranged. Mod incompatibility?", Constants.MissingTradeAgreementKey);
+            return true;
+        }
+
         if (toGive is Pawn pawn)
         {
             tradeAgreement.pawnsSoldToTrader.Add(pawn);
