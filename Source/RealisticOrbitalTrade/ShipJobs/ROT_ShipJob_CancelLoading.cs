@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using RealisticOrbitalTrade.Comps;
 using RimWorld;
 using Verse;
@@ -33,7 +34,7 @@ public class ShipJob_CancelLoad : ShipJob
             transportShip.TransporterComp.leftToLoad.Clear();
 
             // End any jobs currently involved in loading the transport ship
-            foreach (var humanLike in transportShip.shipThing.Map.mapPawns.AllHumanlike)
+            foreach (var humanLike in transportShip.shipThing.Map.mapPawns.GetAllHumanLike())
             {
                 if (humanLike.CurJobDef == JobDefOf.HaulToTransporter && humanLike.CurJob.targetB == transportShip.shipThing)
                 {
@@ -44,5 +45,29 @@ public class ShipJob_CancelLoad : ShipJob
             // We only need to do this once
             done = true;
         }
+    }
+}
+
+internal static class MapPawnsGetAllHumanLike
+{
+#if v1_4
+    private static List<Pawn> humanlikePawnsResult = new List<Pawn>();
+#endif
+    public static List<Pawn> GetAllHumanLike(this MapPawns mapPawns)
+    {
+#if v1_5
+        return mapPawns.AllHumanlike;
+#elif v1_4
+		humanlikePawnsResult.Clear();
+		List<Pawn> allPawns = mapPawns.AllPawns;
+		for (int i = 0; i < allPawns.Count; i++)
+		{
+			if (allPawns[i].RaceProps.Humanlike)
+			{
+				humanlikePawnsResult.Add(allPawns[i]);
+			}
+		}
+		return humanlikePawnsResult;
+#endif
     }
 }

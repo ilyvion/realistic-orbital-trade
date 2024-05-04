@@ -9,12 +9,23 @@ dotnet build .vscode
 if ($LASTEXITCODE -gt 0) {
     throw "Build failed"
 }
+$env:RimWorldVersion = "1.4"
+dotnet build .vscode
+#dotnet build --configuration Release .vscode
+if ($LASTEXITCODE -gt 0) {
+    throw "Build failed"
+}
+
+# remove pdbs (for release)
+# Remove-Item -Path .\1.5\Assemblies\RealisticOrbitalTrade.pdb -ErrorAction SilentlyContinue
+# Remove-Item -Path .\1.4\Assemblies\RealisticOrbitalTrade.pdb -ErrorAction SilentlyContinue
 
 # remove mod folder
 Remove-Item -Path $Target -Recurse -ErrorAction SilentlyContinue
 
 # copy mod files
 Copy-Item -Path 1.5 $Target\1.5 -Recurse
+Copy-Item -Path 1.4 $Target\1.4 -Recurse
 
 Copy-Item -Path Common $Target\Common -Recurse
 

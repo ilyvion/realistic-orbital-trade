@@ -36,6 +36,11 @@ jobs:
                   RimWorldVersion: 1.5
               run: dotnet build .vscode --configuration Release
 
+            - name: Build Mod for 1.4
+              env:
+                  RimWorldVersion: 1.4
+              run: dotnet build .vscode --configuration Release
+
             - name: Upload Mod Artifacts
               uses: actions/upload-artifact@v4
               with:
@@ -43,6 +48,7 @@ jobs:
                   path: |
                       About/
                       1.5/
+                      1.4/
                       Common/
                       Defs/
                       Patches/

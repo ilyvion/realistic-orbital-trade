@@ -274,9 +274,9 @@ internal static class Rimworld_CompShuttle_IsRequired
     private static void Postfix(Thing thing, CompShuttle __instance, ref bool __result)
     {
         var compTradeShuttle = __instance.parent.TryGetComp<CompTradeShuttle>();
-        if (!__result && compTradeShuttle != null && compTradeShuttle.IsRequired(thing))
+        if (!__result && compTradeShuttle != null)
         {
-            __result = true;
+            __result = compTradeShuttle.IsRequired(thing);
         }
     }
 }
@@ -310,7 +310,7 @@ internal static class Rimworld_CompShuttle_RequiredThingsLabel
         }
     }
 
-    private static MethodInfo _methodInjectThingsLabel = SymbolExtensions.GetMethodInfo(() => InjectThingsLabel(new(), new()));
+    private static readonly MethodInfo _methodInjectThingsLabel = SymbolExtensions.GetMethodInfo(() => InjectThingsLabel(new(), new()));
 
     private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {

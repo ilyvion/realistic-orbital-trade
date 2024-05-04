@@ -13,7 +13,7 @@
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 
         <!-- Intellisense doesn't work without specifying this -->
-        <RimWorldVersion>1.5</RimWorldVersion>
+        <!-- <RimWorldVersion>1.5</RimWorldVersion> -->
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)' == 'Release'">
@@ -41,6 +41,17 @@
             </PropertyGroup>
             <ItemGroup>
                 <PackageReference Include="Krafs.Rimworld.Ref" Version="1.5.*-*">
+                    <ExcludeAssets>runtime</ExcludeAssets>
+                </PackageReference>
+            </ItemGroup>
+        </When>
+        <When Condition="'$(RimWorldVersion)' == '1.4'">
+            <PropertyGroup>
+                <DefineConstants>$(DefineConstants);v1_4</DefineConstants>
+                <OutputPath>../1.4/Assemblies</OutputPath>
+            </PropertyGroup>
+            <ItemGroup>
+                <PackageReference Include="Krafs.Rimworld.Ref" Version="1.4.*-*">
                     <ExcludeAssets>runtime</ExcludeAssets>
                 </PackageReference>
             </ItemGroup>
