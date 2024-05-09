@@ -43,6 +43,14 @@ internal class RealisticOrbitalTradeMod : Mod
         Log.Message("[Realistic Orbital Trade] " + msg);
     }
 
+    public static void Dev(string msg)
+    {
+        if (Prefs.DevMode)
+        {
+            Log.Message("[Realistic Orbital Trade][DEV] " + msg);
+        }
+    }
+
     public static void Warning(string msg)
     {
         Log.Warning("[Realistic Orbital Trade] " + msg);

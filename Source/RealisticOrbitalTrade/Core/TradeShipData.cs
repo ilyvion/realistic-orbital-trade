@@ -12,6 +12,15 @@ internal class TradeShipData : IExposable
     public int ticksUntilCommsClosed = -1;
     public TradeAgreement? activeTradeAgreement;
 
+    public TradeShipData(TradeShip tradeShip, bool getting)
+    {
+        RealisticOrbitalTradeMod.Dev($"Instantiating new TradeShipData instance for {tradeShip} (getting? {getting})");
+        if (!getting)
+        {
+            tradeShip.SetData(this);
+        }
+    }
+
     public void ExposeData()
     {
         Scribe_Values.Look(ref ticksUntilCommsClosed, "ticksUntilCommsClosed", 0);
@@ -27,10 +36,23 @@ internal class TradeShipData : IExposable
 
 internal static class TradeShipExtensions
 {
+
+    internal static void SetData(this TradeShip tradeShip, TradeShipData tradeShipData)
+    {
+        if (_tradeShipExtra.TryGetValue(tradeShip, out _))
+        {
+            _tradeShipExtra.Remove(tradeShip);
+        }
+        _tradeShipExtra.Add(tradeShip, tradeShipData);
+    }
     private static ConditionalWeakTable<TradeShip, TradeShipData> _tradeShipExtra = new();
 
     public static TradeShipData GetData(this TradeShip tradeShip)
     {
-        return _tradeShipExtra.GetValue(tradeShip, (tradeShip) => new());
+        return _tradeShipExtra.GetValue(tradeShip, (tradeShip) =>
+        {
+            RealisticOrbitalTradeMod.Dev($"Generating new TradeShipData value for {tradeShip} ({tradeShip.GetHashCode()} -- {tradeShip.GetUniqueLoadID()})");
+            return new(tradeShip, true);
+        });
     }
 }
