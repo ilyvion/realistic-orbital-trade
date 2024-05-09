@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2024-05-09
+
 ### Fixed
 
 -   Apparently, the order of elements in LoadFolders.xml matters, but RimWorld doesn't think to mention this to you until you try to update your mod on the Steam Workshop. 🙃 I guess we're skipping 0.3.0 on Steam, heh.
@@ -44,7 +46,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.1.0...v0.1.1
