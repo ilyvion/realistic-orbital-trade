@@ -3,6 +3,10 @@ using Verse;
 using System;
 using UnityEngine;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("RealisticOrbitalTrade.TweaksGalore")]
+[assembly: InternalsVisibleTo("RealisticOrbitalTrade.WeHadATrader")]
 
 namespace RealisticOrbitalTrade;
 

@@ -1,27 +1,18 @@
 name: Build
 
 on:
-    push:
-        branches:
-            - main
-        paths-ignore:
-            - "README.md"
-            - "CHANGELOG.md"
-            - ".gitignore"
-        tags-ignore:
-            # This will ignore release versions tagged with a version identifier. We'll
-            # use a separate workflow for them.
-            - "v*"
-    pull_request:
-        paths-ignore:
-            - README.md
-            - "CHANGELOG.md"
-            - ".gitignore"
+    workflow_call:
+        inputs:
+            artifact-suffix:
+                required: true
+                type: string
 
 jobs:
     build:
         name: Build
         runs-on: windows-latest
+        env:
+            RimWorldSteamWorkshopFolderPath: ..\.deps\refs
         steps:
             - name: Checkout Repository
               uses: actions/checkout@v4
@@ -34,22 +25,31 @@ jobs:
             - name: Build Mod for 1.5
               env:
                   RimWorldVersion: 1.5
-              run: dotnet build .vscode --configuration Release
+              run: |
+                  dotnet build --configuration Release .vscode/mod.csproj
+                  dotnet build --configuration Release .vscode/wehadatrader.interop.csproj
+                  dotnet build --configuration Release .vscode/tweaksgalore.interop.csproj
 
             - name: Build Mod for 1.4
               env:
                   RimWorldVersion: 1.4
-              run: dotnet build .vscode --configuration Release
+              run: |
+                  dotnet build .vscode --configuration Release
+                  dotnet build --configuration Release .vscode/wehadatrader.interop.csproj
 
             - name: Upload Mod Artifacts
               uses: actions/upload-artifact@v4
               with:
-                  name: RealisticOrbitalTrade-${{ github.sha }}
+                  name: RealisticOrbitalTrade-${{ inputs.artifact-suffix }}
                   path: |
                       About/
                       1.5/
                       1.4/
+                      1.5_WeHadATrader/
+                      1.4_WeHadATrader/
+                      1.5_TweaksGalore/
                       Common/
+                      UpdateLog/
                       Defs/
                       Patches/
                       LICENSE
@@ -57,6 +57,7 @@ jobs:
                       LICENSE.MIT
                       README.md
                       CHANGELOG.md
+                      LoadFolders.xml
                       !**/.*
                       !About/*.pdn
                       !About/*.svg

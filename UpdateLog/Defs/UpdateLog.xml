@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+    <!-- <TabulaRasa.UpdateDef>
+		<defName>TweaksGalore_01012024</defName>
+		<date>2024/01/01</date>
+		<banner />
+		<contentList>
+			<li>
+				<header></header>
+				<text></text>
+			</li>
+		</contentList>
+		<links>
+			<li>
+				<linkLabel>Steam Workshop</linkLabel>
+				<linkUrl>https://steamcommunity.com/sharedfiles/filedetails/?id=3236257897</linkUrl>
+				<linkTex>TabulaRasa/UI/Steam</linkTex>
+			</li>
+			<li>
+				<linkLabel>GitHub</linkLabel>
+				<linkUrl>https://github.com/ilyvion/realistic-orbital-trade/</linkUrl>
+				<linkTex>TabulaRasa/UI/GitHub</linkTex>
+			</li>
+		</links>
+	</TabulaRasa.UpdateDef> -->
+
+    <TabulaRasa.UpdateDef>
+        <defName>RealisticOrbitalTrade_09052024</defName>
+        <date>2024/05/09</date>
+        <banner />
+        <contentList>
+            <li>
+                <header>Added Orbital Trade alert patch</header>
+                <text>If "We Had a Trader?" or "Tweaks Galore" are active, Realistic Orbital Trade patches their alerts about orbital trade ships to include information about when they close their comms if the player triggered extra grace time in a trade.</text>
+            </li>
+            <li>
+                <header>Fixed game loading bug</header>
+                <text>There was a bug in the code that loaded trade information associated with trade ships, which meant that if you loaded a game while there was an orbital trader active with a grace time set, "time until comms close" got reset, and you could once again make trades with the trader even during the grace period. Similarly, you could initiate a second trade with a trader while another trade was already ongoing under the same conditions.</text>
+            </li>
+        </contentList>
+        <links>
+            <li>
+                <linkLabel>Steam Workshop</linkLabel>
+                <linkUrl>https://steamcommunity.com/sharedfiles/filedetails/?id=3236257897</linkUrl>
+                <linkTex>TabulaRasa/UI/Steam</linkTex>
+            </li>
+            <li>
+                <linkLabel>GitHub</linkLabel>
+                <linkUrl>https://github.com/ilyvion/realistic-orbital-trade/</linkUrl>
+                <linkTex>TabulaRasa/UI/GitHub</linkTex>
+            </li>
+        </links>
+    </TabulaRasa.UpdateDef>
+
+</Defs>

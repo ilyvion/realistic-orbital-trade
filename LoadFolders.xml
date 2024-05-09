@@ -2,9 +2,13 @@
     <v1.5>
         <li>Common</li>
         <li>1.5</li>
+        <li IfModActive="Mlie.WeHadATrader">1.5_WeHadATrader</li>
+        <li IfModActive="Neronix17.TweaksGalore">1.5_TweaksGalore</li>
+        <li IfModActive="neronix17.toolbox">UpdateLog</li>
     </v1.5>
     <v1.4>
         <li>Common</li>
         <li>1.4</li>
+        <li IfModActive="Mlie.WeHadATrader">1.4_WeHadATrader</li>
     </v1.4>
 </loadFolders>

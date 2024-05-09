@@ -9,47 +9,9 @@ on:
 
 jobs:
     build:
-        name: Build
-        runs-on: windows-latest
-        steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v4
-
-            - name: Setup Dotnet
-              uses: actions/setup-dotnet@v4
-              with:
-                  dotnet-version: 6.0.x
-
-            - name: Build Mod for 1.5
-              env:
-                  RimWorldVersion: 1.5
-              run: dotnet build .vscode --configuration Release
-
-            - name: Build Mod for 1.4
-              env:
-                  RimWorldVersion: 1.4
-              run: dotnet build .vscode --configuration Release
-
-            - name: Upload Mod Artifacts
-              uses: actions/upload-artifact@v4
-              with:
-                  name: RealisticOrbitalTrade-Release
-                  path: |
-                      About/
-                      1.5/
-                      1.4/
-                      Common/
-                      Defs/
-                      Patches/
-                      LICENSE
-                      LICENSE.Apache-2.0
-                      LICENSE.MIT
-                      README.md
-                      CHANGELOG.md
-                      !**/.*
-                      !About/*.pdn
-                      !About/*.svg
-                      !About/*.ttf
+        uses: ./.github/workflows/build.yml
+        with:
+            artifact-suffix: Release
 
     package:
         name: Release

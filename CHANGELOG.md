@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+-   If [We Had a Trader?](https://steamcommunity.com/sharedfiles/filedetails/?id=1541408076) or [Tweaks Galore](https://steamcommunity.com/sharedfiles/filedetails/?id=2695164414) are active, Realistic Orbital Trade patches their alerts about orbital trade ships to include information about when they close their comms if the player triggered extra grace time in a trade.
+-   If [Tabula Resa](https://steamcommunity.com/sharedfiles/filedetails/?id=1660622094) is active, make use of its "update log" feature.
+
 ### Fixed
 
 -   There was a bug in the code that loaded trade information associated with trade ships, which meant that if you loaded a game while there was an orbital trader active with a grace time set, "time until comms close" got reset, and you could once again make trades with the trader even during the grace period. Similarly, you could initiate a second trade with a trader while another trade was already ongoing under the same conditions.

@@ -32,4 +32,7 @@
     <RealisticOrbitalTrade.CancelAmendmentLabel>Cancel amendment offer
     </RealisticOrbitalTrade.CancelAmendmentLabel>
     <RealisticOrbitalTrade.CancelAmendmentDesc>Cancels the amendment offer associated with this shuttle. Any partially loaded items will be unloaded first, then the shuttle will leave.</RealisticOrbitalTrade.CancelAmendmentDesc>
+
+    <RealisticOrbitalTrade.UntilCommsCloseForTrade>({0} until comms close for trade)</RealisticOrbitalTrade.UntilCommsCloseForTrade>
+    <RealisticOrbitalTrade.CommsClosedForTrade>(comms closed for trade)</RealisticOrbitalTrade.CommsClosedForTrade>
 </LanguageData>

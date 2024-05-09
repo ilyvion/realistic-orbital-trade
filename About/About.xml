@@ -5,15 +5,15 @@
     <author>ilyvion</author>
     <description>Has it ever bothered you how the orbital traders can just magically teleport items right out of your stockpiles? This mod puts an end to that. With &lt;b&gt;Realistic Orbital Trade&lt;/b&gt;, your pawns will now have to load up a shuttle with the goods you sold before the orbital trader gets their hands on them AND before you get your hands on the goods you bought.
 
-The mod will guide you through all the required steps using the RimWorld quest and letter systems once you've made a trade with an orbital trader.
+        The mod will guide you through all the required steps using the RimWorld quest and letter systems once you've made a trade with an orbital trader.
 
-The mod can be added to a game at any time. Removing the mod should be fine as long as there is no active trading quest at the time. There will be a fairly large list of once-off errors when first loading such a save, however.
+        The mod can be added to a game at any time. Removing the mod should be fine as long as there is no active trading quest at the time. There will be a fairly large list of once-off errors when first loading such a save, however.
 
-Mod compatibility is probably generally good, but there might be issues with mods that modify how orbital traders work or how vanilla shuttles work.
+        Mod compatibility is probably generally good, but there might be issues with mods that modify how orbital traders work or how vanilla shuttles work.
 
-&lt;size=24&gt;Version&lt;/size&gt;
+        &lt;size=24&gt;Version&lt;/size&gt;
 
-This is version 0.2.0 for RimWorld 1.5 and 1.4
+        This is version 0.2.0 for RimWorld 1.5 and 1.4
     </description>
     <supportedVersions>
         <li>1.5</li>
@@ -34,5 +34,7 @@ This is version 0.2.0 for RimWorld 1.5 and 1.4
     <loadAfter>
         <li>brrainz.harmony</li>
         <li>Ludeon.RimWorld.Royalty</li>
+        <li>Mlie.WeHadATrader</li>
+        <li>Neronix17.TweaksGalore</li>
     </loadAfter>
 </ModMetaData>

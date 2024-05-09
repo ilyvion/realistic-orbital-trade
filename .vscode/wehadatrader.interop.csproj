@@ -6,15 +6,16 @@
         <LangVersion>10.0</LangVersion>
         <Nullable>enable</Nullable>
 
-        <RootNamespace>RealisticOrbitalTrade</RootNamespace>
-        <AssemblyName>RealisticOrbitalTrade</AssemblyName>
-        <VersionPrefix>0.2.0</VersionPrefix>
+        <RootNamespace>RealisticOrbitalTrade.WeHadATrader</RootNamespace>
+        <AssemblyName>RealisticOrbitalTrade.WeHadATrader</AssemblyName>
+        <VersionPrefix>0.6.1</VersionPrefix>
 
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 
         <!-- Intellisense doesn't work without specifying these explicitly -->
         <!-- !! Don't check in with these uncommented !! -->
-        <!-- <RimWorldVersion>1.5</RimWorldVersion> -->
+        <!-- <RimWorldSteamWorkshopFolderPath>C:\Program Files (x86)\Steam\steamapps\workshop\content\294100</RimWorldSteamWorkshopFolderPath>
+        <RimWorldVersion>1.5</RimWorldVersion> -->
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)' == 'Release'">
@@ -31,14 +32,14 @@
 
     <ItemGroup>
         <!-- Mod -->
-        <Compile Include="../Source/RealisticOrbitalTrade/**" />
+        <Compile Include="../Source/RealisticOrbitalTrade.WeHadATrader/**" />
     </ItemGroup>
 
     <Choose>
         <When Condition="'$(RimWorldVersion)' == '1.5'">
             <PropertyGroup>
                 <DefineConstants>$(DefineConstants);v1_5</DefineConstants>
-                <OutputPath>../1.5/Assemblies</OutputPath>
+                <OutputPath>../1.5_WeHadATrader/Assemblies</OutputPath>
             </PropertyGroup>
             <ItemGroup>
                 <PackageReference Include="Krafs.Rimworld.Ref" Version="1.5.*-*">
@@ -49,7 +50,7 @@
         <When Condition="'$(RimWorldVersion)' == '1.4'">
             <PropertyGroup>
                 <DefineConstants>$(DefineConstants);v1_4</DefineConstants>
-                <OutputPath>../1.4/Assemblies</OutputPath>
+                <OutputPath>../1.4_WeHadATrader/Assemblies</OutputPath>
             </PropertyGroup>
             <ItemGroup>
                 <PackageReference Include="Krafs.Rimworld.Ref" Version="1.4.*-*">
@@ -63,5 +64,14 @@
         <PackageReference Include="Lib.Harmony" Version="2.2.2">
             <ExcludeAssets>runtime</ExcludeAssets>
         </PackageReference>
+        <ProjectReference Include=".\mod.csproj">
+            <CopyLocal>False</CopyLocal>
+            <Private>false</Private>
+        </ProjectReference>
+        <Reference Include="WeHadATrader">
+            <HintPath>$(RimWorldSteamWorkshopFolderPath)\1541408076\$(RimWorldVersion)\Assemblies\WeHadATrader.dll</HintPath>
+            <CopyLocal>False</CopyLocal>
+            <Private>false</Private>
+        </Reference>
     </ItemGroup>
 </Project>
