@@ -28,6 +28,8 @@
                 <li>cancelledTradeLetterLabel->Trade cancelled</li>
                 <li>cancelledTradeLetterText->Changed your mind, huh? That's okay, it happens.\n\n[partialLoadReturned]</li>
                 <li>partialLoadReturned->If you had partially loaded something onto our shuttle, it has been returned to you.</li>
+                <li>blacklistedLetterLabel->Faction blacklisted for trade</li>
+                <li>blacklistedLetterText->We've received word that you've done something to get yourself blacklisted in the orbital traders' guild, so we're immediately cancelling this trade.\n\n[partialLoadReturned]</li>
             </rulesStrings>
         </questContentRules>
         <root Class="RealisticOrbitalTrade.Quests.QuestNode_Root_TradeShipTransportShip" />

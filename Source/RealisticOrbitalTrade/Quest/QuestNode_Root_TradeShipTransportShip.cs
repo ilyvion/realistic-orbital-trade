@@ -66,6 +66,16 @@ public class QuestNode_Root_TradeShipTransportShip : QuestNode
             quest.End(QuestEndOutcome.Fail, signalListenMode: QuestPart.SignalListenMode.OngoingOnly);
         });
 
+        // What to do if the player becomes blacklisted externally (i.e. destroyed another trader's shuttle)
+        quest.Blacklisted(inSignalDisable: signalToTraderShuttleSentSatisfied, complete: () =>
+        {
+            quest.CancelTransportShip(toTraderTransportShip);
+            quest.ReturnBoughtItemsToTradeShip(tradeAgreement, toPlayerTransportShip);
+            quest.Letter(LetterDefOf.NegativeEvent, signalListenMode: QuestPart.SignalListenMode.OngoingOnly, text: "[blacklistedLetterText]", label: "[blacklistedLetterLabel]");
+            quest.EndActiveTradeShipTradeAgreement(tradeAgreement);
+            quest.End(QuestEndOutcome.Fail, signalListenMode: QuestPart.SignalListenMode.OngoingOnly);
+        });
+
         // What to do when the player has loaded the shuttle appropriately
         quest.Signal(signalToTraderShuttleSentSatisfied, () =>
         {
