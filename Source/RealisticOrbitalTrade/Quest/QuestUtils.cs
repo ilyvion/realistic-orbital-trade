@@ -8,13 +8,6 @@ namespace RealisticOrbitalTrade.Quests;
 
 internal class QuestUtils
 {
-    /// <summary>
-    /// How much longer after the shuttle leaves the orbital trader will leave.
-    /// This is just to give the illusion of shuttles taking a moment to get
-    /// to orbit. 2,500 ticks is 1 in-game hour.
-    /// </summary>
-    private const int AdditionalTicksAfterDeparture = 2500;
-
     public static Thing SetupShuttle(
         string shuttleName,
         Slate slate,
@@ -63,16 +56,17 @@ internal class QuestUtils
             slate.Set("graceTimeTimeLeft", originalTicksUntilDeparture.ToStringTicksToPeriod());
             slate.Set("graceTimeTimeMinimum", Settings.MinTicksUntilDepartureBeforeGraceTime.ToStringTicksToPeriod());
             slate.Set("graceTimeTimeExtra", Settings.DepartureGraceTimeTicks.ToStringTicksToPeriod());
+            slate.Set("graceTimeTimeTotal", (originalTicksUntilDeparture + Settings.DepartureGraceTimeTicks).ToStringTicksToPeriod());
             quest.Letter(LetterDefOf.NeutralEvent, text: "[graceTimeLetterText]", label: "[graceTimeLetterLabel]");
 
             if (!tradeShipWasAlreadyInGraceTime)
             {
                 tradeShip.GetData().ticksUntilCommsClosed = originalTicksUntilDeparture;
             }
-            tradeShip.ticksUntilDeparture = Settings.DepartureGraceTimeTicks + AdditionalTicksAfterDeparture;
+            tradeShip.ticksUntilDeparture += Settings.DepartureGraceTimeTicks + Constants.AdditionalTicksAfterDeparture;
         }
 
-        return tradeShip.ticksUntilDeparture - AdditionalTicksAfterDeparture;
+        return tradeShip.ticksUntilDeparture - Constants.AdditionalTicksAfterDeparture;
     }
 
     public static void CancelTransportShip(Quest quest, TransportShip transportShip)
