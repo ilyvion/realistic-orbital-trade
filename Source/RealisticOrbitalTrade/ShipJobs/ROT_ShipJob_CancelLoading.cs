@@ -31,7 +31,7 @@ public class ShipJob_CancelLoad : ShipJob
             CompTradeShuttle compTradeShuttle = transportShip.shipThing.TryGetComp<CompTradeShuttle>();
             compTradeShuttle.cancelled = true;
             compTradeShuttle.ShuttleAutoLoad = false;
-            transportShip.TransporterComp.leftToLoad.Clear();
+            transportShip.TransporterComp.leftToLoad?.Clear();
 
             // End any jobs currently involved in loading the transport ship
             foreach (var humanLike in transportShip.shipThing.Map.mapPawns.GetAllHumanLike())
