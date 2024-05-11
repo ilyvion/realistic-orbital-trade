@@ -113,14 +113,27 @@ public class QuestNode_Root_TradeShipTransportShip : QuestNode
         compShuttle.requiredPawns = tradeAgreement.pawnsSoldToTrader;
         foreach (var thingCount in tradeAgreement.thingsSoldToTrader)
         {
-            var thing = thingCount.thing;
+            Thing thing;
+            bool isInnerThing;
+            if (thingCount.thing is MinifiedThing minifiedThing)
+            {
+                thing = minifiedThing.InnerThing;
+                isInnerThing = true;
+            }
+            else
+            {
+                thing = thingCount.thing;
+                isInnerThing = false;
+            }
             bool healthAffectsPrice = thing.def.healthAffectsPrice;
             bool hasQuality = QualityUtility.TryGetQuality(thing, out var quality);
-            if (healthAffectsPrice || hasQuality)
+            if (healthAffectsPrice || hasQuality || isInnerThing)
             {
                 compTradeShuttle.requiredSpecificItems.Add(new ThingDefCountWithRequirements
                 {
                     def = thing.def,
+                    stuffDef = thing.Stuff,
+                    isInnerThing = isInnerThing,
                     count = thingCount.Count,
                     healthAffectsPrice = healthAffectsPrice,
                     hitPoints = thing.HitPoints,

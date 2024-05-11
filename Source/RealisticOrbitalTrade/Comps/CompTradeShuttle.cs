@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using HarmonyLib;
+using RealisticOrbitalTrade.ITabs;
 using RimWorld;
 using RimWorld.Planet;
 using UnityEngine;
@@ -198,6 +199,8 @@ public class CompTradeShuttle : ThingComp
 internal struct ThingDefCountWithRequirements : IExposable
 {
     public ThingDef def;
+    internal ThingDef stuffDef;
+    public bool isInnerThing;
     internal int count;
     public bool healthAffectsPrice;
     public int hitPoints;
@@ -209,7 +212,7 @@ internal struct ThingDefCountWithRequirements : IExposable
     {
         get
         {
-            return GenLabel.ThingLabel(def, null, count) + LabelExtras();
+            return GenLabel.ThingLabel(def, stuffDef, count) + LabelExtras();
         }
     }
 
@@ -240,6 +243,8 @@ internal struct ThingDefCountWithRequirements : IExposable
     public void ExposeData()
     {
         Scribe_Defs.Look(ref def, "def");
+        Scribe_Defs.Look(ref stuffDef, "stuffDef");
+        Scribe_Values.Look(ref isInnerThing, "isInnerThing");
         Scribe_Values.Look(ref count, "count");
         Scribe_Values.Look(ref healthAffectsPrice, "healthAffectsPrice");
         Scribe_Values.Look(ref hitPoints, "hitPoints");
@@ -250,8 +255,19 @@ internal struct ThingDefCountWithRequirements : IExposable
 
     internal bool Matches(Thing thing)
     {
+        if (isInnerThing)
+        {
+            if (thing is MinifiedThing minifiedThing)
+            {
+                thing = minifiedThing.InnerThing;
+            }
+            else
+            {
+                return false;
+            }
+        }
         QualityUtility.TryGetQuality(thing, out var thingQuality);
-        return def == thing.def && count != 0 && (!healthAffectsPrice || thing.HitPoints == hitPoints) && (!hasQuality || thingQuality == quality);
+        return def == thing.def && stuffDef == thing.Stuff && count != 0 && (!healthAffectsPrice || thing.HitPoints == hitPoints) && (!hasQuality || thingQuality == quality);
     }
 
     internal ThingDefCountWithRequirements WithCount(int count)

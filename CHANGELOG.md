@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 -   If you cancelled a shuttle immediately after it landed, before it had time to build up its list of items to load, it would produce a `NullReferenceException`. This no longer happens.
+-   Minified items weren't being handled correctly, so any minified item would count as matching any other. This has now been corrected so that the "inner" item of the minified item is used for checking whether a given item matches what was traded for.
 
 ## [0.3.1] - 2024-05-09
 
