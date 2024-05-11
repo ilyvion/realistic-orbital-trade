@@ -5,7 +5,7 @@ $Configuration = 'Release'
 $Target = "C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\RealisticOrbitalTrade"
 
 # $env:RimWorldSteamWorkshopFolderPath = "..\.deps\refs"
-$env:RimWorldSteamWorkshopFolderPath = "C:\Program Files (x86)\Steam\steamapps\workshop"
+$env:RimWorldSteamWorkshopFolderPath = "C:\Program Files (x86)\Steam\steamapps\workshop\content\294100"
 
 # build dlls
 $env:RimWorldVersion = "1.5"
