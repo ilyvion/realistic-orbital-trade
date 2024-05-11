@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 -   The way grace time was calculated was not very intuitive. Instead of adding the grace time to the existing time, the time was directly set to the grace time value. This meant that you could end up in a situation where when you were supposed to have grace time added, it would actually give you _less_ time instead of more! For instance if the trader was leaving in 6 hours and you had set your grace time setting to 4 hours, the new trader leave time would be in 4 hours, not the expected 10! The logic is now that the grace time is added on top of the existing time, not replacing it.
+-   Trade ships will now leave an hour after the last trade if their comms were closed; there's no reason to keep them around any longer than that.
 
 ### Fixed
 

@@ -25,6 +25,10 @@ internal static class Rimworld_TradeShip_PassingShipTick
             {
                 tradeShipExtra.ticksUntilCommsClosed--;
             }
+            else if (tradeShipExtra.ticksUntilCommsClosed == 0 && activeTradeAgreement == null && __instance.ticksUntilDeparture > Constants.AdditionalTicksAfterDeparture)
+            {
+                __instance.ticksUntilDeparture = Constants.AdditionalTicksAfterDeparture;
+            }
         }
     }
 }
