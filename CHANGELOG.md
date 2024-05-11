@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+-   Added an option to remove the time pressure aspect of the mod. Normally (i.e. before this release or in future releases with this new option unset), the orbital trader's depature timer will keep counting down even while there's an active trade. This adds an element of time pressure to the mod, which was how it was intended to be experienced. However, because different people have different playstyles and preferences, I've decided to add this option so that when it is set, an active trade stops the orbital trade ship from counting down its departure, and you can take as much time as you need to finish your trades.
+
 ### Fixed
 
 -   If you cancelled a shuttle immediately after it landed, before it had time to build up its list of items to load, it would produce a `NullReferenceException` This no longer happens.

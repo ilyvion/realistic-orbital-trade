@@ -15,6 +15,7 @@ public class QuestNode_Root_TradeShipMakeAmends : QuestNode
 
         var tradeShip = slate.Get<TradeShip>("tradeShip")!;
         var thingsToReturn = slate.Get<List<ThingDefCount>>("thingsToReturn");
+        var tradePausesDepartureTimer = slate.Get<bool>("tradePausesDepartureTimer");
 
         var questTag = QuestGenUtility.HardcodedTargetQuestTagWithQuestID("ROT_TradeShipMakeAmends");
         var cancelAmendmentSignal = QuestGenUtility.HardcodedSignalWithQuestID("CancelAmendment");
@@ -43,13 +44,21 @@ public class QuestNode_Root_TradeShipMakeAmends : QuestNode
         });
 
         // What to do if the player fails to load the shuttle on time
-        var ticksUntilShuttleDeparture = QuestUtils.CheckTradeShipRequiresGraceTime(quest, slate, tradeShip);
-        quest.ShuttleLeaveDelay(shuttle, ticksUntilShuttleDeparture, null, Gen.YieldSingle(signalShuttleSentSatisfied), null, () =>
-        {
-            quest.CancelTransportShip(transportShip);
-            quest.Letter(LetterDefOf.NeutralEvent, text: "[expiredOfferLetterText]", label: "[expiredOfferLetterLabel]");
-            quest.End(QuestEndOutcome.Fail, signalListenMode: QuestPart.SignalListenMode.OngoingOnly);
-        });
+        var ticksUntilShuttleDeparture = !tradePausesDepartureTimer
+            ? QuestUtils.CheckTradeShipRequiresGraceTime(quest, slate, tradeShip)
+            : tradeShip.ticksUntilDeparture;
+        quest.TradeShuttleLeaveDelay(
+            shuttle,
+            tradePausesDepartureTimer,
+            tradeShip.TraderName,
+            ticksUntilShuttleDeparture,
+            inSignalsDisable: Gen.YieldSingle(signalShuttleSentSatisfied),
+            complete: () =>
+            {
+                quest.CancelTransportShip(transportShip);
+                quest.Letter(LetterDefOf.NeutralEvent, text: "[expiredOfferLetterText]", label: "[expiredOfferLetterLabel]");
+                quest.End(QuestEndOutcome.Fail, signalListenMode: QuestPart.SignalListenMode.OngoingOnly);
+            });
 
         // What to do if the player destroys the shuttle
         quest.Signal(signalShuttleKilled, () =>

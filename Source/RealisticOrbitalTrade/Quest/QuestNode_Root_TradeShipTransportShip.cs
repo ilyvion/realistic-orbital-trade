@@ -36,15 +36,23 @@ public class QuestNode_Root_TradeShipTransportShip : QuestNode
         });
 
         // What to do if the player fails to load the shuttle on time
-        var ticksUntilShuttleDeparture = QuestUtils.CheckTradeShipRequiresGraceTime(quest, slate, tradeAgreement.tradeShip);
-        quest.ShuttleLeaveDelay(toTraderShuttle, ticksUntilShuttleDeparture, null, Gen.YieldSingle(signalToTraderShuttleSentSatisfied), null, () =>
-        {
-            quest.CancelTransportShip(toTraderTransportShip);
-            quest.Letter(LetterDefOf.NeutralEvent, text: "[expiredTradeLetterText]", label: "[expiredTradeLetterLabel]");
-            quest.ReturnBoughtItemsToTradeShip(tradeAgreement, toPlayerTransportShip);
-            quest.EndActiveTradeShipTradeAgreement(tradeAgreement);
-            quest.End(QuestEndOutcome.Fail, signalListenMode: QuestPart.SignalListenMode.OngoingOnly);
-        });
+        var ticksUntilShuttleDeparture = !tradeAgreement.tradePausesDepartureTimer
+            ? QuestUtils.CheckTradeShipRequiresGraceTime(quest, slate, tradeAgreement.tradeShip)
+            : tradeAgreement.tradeShip.ticksUntilDeparture;
+        quest.TradeShuttleLeaveDelay(
+            toTraderShuttle,
+            tradeAgreement.tradePausesDepartureTimer,
+            tradeAgreement.tradeShip.TraderName,
+            ticksUntilShuttleDeparture,
+            inSignalsDisable: Gen.YieldSingle(signalToTraderShuttleSentSatisfied),
+            complete: () =>
+            {
+                quest.CancelTransportShip(toTraderTransportShip);
+                quest.ReturnBoughtItemsToTradeShip(tradeAgreement, toPlayerTransportShip);
+                quest.Letter(LetterDefOf.NeutralEvent, text: "[expiredTradeLetterText]", label: "[expiredTradeLetterLabel]");
+                quest.EndActiveTradeShipTradeAgreement(tradeAgreement);
+                quest.End(QuestEndOutcome.Fail, signalListenMode: QuestPart.SignalListenMode.OngoingOnly);
+            });
 
         // What to do if the player destroys the first shuttle
         quest.ReturnBoughtItemsToTradeShip(tradeAgreement, toPlayerTransportShip, signalToTraderShuttleKilled);

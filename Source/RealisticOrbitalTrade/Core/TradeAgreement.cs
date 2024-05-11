@@ -15,6 +15,8 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
     public List<ThingCountClass> thingsSoldToTrader = new();
     public List<Pawn> pawnsSoldToTrader = new();
 
+    public bool tradePausesDepartureTimer;
+
     public IThingHolder ParentHolder => tradeShip.Map;
 
 #pragma warning disable CS8618 // Required by savegame logic
@@ -23,10 +25,11 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
     {
     }
 
-    public TradeAgreement(TradeShip tradeShip, Pawn negotiator)
+    public TradeAgreement(TradeShip tradeShip, Pawn negotiator, bool tradePausesDepartureTimer)
     {
         this.tradeShip = tradeShip;
         this.negotiator = negotiator;
+        this.tradePausesDepartureTimer = tradePausesDepartureTimer;
 
         thingsSoldToPlayer = new(this);
 

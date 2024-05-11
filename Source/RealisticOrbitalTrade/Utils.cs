@@ -4,6 +4,8 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
+using RimWorld;
+using Verse;
 
 namespace RealisticOrbitalTrade;
 
@@ -38,6 +40,9 @@ internal static class Utils
 
         throw new InjectCallBeforeReturnException(codeMatcher.Instructions());
     }
+
+    public static Quest? AmendsQuest => Find.QuestManager.QuestsListForReading.SingleOrDefault(q => q.root == QuestScriptDefOf.ROT_TradeShipMakeAmends && !q.Historical);
+    public static bool IsMakingAmends => AmendsQuest != null;
 }
 
 [Serializable]

@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LanguageData>
+    <RealisticOrbitalTrade.ActiveTradePausesDepartureTimerLabel>Active trade agreement pauses trade ship departure timer</RealisticOrbitalTrade.ActiveTradePausesDepartureTimerLabel>
+    <RealisticOrbitalTrade.ActiveTradePausesDepartureTimerTooltip>By default (when this option is not enabled), the departure timer for the orbital trader continues ticking even during an active trade. However, when this option is enabled, an active trade pauses the timer, allowing you to take all the time you need to complete your trades.\n\nNOTE: The setting's value is applied to a trade agreement upon initiation. Therefore, altering this value won't impact ongoing trades; it will take effect only when you initiate your next trade.</RealisticOrbitalTrade.ActiveTradePausesDepartureTimerTooltip>
+    <RealisticOrbitalTrade.NoEffectWhenActiveTradePausesDepartureIsEnabled>The settings below have no effect when the "Active trade agreement pauses trade ship departure timer" setting is enabled.</RealisticOrbitalTrade.NoEffectWhenActiveTradePausesDepartureIsEnabled>
     <RealisticOrbitalTrade.MinTimeUntilDepartureBeforeGraceTimeLabel>Minimum time until departure before adding grace time: {0} hours</RealisticOrbitalTrade.MinTimeUntilDepartureBeforeGraceTimeLabel>
     <RealisticOrbitalTrade.MinTimeUntilDepartureBeforeGraceTimeTooltip>If a trade is made when there is less time left before an orbital trader leaves than this setting, the orbital trader will extend their stay with an additional amount of time configurable below. For the sake of balance, the orbital trader will still stop accepting new trades once the original departure time is reached.</RealisticOrbitalTrade.MinTimeUntilDepartureBeforeGraceTimeTooltip>
     <RealisticOrbitalTrade.DepartureGraceTimeLabel>Grace time added if below minimum time: {0} hours</RealisticOrbitalTrade.DepartureGraceTimeLabel>
@@ -35,4 +38,13 @@
 
     <RealisticOrbitalTrade.UntilCommsCloseForTrade>({0} until comms close for trade)</RealisticOrbitalTrade.UntilCommsCloseForTrade>
     <RealisticOrbitalTrade.CommsClosedForTrade>(comms closed for trade)</RealisticOrbitalTrade.CommsClosedForTrade>
+
+    <RealisticOrbitalTrade.InvolvedInTradeWithInspectString>Involved in orbital trade with {0}</RealisticOrbitalTrade.InvolvedInTradeWithInspectString>
+    <RealisticOrbitalTrade.ActiveTradeShuttle>Trade shuttle waiting to be loaded</RealisticOrbitalTrade.ActiveTradeShuttle>
+
+    <RealisticOrbitalTrade.TradeShuttleDepartsIn>Trade shuttle departs in {0}</RealisticOrbitalTrade.TradeShuttleDepartsIn>
+    <RealisticOrbitalTrade.TradeShuttleDepartsOn>Trade shuttle involved in orbital trade with {0} departs on {{0}}</RealisticOrbitalTrade.TradeShuttleDepartsOn>
+    <RealisticOrbitalTrade.TradeShuttleRequires>The quest {0} requires you to load the following people or items onto the shuttle:\n{1}</RealisticOrbitalTrade.TradeShuttleRequires>
+    <RealisticOrbitalTrade.QuestPartShuttleLeaveDelay>Trade shuttle leaving in {0}</RealisticOrbitalTrade.QuestPartShuttleLeaveDelay>
+    <RealisticOrbitalTrade.QuestPartShuttleLeaveDelayDesc>The trade shuttle will leave in {1}. The quest {0} requires you to load the following people or items onto the shuttle before it leaves:\n{2}</RealisticOrbitalTrade.QuestPartShuttleLeaveDelayDesc> 146: <RealisticOrbitalTrade.QuestPartShuttleLeaveDelayDescHidden>The trade shuttle will leave in {0}.</RealisticOrbitalTrade.QuestPartShuttleLeaveDelayDescHidden>
 </LanguageData>

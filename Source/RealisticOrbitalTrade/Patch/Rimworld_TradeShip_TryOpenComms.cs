@@ -16,7 +16,7 @@ internal static class Rimworld_TradeShip_TryOpenComms
             Messages.Message("RealisticOrbitalTrade.NotAnsweringForGraceTime".Translate(__instance.TraderName), MessageTypeDefOf.NeutralEvent, historical: false);
             return false;
         }
-        else if (Find.QuestManager.QuestsListForReading.Any(q => q.root == QuestScriptDefOf.ROT_TradeShipMakeAmends && !q.Historical))
+        else if (Utils.IsMakingAmends)
         {
             Messages.Message("RealisticOrbitalTrade.NotAnsweringForActiveAmendment".Translate(__instance.TraderName), MessageTypeDefOf.NeutralEvent, historical: false);
             return false;
@@ -35,7 +35,7 @@ internal static class Rimworld_TradeShip_TryOpenComms
             }
             return false;
         }
-        else if (tradeShipExtra.activeTradeAgreement != null)
+        else if (tradeShipExtra.HasActiveTradeAgreement)
         {
             Messages.Message("RealisticOrbitalTrade.NotAnsweringForActiveTrade".Translate(__instance.TraderName), MessageTypeDefOf.NeutralEvent, historical: false);
             return false;

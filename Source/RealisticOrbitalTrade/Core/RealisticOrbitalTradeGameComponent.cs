@@ -52,7 +52,7 @@ internal class RealisticOrbitalTradeGameComponent : GameComponent
 
     public TradeAgreement StartTradeAgreement(TradeShip tradeShip, Pawn negotiator)
     {
-        var tradeAgreement = new TradeAgreement(tradeShip, negotiator);
+        var tradeAgreement = new TradeAgreement(tradeShip, negotiator, Settings.ActiveTradePausesDepartureTimer);
         _tradeAgreements.Add(tradeAgreement);
         return tradeAgreement;
     }

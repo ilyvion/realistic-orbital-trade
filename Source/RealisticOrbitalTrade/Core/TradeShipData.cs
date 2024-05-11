@@ -21,6 +21,8 @@ internal class TradeShipData : IExposable
         }
     }
 
+    public bool HasActiveTradeAgreement { get => activeTradeAgreement != null; }
+
     public void ExposeData()
     {
         Scribe_Values.Look(ref ticksUntilCommsClosed, "ticksUntilCommsClosed", 0);
