@@ -289,7 +289,7 @@ internal static class Rimworld_CompShuttle_IsRequired
 {
     private static void Postfix(Thing thing, CompShuttle __instance, ref bool __result)
     {
-        var compTradeShuttle = __instance.parent.TryGetComp<CompTradeShuttle>();
+        var compTradeShuttle = __instance.parent?.TryGetComp<CompTradeShuttle>();
         if (!__result && compTradeShuttle != null)
         {
             __result = compTradeShuttle.IsRequired(thing);
@@ -302,7 +302,7 @@ internal static class Rimworld_CompShuttle_CheckAutoload_SpecificItems
 {
     private static void Postfix(CompShuttle __instance)
     {
-        var compTradeShuttle = __instance.parent.TryGetComp<CompTradeShuttle>();
+        var compTradeShuttle = __instance.parent?.TryGetComp<CompTradeShuttle>();
         if (compTradeShuttle != null)
         {
             compTradeShuttle.CheckAutoload();
@@ -316,7 +316,7 @@ internal static class Rimworld_CompShuttle_RequiredThingsLabel
 {
     private static void InjectThingsLabel(CompShuttle __instance, StringBuilder stringBuilder)
     {
-        var compTradeShuttle = __instance.parent.TryGetComp<CompTradeShuttle>();
+        var compTradeShuttle = __instance.parent?.TryGetComp<CompTradeShuttle>();
         if (compTradeShuttle != null && compTradeShuttle.requiredSpecificItems.Count > 0)
         {
             foreach (var requiredItem in compTradeShuttle.requiredSpecificItems)
@@ -351,7 +351,7 @@ internal static class Rimworld_CompShuttle_AllRequiredThingsLoaded
 {
     private static void Postfix(CompShuttle __instance, ref bool __result)
     {
-        var compTradeShuttle = __instance.parent.TryGetComp<CompTradeShuttle>();
+        var compTradeShuttle = __instance.parent?.TryGetComp<CompTradeShuttle>();
         if (__result && compTradeShuttle != null)
         {
             __result = compTradeShuttle.AllRequiredThingsLoaded;
