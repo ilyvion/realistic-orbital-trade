@@ -358,3 +358,45 @@ internal static class Rimworld_CompShuttle_AllRequiredThingsLoaded
         }
     }
 }
+
+
+[HarmonyPatch(typeof(CompTransporter), nameof(CompTransporter.SubtractFromToLoadList))]
+internal static class Rimworld_CompTransporter_SubtractFromToLoadList
+{
+    private static bool HideFinishedMessageForTradeShuttle(CompTransporter compTransporter)
+    {
+        return compTransporter?.parent.TryGetComp<CompTradeShuttle>() != null;
+    }
+
+#pragma warning disable CS8625
+    private static readonly MethodInfo _methodHideFinishedMessageForTradeShuttle = SymbolExtensions.GetMethodInfo(() => HideFinishedMessageForTradeShuttle(default));
+#pragma warning restore CS8625
+
+    private static readonly MethodInfo _methodCompTransporterAnyInGroupHasAnythingLeftToLoad_get = AccessTools.PropertyGetter(typeof(CompTransporter), nameof(CompTransporter.AnyInGroupHasAnythingLeftToLoad));
+
+    private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var codeMatcher = new CodeMatcher(instructions);
+
+        codeMatcher.SearchForward(i => i.opcode == OpCodes.Call && i.operand is MethodInfo m && m == _methodCompTransporterAnyInGroupHasAnythingLeftToLoad_get);
+        if (!codeMatcher.IsValid)
+        {
+            RealisticOrbitalTradeMod.Error("Could not patch CompTransporter.SubtractFromToLoadList, IL does not match expectations: call to get value of CompTransporter::AnyInGroupHasAnythingLeftToLoad not found.");
+            return codeMatcher.Instructions();
+        }
+        codeMatcher.Advance(1);
+        var endLabel = codeMatcher.Operand;
+        codeMatcher.Advance(1);
+
+        codeMatcher.Insert(new CodeInstruction[] {
+            // == this
+            new(OpCodes.Ldarg_0),
+            // call patch method (HideFinishedMessageForTradeShuttle)
+            new(OpCodes.Call, _methodHideFinishedMessageForTradeShuttle),
+            // if HideFinishedMessageForTradeShuttle returns true, skip showing message
+            new(OpCodes.Brtrue_S, endLabel)
+        });
+
+        return codeMatcher.Instructions();
+    }
+}
