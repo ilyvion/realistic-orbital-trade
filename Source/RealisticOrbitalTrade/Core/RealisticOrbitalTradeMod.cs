@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("RealisticOrbitalTrade.TweaksGalore")]
 [assembly: InternalsVisibleTo("RealisticOrbitalTrade.WeHadATrader")]
+[assembly: InternalsVisibleTo("RealisticOrbitalTrade.DynamicTradeInterface")]
 
 namespace RealisticOrbitalTrade;
 

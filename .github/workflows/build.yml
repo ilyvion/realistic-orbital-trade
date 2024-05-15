@@ -29,6 +29,7 @@ jobs:
                   dotnet build --configuration Release .vscode/mod.csproj
                   dotnet build --configuration Release .vscode/wehadatrader.interop.csproj
                   dotnet build --configuration Release .vscode/tweaksgalore.interop.csproj
+                  dotnet build --configuration Release .vscode/dynamictradeinterface.interop.csproj
 
             - name: Build Mod for 1.4
               env:
@@ -36,6 +37,7 @@ jobs:
               run: |
                   dotnet build .vscode --configuration Release
                   dotnet build --configuration Release .vscode/wehadatrader.interop.csproj
+                  dotnet build --configuration Release .vscode/dynamictradeinterface.interop.csproj
 
             - name: Upload Mod Artifacts
               uses: actions/upload-artifact@v4
@@ -48,6 +50,8 @@ jobs:
                       1.5_WeHadATrader/
                       1.4_WeHadATrader/
                       1.5_TweaksGalore/
+                      1.5_DynamicTradeInterface/
+                      1.4_DynamicTradeInterface/
                       Common/
                       UpdateLog/
                       Defs/

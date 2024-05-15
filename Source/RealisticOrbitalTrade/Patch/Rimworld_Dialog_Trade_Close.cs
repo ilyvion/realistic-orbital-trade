@@ -8,10 +8,6 @@ internal static class Rimworld_Dialog_Trade_Close
 {
     private static void Postfix()
     {
-        if (TradeShipData.tradeAgreementForQuest != null)
-        {
-            RealisticOrbitalTradeGameComponent.Current.EndTradeAgreement(TradeShipData.tradeAgreementForQuest);
-            TradeShipData.tradeAgreementForQuest = null;
-        }
+        TradeShipData.EndTradeAgreementIfExists();
     }
 }

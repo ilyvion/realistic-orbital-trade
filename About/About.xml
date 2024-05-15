@@ -36,5 +36,6 @@ This is version 0.4.0 for RimWorld 1.5 and 1.4
         <li>Ludeon.RimWorld.Royalty</li>
         <li>Mlie.WeHadATrader</li>
         <li>Neronix17.TweaksGalore</li>
+        <li>zeracronius.dynamictradeinterface</li>
     </loadAfter>
 </ModMetaData>

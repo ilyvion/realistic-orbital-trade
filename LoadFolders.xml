@@ -3,12 +3,14 @@
         <li>Common</li>
         <li>1.4</li>
         <li IfModActive="Mlie.WeHadATrader">1.4_WeHadATrader</li>
+        <li IfModActive="zeracronius.dynamictradeinterface">1.4_DynamicTradeInterface</li>
     </v1.4>
     <v1.5>
         <li>Common</li>
         <li>1.5</li>
         <li IfModActive="Mlie.WeHadATrader">1.5_WeHadATrader</li>
         <li IfModActive="Neronix17.TweaksGalore">1.5_TweaksGalore</li>
+        <li IfModActive="zeracronius.dynamictradeinterface">1.5_DynamicTradeInterface</li>
         <li IfModActive="neronix17.toolbox">UpdateLog</li>
     </v1.5>
 </loadFolders>

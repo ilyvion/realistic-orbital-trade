@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+-   Added a compatibility layer for [Dynamic Trade Interface](https://steamcommunity.com/sharedfiles/filedetails/?id=3020706506). This is required because Dynamic Trade Interface uses a custom trade dialog instead of modifying the original, so Realistic Orbital Trade wasn't notified when a trade was cancelled when using it, leading to Realistic Orbital Trade thinking a trader had an active trade agreement when there wasn't any. This has now been corrected.
+
 ### Fixed
 
 -   The fix for minified items from last version had a bug where it would show items with multiple counts as "ItemName x<stackCountInStorage> x<stackCountNeeded>" in the shuttle's "Content" tab. This has now been fixed to be just "ItemName x<stackCountNeeded>" as it should be.

@@ -23,6 +23,15 @@ internal class TradeShipData : IExposable
 
     public bool HasActiveTradeAgreement { get => activeTradeAgreement != null; }
 
+    public static void EndTradeAgreementIfExists()
+    {
+        if (tradeAgreementForQuest != null)
+        {
+            RealisticOrbitalTradeGameComponent.Current.EndTradeAgreement(tradeAgreementForQuest);
+            tradeAgreementForQuest = null;
+        }
+    }
+
     public void ExposeData()
     {
         Scribe_Values.Look(ref ticksUntilCommsClosed, "ticksUntilCommsClosed", 0);
