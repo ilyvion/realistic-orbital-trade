@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+-   The fix for minified items from last version had a bug where it would show items with multiple counts as "ItemName x<stackCountInStorage> x<stackCountNeeded>" in the shuttle's "Content" tab. This has now been fixed to be just "ItemName x<stackCountNeeded>" as it should be.
+
 ## [0.4.0] - 2024-05-12
 
 ### Added

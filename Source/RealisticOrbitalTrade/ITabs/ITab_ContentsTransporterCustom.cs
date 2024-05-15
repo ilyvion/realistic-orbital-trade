@@ -68,7 +68,7 @@ internal static class Rimworld_ITab_ContentsBase_DoThingRow
         }
         else
         {
-            return $"{things[0].LabelCap} x{countToTransfer}";
+            return $"{things[0].LabelCapNoCount} x{countToTransfer}";
         }
     }
 
