@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2024-05-15
+
 ### Added
 
 -   Added a compatibility layer for [Dynamic Trade Interface](https://steamcommunity.com/sharedfiles/filedetails/?id=3020706506). This is required because Dynamic Trade Interface uses a custom trade dialog instead of modifying the original, so Realistic Orbital Trade wasn't notified when a trade was cancelled when using it, leading to Realistic Orbital Trade thinking a trader had an active trade agreement when there wasn't any. This has now been corrected.
@@ -72,7 +74,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.2.0...v0.3.0
