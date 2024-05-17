@@ -22,6 +22,7 @@ internal static class Rimworld_TradeShip_GiveSoldThingToPlayer
         {
             Traverse.Create(__instance).Field("soldPrisoners").GetValue<List<Pawn>>().Remove(item);
         }
+        RealisticOrbitalTradeMod.Dev($"Adding {thing.Label} to list of things to give to player on successful trade");
         tradeAgreement.thingsSoldToPlayer.TryAddOrTransfer(thing);
 
         return false;

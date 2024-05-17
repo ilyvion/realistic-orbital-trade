@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+-   Added a compatibility layer for [Auto Seller](https://steamcommunity.com/sharedfiles/filedetails/?id=1440321094)'s AI trading. This may be a bit fragile due to how I had to do it by patching private methods in that mod, but at least it works at the time this version is published.
+
 ## [0.5.0] - 2024-05-15
 
 ### Added

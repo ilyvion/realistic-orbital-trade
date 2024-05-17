@@ -25,6 +25,10 @@ dotnet build --configuration $Configuration .vscode/dynamictradeinterface.intero
 if ($LASTEXITCODE -gt 0) {
     throw "Build failed"
 }
+dotnet build --configuration $Configuration .vscode/autoseller.interop.csproj
+if ($LASTEXITCODE -gt 0) {
+    throw "Build failed"
+}
 
 $env:RimWorldVersion = "1.4"
 dotnet build --configuration $Configuration .vscode/mod.csproj
@@ -36,6 +40,10 @@ if ($LASTEXITCODE -gt 0) {
     throw "Build failed"
 }
 dotnet build --configuration $Configuration .vscode/dynamictradeinterface.interop.csproj
+if ($LASTEXITCODE -gt 0) {
+    throw "Build failed"
+}
+dotnet build --configuration $Configuration .vscode/autoseller.interop.csproj
 if ($LASTEXITCODE -gt 0) {
     throw "Build failed"
 }
@@ -52,6 +60,9 @@ if ($Configuration -eq "Release") {
 
     Remove-Item -Path .\1.5_DynamicTradeInterface\Assemblies\RealisticOrbitalTrade.DynamicTradeInterface.pdb -ErrorAction SilentlyContinue
     Remove-Item -Path .\1.4_DynamicTradeInterface\Assemblies\RealisticOrbitalTrade.DynamicTradeInterface.pdb -ErrorAction SilentlyContinue
+
+    Remove-Item -Path .\1.5_AutoSeller\Assemblies\RealisticOrbitalTrade.AutoSeller.pdb -ErrorAction SilentlyContinue
+    Remove-Item -Path .\1.4_AutoSeller\Assemblies\RealisticOrbitalTrade.AutoSeller.pdb -ErrorAction SilentlyContinue
 }
 
 # remove mod folder
@@ -67,6 +78,8 @@ Copy-Item -Path 1.4_WeHadATrader $Target\1.4_WeHadATrader -Recurse
 Copy-Item -Path 1.5_TweaksGalore $Target\1.5_TweaksGalore -Recurse
 Copy-Item -Path 1.5_DynamicTradeInterface $Target\1.5_DynamicTradeInterface -Recurse
 Copy-Item -Path 1.4_DynamicTradeInterface $Target\1.4_DynamicTradeInterface -Recurse
+Copy-Item -Path 1.5_AutoSeller $Target\1.5_AutoSeller -Recurse
+Copy-Item -Path 1.4_AutoSeller $Target\1.4_AutoSeller -Recurse
 
 Copy-Item -Path Common $Target\Common -Recurse
 Copy-Item -Path UpdateLog $Target\UpdateLog -Recurse

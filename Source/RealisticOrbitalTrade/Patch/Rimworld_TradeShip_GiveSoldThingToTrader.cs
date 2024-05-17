@@ -17,6 +17,7 @@ internal static class Rimworld_TradeShip_GiveSoldThingToTrader
             return true;
         }
 
+        RealisticOrbitalTradeMod.Dev($"Adding {toGive.LabelCapNoCount} x{countToGive} to list of things player needs to load onto shuttle");
         if (toGive is Pawn pawn)
         {
             tradeAgreement.pawnsSoldToTrader.Add(pawn);
