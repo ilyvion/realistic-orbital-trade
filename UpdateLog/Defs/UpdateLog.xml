@@ -26,6 +26,30 @@
 	</TabulaRasa.UpdateDef> -->
 
     <TabulaRasa.UpdateDef>
+        <defName>RealisticOrbitalTrade_18052024</defName>
+        <date>2024/05/18</date>
+        <banner />
+        <contentList>
+            <li>
+                <header>Added a compatibility layer for Auto Seller's AI trading</header>
+                <text>This may be a bit fragile due to how I had to do it by patching private methods in that mod, but at least it works at the time this version is published.</text>
+            </li>
+        </contentList>
+        <links>
+            <li>
+                <linkLabel>Steam Workshop</linkLabel>
+                <linkUrl>https://steamcommunity.com/sharedfiles/filedetails/?id=3236257897</linkUrl>
+                <linkTex>TabulaRasa/UI/Steam</linkTex>
+            </li>
+            <li>
+                <linkLabel>GitHub</linkLabel>
+                <linkUrl>https://github.com/ilyvion/realistic-orbital-trade/</linkUrl>
+                <linkTex>TabulaRasa/UI/GitHub</linkTex>
+            </li>
+        </links>
+    </TabulaRasa.UpdateDef>
+
+    <TabulaRasa.UpdateDef>
         <defName>RealisticOrbitalTrade_15052024</defName>
         <date>2024/05/15</date>
         <banner />

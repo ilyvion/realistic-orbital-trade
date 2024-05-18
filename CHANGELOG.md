@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2024-05-18
+
 ### Added
 
 -   Added a compatibility layer for [Auto Seller](https://steamcommunity.com/sharedfiles/filedetails/?id=1440321094)'s AI trading. This may be a bit fragile due to how I had to do it by patching private methods in that mod, but at least it works at the time this version is published.
@@ -78,7 +80,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.3.0...v0.3.1
