@@ -8,9 +8,12 @@
             "name": "Rimworld Mod Project",
             "type": "clr",
             "request": "launch",
-            "preLaunchTask": "build dll",
-            "args": [],
-            "program": "C:/Program Files (x86)/Steam/steamapps/common/RimWorld/RimWorldWin64.exe",
+            "preLaunchTask": "build ${input:rimWorldVersion}",
+            "args": [
+                "-savedatafolder=${workspaceFolder}\\.savedatafolder\\${input:rimWorldVersion}",
+                //"-quicktest",
+            ],
+            "program": "D://RimWorld/${input:rimWorldVersion}/RimWorldWin64.exe",
             "cwd": "${workspaceFolder}",
             "console": "internalConsole",
             "internalConsoleOptions": "neverOpen",
@@ -28,6 +31,18 @@
                 "searchMicrosoftSymbolServer": false,
                 "searchNuGetOrgSymbolServer": false
             }
+        }
+    ],
+    "inputs": [
+        {
+            "id": "rimWorldVersion",
+            "type": "pickString",
+            "description": "Rimworld version to launch?",
+            "options": [
+                "1.5",
+                "1.4"
+            ],
+            "default": "1.5"
         }
     ]
 }
