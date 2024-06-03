@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+-   Switched to using reverse patching for the custom transport ship inspect tab. This avoids other mods stepping on our toes and us stepping on other mods' toes.
+
 ### Fixed
 
 -   Made it so the shuttle loading code accepts a small difference in `Thing`'s hitpoint value so that a small amount of deterioration doesn't stop a trade from happening.
