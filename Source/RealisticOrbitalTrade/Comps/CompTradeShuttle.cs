@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -151,7 +152,7 @@ public class CompTradeShuttle : ThingComp
         CalculateRemainingRequiredItems();
 
         tmpAllSendableItems.Clear();
-        tmpAllSendableItems.AddRange(TradeUtility.AllLaunchableThingsForTrade(parent.Map, tradeAgreement!.tradeShip));
+        tmpAllSendableItems.AddRange(new Pawn_TraderTracker(tradeAgreement!.negotiator).ColonyThingsWillingToBuy(tradeAgreement!.negotiator));
         tmpAllSendableItems.AddRange(TransporterUtility.ThingsBeingHauledTo(Shuttle.TransportersInGroup, parent.Map));
 
         foreach (var requiredItem in tmpRequiredSpecificItems)
@@ -267,7 +268,7 @@ internal struct ThingDefCountWithRequirements : IExposable
             }
         }
         QualityUtility.TryGetQuality(thing, out var thingQuality);
-        return def == thing.def && stuffDef == thing.Stuff && count != 0 && (!healthAffectsPrice || thing.HitPoints == hitPoints) && (!hasQuality || thingQuality == quality);
+        return def == thing.def && stuffDef == thing.Stuff && count != 0 && (!healthAffectsPrice || Math.Abs(thing.HitPoints - hitPoints) <= 5) && (!hasQuality || thingQuality == quality);
     }
 
     internal ThingDefCountWithRequirements WithCount(int count)
