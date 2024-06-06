@@ -17,7 +17,7 @@ internal static class AutoSeller_JobDriver_AutoSell_FailToil
         // Don't trade if we're blacklisted
         if (RealisticOrbitalTradeGameComponent.Current.Standing == Standing.Blacklisted)
         {
-            RealisticOrbitalTradeMod.Dev("Failing auto-sell pawn job because player is blacklisted");
+            RealisticOrbitalTradeMod.Dev(() => "Failing auto-sell pawn job because player is blacklisted");
             __result = true;
         }
     }

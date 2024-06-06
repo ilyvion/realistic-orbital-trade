@@ -14,7 +14,7 @@ internal class TradeShipData : IExposable
 
     public TradeShipData(TradeShip tradeShip, bool getting)
     {
-        RealisticOrbitalTradeMod.Dev($"Instantiating new TradeShipData instance for {tradeShip} (getting? {getting})");
+        RealisticOrbitalTradeMod.Dev(() => $"Instantiating new TradeShipData instance for {tradeShip} (getting? {getting})");
         if (!getting)
         {
             tradeShip.SetData(this);
@@ -62,7 +62,7 @@ internal static class TradeShipExtensions
     {
         return _tradeShipExtra.GetValue(tradeShip, (tradeShip) =>
         {
-            RealisticOrbitalTradeMod.Dev($"Generating new TradeShipData value for {tradeShip} ({tradeShip.GetHashCode()} -- {tradeShip.GetUniqueLoadID()})");
+            RealisticOrbitalTradeMod.Dev(() => $"Generating new TradeShipData value for {tradeShip} ({tradeShip.GetHashCode()} -- {tradeShip.GetUniqueLoadID()})");
             return new(tradeShip, true);
         });
     }

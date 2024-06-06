@@ -34,7 +34,7 @@ internal static class Rimworld_TradeShip_GiveSoldThingToPlayer
         {
             Traverse.Create(__instance).Field("soldPrisoners").GetValue<List<Pawn>>().Remove(item);
         }
-        RealisticOrbitalTradeMod.Dev($"Adding {thing.Label} to list of things to give to player on successful trade");
+        RealisticOrbitalTradeMod.Dev(() => $"Adding {thing.Label} to list of things to give to player on successful trade");
         tradeAgreement.thingsSoldToPlayer.TryAddOrTransfer(thing);
 
         return false;
@@ -53,7 +53,7 @@ internal static class Rimworld_TradeShip_GiveSoldThingToTrader
             return true;
         }
 
-        RealisticOrbitalTradeMod.Dev($"Adding {toGive.LabelCapNoCount} x{countToGive} to list of things player needs to load onto shuttle");
+        RealisticOrbitalTradeMod.Dev(() => $"Adding {toGive.LabelCapNoCount} x{countToGive} to list of things player needs to load onto shuttle");
         if (toGive is Pawn pawn)
         {
             tradeAgreement.pawnsSoldToTrader.Add(pawn);
