@@ -36,7 +36,7 @@ public class ShipJob_CancelLoad : ShipJob
             // End any jobs currently involved in loading the transport ship
             foreach (var humanLike in transportShip.shipThing.Map.mapPawns.GetAllHumanLike())
             {
-                if (humanLike.CurJobDef == JobDefOf.HaulToTransporter && humanLike.CurJob.targetB == transportShip.shipThing)
+                if (humanLike.CurJobDef == RimWorld.JobDefOf.HaulToTransporter && humanLike.CurJob.targetB == transportShip.shipThing)
                 {
                     humanLike.jobs.EndCurrentJob(JobCondition.Incompletable, true, true);
                 }

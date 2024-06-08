@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using RealisticOrbitalTrade.Comps;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -46,11 +47,28 @@ internal abstract class QuestPart_CancelShuttle : QuestPartActivable
     {
         base.ExposeData();
         Scribe_References.Look(ref shuttle, "shuttle");
+        if (Scribe.mode == LoadSaveMode.PostLoadInit && shuttle != null)
+        {
+            if (shuttle?.TryGetComp<CompTradeShuttle>(out var compTradeShuttle) ?? false)
+            {
+                compTradeShuttle.cancelTradeAction = Complete;
+            }
+        }
     }
 
     public override void Cleanup()
     {
         base.Cleanup();
         shuttle = null;
+    }
+
+    public override void PostQuestAdded()
+    {
+        base.PostQuestAdded();
+        if (shuttle?.TryGetComp<CompTradeShuttle>(out var compTradeShuttle) ?? false)
+        {
+            RealisticOrbitalTradeMod.Dev(() => "Setting cancel trade action on CompTradeShuttle");
+            compTradeShuttle.cancelTradeAction = Complete;
+        }
     }
 }

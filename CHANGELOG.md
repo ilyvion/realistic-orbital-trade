@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+-   Added a mechanism to renegotiate a trade after it is already started. This should help people who get stuck being unable to complete a trade because of an item no longer existing or having been damaged too much.
+
 ### Changed
 
 -   Switched to using reverse patching for the custom transport ship inspect tab. This avoids other mods stepping on our toes and us stepping on other mods' toes.

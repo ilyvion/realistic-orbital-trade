@@ -39,4 +39,14 @@ internal static class ShipJobDefOf
         DefOfHelper.EnsureInitializedInCtor(typeof(ShipJobDefOf));
     }
 }
+[DefOf]
+internal static class JobDefOf
+{
+    public static JobDef ROT_RenegotiateTrade;
+
+    static JobDefOf()
+    {
+        DefOfHelper.EnsureInitializedInCtor(typeof(JobDefOf));
+    }
+}
 #pragma warning restore CS8618,CS0649

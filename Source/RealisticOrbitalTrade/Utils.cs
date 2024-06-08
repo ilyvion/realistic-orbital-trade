@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
+using RealisticOrbitalTrade.Comps;
 using RimWorld;
 using Verse;
 
@@ -43,6 +44,29 @@ internal static class Utils
 
     public static Quest? AmendsQuest => Find.QuestManager.QuestsListForReading.SingleOrDefault(q => q.root == QuestScriptDefOf.ROT_TradeShipMakeAmends && !q.Historical);
     public static bool IsMakingAmends => AmendsQuest != null;
+
+    public static void AddThingToLoadToShuttle(ThingCountClass thingCount, CompTradeShuttle compTradeShuttle, CompShuttle compShuttle)
+    {
+        if (thingCount.thing.HasRequirements(out var healthAffectsPrice, out var qualityCategory, out var hasInnerThing))
+        {
+            Thing thing = thingCount.thing.GetInnerIfMinified();
+            compTradeShuttle.requiredSpecificItems.Add(new ThingDefCountWithRequirements
+            {
+                def = thing.def,
+                stuffDef = thing.Stuff,
+                isInnerThing = hasInnerThing,
+                count = thingCount.Count,
+                healthAffectsPrice = healthAffectsPrice,
+                hitPoints = thing.HitPoints,
+                hasQuality = qualityCategory.HasValue,
+                quality = qualityCategory ?? QualityCategory.Normal
+            });
+        }
+        else
+        {
+            compShuttle.requiredItems.Add(new ThingDefCount(thingCount.thing.def, thingCount.Count));
+        }
+    }
 }
 
 [Serializable]

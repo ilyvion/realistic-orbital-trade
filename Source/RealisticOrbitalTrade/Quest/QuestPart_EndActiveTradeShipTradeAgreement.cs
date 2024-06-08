@@ -15,7 +15,12 @@ internal class QuestPart_EndActiveTradeShipTradeAgreement : QuestPart
         base.Notify_QuestSignalReceived(signal);
         if (signal.tag == inSignal)
         {
-            RealisticOrbitalTradeGameComponent.Current.EndTradeAgreement(tradeAgreement!);
+            if (tradeAgreement == null)
+            {
+                RealisticOrbitalTradeMod.Error("tradeAgreement is null in QuestPart_EndActiveTradeShipTradeAgreement. This is a bug, can't end trade agreement.");
+                return;
+            }
+            RealisticOrbitalTradeGameComponent.Current.EndTradeAgreement(tradeAgreement);
         }
     }
 

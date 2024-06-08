@@ -7,9 +7,11 @@ using RimWorld;
 using RimWorld.Planet;
 using UnityEngine;
 using Verse;
+using Verse.AI;
 
 namespace RealisticOrbitalTrade.Comps;
 
+[HotSwappable]
 public class CompTradeShuttle : ThingComp
 {
     internal bool cancelled = false;
@@ -33,6 +35,8 @@ public class CompTradeShuttle : ThingComp
     }
 
     private CompTransporter? _cachedCompTransporter;
+    internal Action? cancelTradeAction;
+
     private CompTransporter Transporter
     {
         get
@@ -61,8 +65,13 @@ public class CompTradeShuttle : ThingComp
     }
 
     private static readonly List<string> tmpRequiredLabels = new();
-    public override string CompInspectStringExtra()
+    public override string? CompInspectStringExtra()
     {
+        if (cancelled)
+        {
+            return null;
+        }
+
         StringBuilder stringBuilder = new StringBuilder();
 
         CalculateRemainingRequiredItems();
@@ -141,7 +150,13 @@ public class CompTradeShuttle : ThingComp
             return;
         }
 
-        if (!ShuttleAutoLoad || !Transporter.LoadingInProgressOrReadyToLaunch || !parent.Spawned)
+        if (tradeAgreement == null)
+        {
+            RealisticOrbitalTradeMod.Error("tradeAgreement is null in CompTradeShuttle. This is a bug, autoloading impossible.");
+            return;
+        }
+
+        if (!ShuttleAutoLoad || !Transporter.LoadingInProgressOrReadyToLaunch || !parent.Spawned || cancelled)
         {
             return;
         }
@@ -149,7 +164,7 @@ public class CompTradeShuttle : ThingComp
         CalculateRemainingRequiredItems();
 
         tmpAllSendableItems.Clear();
-        tmpAllSendableItems.AddRange(new Pawn_TraderTracker(tradeAgreement!.negotiator).ColonyThingsWillingToBuy(tradeAgreement!.negotiator));
+        tmpAllSendableItems.AddRange(tradeAgreement.ColonyThingsTraderWillingToBuy());
         tmpAllSendableItems.AddRange(TransporterUtility.ThingsBeingHauledTo(Shuttle.TransportersInGroup, parent.Map));
 
         foreach (var requiredItem in tmpRequiredSpecificItems)
@@ -190,6 +205,57 @@ public class CompTradeShuttle : ThingComp
         {
             CalculateRemainingRequiredItems();
             return tmpRequiredSpecificItems.Sum(t => t.count) == 0;
+        }
+    }
+
+    public override IEnumerable<FloatMenuOption> CompFloatMenuOptions(Pawn selPawn)
+    {
+        if (cancelled)
+        {
+            yield break;
+        }
+
+        var failureReason = GetFailureReason(selPawn);
+        if (failureReason != null)
+        {
+            yield return failureReason;
+            yield break;
+        }
+
+        yield return FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption(
+            "RealisticOrbitalTrade.RenegotiateTrade".Translate(),
+            () =>
+            {
+                if (parent == null)
+                    throw new ArgumentNullException("parent");
+
+                Job job = JobMaker.MakeJob(JobDefOf.ROT_RenegotiateTrade, parent);
+                selPawn.jobs.TryTakeOrderedJob(job, JobTag.Misc);
+            },
+            MenuOptionPriority.InitiateSocial),
+            selPawn, parent);
+
+
+        FloatMenuOption? GetFailureReason(Pawn selPawn)
+        {
+            if (tradeAgreement == null)
+            {
+                RealisticOrbitalTradeMod.Error("tradeAgreement is null in CompTradeShuttle. This is a bug, renegotiation impossible.");
+                return new FloatMenuOption("tradeAgreement is null in CompTradeShuttle. This is a bug, renegotiation impossible.", null);
+            }
+            if (tradeAgreement.toPlayerTransportShip == null || tradeAgreement.toTraderTransportShip == null)
+            {
+                return new FloatMenuOption("RealisticOrbitalTrade.RenegotiateTrade".Translate() + " " + "RealisticOrbitalTrade.OldTradeNonRenegotiable".Translate(), null);
+            }
+            if (!selPawn.CanReach(parent, PathEndMode.Touch, Danger.Some))
+            {
+                return new FloatMenuOption("CannotUseNoPath".Translate(), null);
+            }
+            if (!selPawn.health.capacities.CapableOf(PawnCapacityDefOf.Talking))
+            {
+                return new FloatMenuOption("CannotUseReason".Translate("IncapableOfCapacity".Translate(PawnCapacityDefOf.Talking.label, selPawn.Named("PAWN"))), null);
+            }
+            return null;
         }
     }
 }

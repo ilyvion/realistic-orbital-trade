@@ -6,6 +6,7 @@ internal static class Constants
 
     internal const int MessageKeyBase = 0x420;
     internal const int MissingTradeAgreementKey = 0;
+    internal const int OldTradeNonRenegotiableKey = 1;
 
 
     /// <summary>

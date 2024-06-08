@@ -7,6 +7,7 @@ using Verse;
 
 namespace RealisticOrbitalTrade.Quests;
 
+[HotSwappable]
 public class QuestNode_Root_TradeShipTransportShip : QuestNode
 {
     protected override void RunInt()
@@ -22,8 +23,12 @@ public class QuestNode_Root_TradeShipTransportShip : QuestNode
         (var toTraderShuttle, var toTraderTransportShip) = SetupToTraderTransportShip(quest, slate, tradeAgreement, questTag,
             out var signalToTraderShuttleSentSatisfied, out var signalToTraderShuttleKilled);
 
+        tradeAgreement.toTraderTransportShip = toTraderTransportShip;
+
         (var toPlayerShuttle, var toPlayerTransportShip) = SetupToPlayerTransportShip(quest, slate, tradeAgreement, questTag,
             signalToTraderShuttleSentSatisfied, out var signaltoPlayerShuttleSentSatisfied, out var signalToPlayerShuttleKilled);
+
+        tradeAgreement.toPlayerTransportShip = toPlayerTransportShip;
 
         quest.CancelTrade(toTraderShuttle, outSignalCancelled: cancelTradeSignal);
         quest.Signal(cancelTradeSignal, () =>
@@ -113,38 +118,7 @@ public class QuestNode_Root_TradeShipTransportShip : QuestNode
         compShuttle.requiredPawns = tradeAgreement.pawnsSoldToTrader;
         foreach (var thingCount in tradeAgreement.thingsSoldToTrader)
         {
-            Thing thing;
-            bool isInnerThing;
-            if (thingCount.thing is MinifiedThing minifiedThing)
-            {
-                thing = minifiedThing.InnerThing;
-                isInnerThing = true;
-            }
-            else
-            {
-                thing = thingCount.thing;
-                isInnerThing = false;
-            }
-            bool healthAffectsPrice = thing.def.healthAffectsPrice;
-            bool hasQuality = QualityUtility.TryGetQuality(thing, out var quality);
-            if (healthAffectsPrice || hasQuality || isInnerThing)
-            {
-                compTradeShuttle.requiredSpecificItems.Add(new ThingDefCountWithRequirements
-                {
-                    def = thing.def,
-                    stuffDef = thing.Stuff,
-                    isInnerThing = isInnerThing,
-                    count = thingCount.Count,
-                    healthAffectsPrice = healthAffectsPrice,
-                    hitPoints = thing.HitPoints,
-                    hasQuality = hasQuality,
-                    quality = quality
-                });
-            }
-            else
-            {
-                compShuttle.requiredItems.Add(new ThingDefCount(thingCount.thing.def, thingCount.Count));
-            }
+            Utils.AddThingToLoadToShuttle(thingCount, compTradeShuttle, compShuttle);
         }
 
         var transportShip = quest.GenerateTransportShip(TransportShipDefOf.Ship_Shuttle, Enumerable.Empty<Thing>(), shuttle).transportShip;
