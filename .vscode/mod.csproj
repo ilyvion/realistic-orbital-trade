@@ -8,7 +8,7 @@
 
         <RootNamespace>RealisticOrbitalTrade</RootNamespace>
         <AssemblyName>RealisticOrbitalTrade</AssemblyName>
-        <VersionPrefix>0.7.0</VersionPrefix>
+        <VersionPrefix>0.7.1</VersionPrefix>
 
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 
