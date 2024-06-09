@@ -270,14 +270,24 @@ internal class Dialog_RenegotiateTrade : Window
             if (stillSameDirection)
             {
                 // The change is a mere reduction
-                if (change > 0)
+                if (change > 0 && originalTradeable.CountToTransfer < 0)
                 {
-                    RealisticOrbitalTradeMod.Dev(() => $"That means the trader gets {-change}");
+                    RealisticOrbitalTradeMod.Dev(() => $"(1) That means the trader gets {-change}");
                     changes.Add((TransportShip.ToTrader, newTradeable, -change));
                 }
-                else
+                else if (change < 0 && originalTradeable.CountToTransfer < 0)
                 {
-                    RealisticOrbitalTradeMod.Dev(() => $"That means the player gets {change}");
+                    RealisticOrbitalTradeMod.Dev(() => $"(2) That means the trader gets {-change}");
+                    changes.Add((TransportShip.ToTrader, newTradeable, -change));
+                }
+                else if (change > 0 && originalTradeable.CountToTransfer > 0)
+                {
+                    RealisticOrbitalTradeMod.Dev(() => $"(3) That means the player gets {change}");
+                    changes.Add((TransportShip.ToPlayer, newTradeable, change));
+                }
+                else if (change < 0 && originalTradeable.CountToTransfer > 0)
+                {
+                    RealisticOrbitalTradeMod.Dev(() => $"(4) That means the player gets {change}");
                     changes.Add((TransportShip.ToPlayer, newTradeable, change));
                 }
             }
