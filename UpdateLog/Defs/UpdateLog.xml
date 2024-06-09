@@ -26,6 +26,38 @@
 	</TabulaRasa.UpdateDef> -->
 
     <TabulaRasa.UpdateDef>
+        <defName>RealisticOrbitalTrade_09062024</defName>
+        <date>2024/06/09</date>
+        <banner />
+        <contentList>
+            <li>
+                <header>Added a mechanism to renegotiate a trade after it is already started</header>
+                <text>This should help people who get stuck being unable to complete a trade because of an item no longer existing or having been damaged too much.</text>
+            </li>
+            <li>
+                <header>Switched to using reverse patching for the custom transport ship inspect tab</header>
+                <text>This avoids other mods stepping on our toes and us stepping on other mods' toes.</text>
+            </li>
+            <li>
+                <header>Small deterioration tolerated</header>
+                <text>Made it so the shuttle loading code accepts a small difference in an item's hitpoint value so that a small amount of deterioration doesn't stop a trade from happening.</text>
+            </li>
+        </contentList>
+        <links>
+            <li>
+                <linkLabel>Steam Workshop</linkLabel>
+                <linkUrl>https://steamcommunity.com/sharedfiles/filedetails/?id=3236257897</linkUrl>
+                <linkTex>TabulaRasa/UI/Steam</linkTex>
+            </li>
+            <li>
+                <linkLabel>GitHub</linkLabel>
+                <linkUrl>https://github.com/ilyvion/realistic-orbital-trade/</linkUrl>
+                <linkTex>TabulaRasa/UI/GitHub</linkTex>
+            </li>
+        </links>
+    </TabulaRasa.UpdateDef>
+
+    <TabulaRasa.UpdateDef>
         <defName>RealisticOrbitalTrade_18052024</defName>
         <date>2024/05/18</date>
         <banner />
