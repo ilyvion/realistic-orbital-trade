@@ -14,11 +14,13 @@ namespace RealisticOrbitalTrade;
 
 internal class RealisticOrbitalTradeMod : Mod
 {
-    private readonly ModContentPack content;
+#pragma warning disable CS8618 // Set by constructor
+    internal static RealisticOrbitalTradeMod instance;
+#pragma warning restore CS8618
 
     public RealisticOrbitalTradeMod(ModContentPack content) : base(content)
     {
-        this.content = content;
+        instance = this;
 
         // if (!ModsConfig.RoyaltyActive)
         // {
@@ -41,7 +43,7 @@ internal class RealisticOrbitalTradeMod : Mod
 
     public override string SettingsCategory()
     {
-        return content.Name;
+        return Content.Name;
     }
 
     public static void Message(string msg)
