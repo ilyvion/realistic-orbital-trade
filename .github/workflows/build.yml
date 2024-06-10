@@ -25,21 +25,47 @@ jobs:
             - name: Build Mod for 1.5
               env:
                   RimWorldVersion: 1.5
-              run: |
-                  dotnet build --configuration Release Source/RealisticOrbitalTrade/RealisticOrbitalTrade.csproj
-                  dotnet build --configuration Release Source/RealisticOrbitalTrade.WeHadATrader/RealisticOrbitalTrade.WeHadATrader.csproj
-                  dotnet build --configuration Release Source/RealisticOrbitalTrade.TweaksGalore/RealisticOrbitalTrade.TweaksGalore.csproj
-                  dotnet build --configuration Release Source/RealisticOrbitalTrade.DynamicTradeInterface/RealisticOrbitalTrade.DynamicTradeInterface.csproj
-                  dotnet build --configuration Release Source/RealisticOrbitalTrade.AutoSeller/RealisticOrbitalTrade.AutoSeller.csproj
+              run: dotnet build --configuration Release Source/RealisticOrbitalTrade/RealisticOrbitalTrade.csproj
+
+            - name: Build WeHadATrader integration for 1.5
+              env:
+                  RimWorldVersion: 1.5
+              run: dotnet build --configuration Release Source/RealisticOrbitalTrade.WeHadATrader/RealisticOrbitalTrade.WeHadATrader.csproj
+
+            - name: Build TweaksGalore integration for 1.5
+              env:
+                  RimWorldVersion: 1.5
+              run: dotnet build --configuration Release Source/RealisticOrbitalTrade.TweaksGalore/RealisticOrbitalTrade.TweaksGalore.csproj
+
+            - name: Build DynamicTradeInterface integration for 1.5
+              env:
+                  RimWorldVersion: 1.5
+              run: dotnet build --configuration Release Source/RealisticOrbitalTrade.DynamicTradeInterface/RealisticOrbitalTrade.DynamicTradeInterface.csproj
+
+            - name: Build AutoSeller integration for 1.5
+              env:
+                  RimWorldVersion: 1.5
+              run: dotnet build --configuration Release Source/RealisticOrbitalTrade.AutoSeller/RealisticOrbitalTrade.AutoSeller.csproj
 
             - name: Build Mod for 1.4
               env:
                   RimWorldVersion: 1.4
-              run: |
-                  dotnet build --configuration Release Source/RealisticOrbitalTrade/RealisticOrbitalTrade.csproj
-                  dotnet build --configuration Release Source/RealisticOrbitalTrade.WeHadATrader/RealisticOrbitalTrade.WeHadATrader.csproj
-                  dotnet build --configuration Release Source/RealisticOrbitalTrade.DynamicTradeInterface/RealisticOrbitalTrade.DynamicTradeInterface.csproj
-                  dotnet build --configuration Release Source/RealisticOrbitalTrade.AutoSeller/RealisticOrbitalTrade.AutoSeller.csproj
+              run: dotnet build --configuration Release Source/RealisticOrbitalTrade/RealisticOrbitalTrade.csproj
+
+            - name: Build WeHadATrader integration for 1.4
+              env:
+                  RimWorldVersion: 1.4
+              run: dotnet build --configuration Release Source/RealisticOrbitalTrade.WeHadATrader/RealisticOrbitalTrade.WeHadATrader.csproj
+
+            - name: Build DynamicTradeInterface integration for 1.4
+              env:
+                  RimWorldVersion: 1.4
+              run: dotnet build --configuration Release Source/RealisticOrbitalTrade.DynamicTradeInterface/RealisticOrbitalTrade.DynamicTradeInterface.csproj
+
+            - name: Build AutoSeller integration for 1.4
+              env:
+                  RimWorldVersion: 1.4
+              run: dotnet build --configuration Release Source/RealisticOrbitalTrade.AutoSeller/RealisticOrbitalTrade.AutoSeller.csproj
 
             - name: Upload Mod Artifacts
               uses: actions/upload-artifact@v4
