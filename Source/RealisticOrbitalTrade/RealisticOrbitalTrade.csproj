@@ -6,19 +6,18 @@
         <LangVersion>12.0</LangVersion>
         <Nullable>enable</Nullable>
 
-        <RootNamespace>RealisticOrbitalTrade.WeHadATrader</RootNamespace>
-        <AssemblyName>RealisticOrbitalTrade.WeHadATrader</AssemblyName>
+        <RootNamespace>RealisticOrbitalTrade</RootNamespace>
+        <AssemblyName>RealisticOrbitalTrade</AssemblyName>
         <VersionPrefix>0.7.1</VersionPrefix>
 
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 
         <!-- Intellisense doesn't work without specifying this explicitly -->
         <RimWorldVersion Condition="'$(RimWorldVersion)'==''">1.5</RimWorldVersion>
-        <RimWorldSteamWorkshopFolderPath Condition="'$(RimWorldSteamWorkshopFolderPath)'==''">..\.deps\refs</RimWorldSteamWorkshopFolderPath>
     </PropertyGroup>
 
     <PropertyGroup>
-        <OutputPath>../$(RimWorldVersion)_WeHadATrader/Assemblies</OutputPath>
+        <OutputPath>../../$(RimWorldVersion)/Assemblies</OutputPath>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)' == 'Release'">
@@ -32,11 +31,6 @@
         <Optimize>false</Optimize>
         <DebugSymbols>true</DebugSymbols>
     </PropertyGroup>
-
-    <ItemGroup>
-        <!-- Mod -->
-        <Compile Include="../Source/RealisticOrbitalTrade.WeHadATrader/**" />
-    </ItemGroup>
 
     <Choose>
         <When Condition="'$(RimWorldVersion)' == '1.5'">
@@ -58,14 +52,9 @@
         <PackageReference Include="Krafs.Rimworld.Ref" Version="$(RimWorldVersion).*">
             <ExcludeAssets>runtime</ExcludeAssets>
         </PackageReference>
-        <ProjectReference Include=".\mod.csproj">
-            <CopyLocal>False</CopyLocal>
-            <Private>false</Private>
-        </ProjectReference>
-        <Reference Include="WeHadATrader">
-            <HintPath>$(RimWorldSteamWorkshopFolderPath)\1541408076\$(RimWorldVersion)\Assemblies\WeHadATrader.dll</HintPath>
-            <CopyLocal>False</CopyLocal>
-            <Private>false</Private>
-        </Reference>
+        <PackageReference Include="Nullable" Version="1.3.1">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
     </ItemGroup>
 </Project>

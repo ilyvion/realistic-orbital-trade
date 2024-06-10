@@ -12,7 +12,7 @@ jobs:
         name: Build
         runs-on: windows-latest
         env:
-            RimWorldSteamWorkshopFolderPath: ..\.deps\refs
+            RimWorldSteamWorkshopFolderPath: ..\..\.deps\refs
         steps:
             - name: Checkout Repository
               uses: actions/checkout@v4
@@ -26,20 +26,20 @@ jobs:
               env:
                   RimWorldVersion: 1.5
               run: |
-                  dotnet build --configuration Release .vscode/mod.csproj
-                  dotnet build --configuration Release .vscode/wehadatrader.interop.csproj
-                  dotnet build --configuration Release .vscode/tweaksgalore.interop.csproj
-                  dotnet build --configuration Release .vscode/dynamictradeinterface.interop.csproj
-                  dotnet build --configuration Release .vscode/autoseller.interop.csproj
+                  dotnet build --configuration Release Source/RealisticOrbitalTrade/RealisticOrbitalTrade.csproj
+                  dotnet build --configuration Release Source/RealisticOrbitalTrade.WeHadATrader/RealisticOrbitalTrade.WeHadATrader.csproj
+                  dotnet build --configuration Release Source/RealisticOrbitalTrade.TweaksGalore/RealisticOrbitalTrade.TweaksGalore.csproj
+                  dotnet build --configuration Release Source/RealisticOrbitalTrade.DynamicTradeInterface/RealisticOrbitalTrade.DynamicTradeInterface.csproj
+                  dotnet build --configuration Release Source/RealisticOrbitalTrade.AutoSeller/RealisticOrbitalTrade.AutoSeller.csproj
 
             - name: Build Mod for 1.4
               env:
                   RimWorldVersion: 1.4
               run: |
-                  dotnet build .vscode --configuration Release
-                  dotnet build --configuration Release .vscode/wehadatrader.interop.csproj
-                  dotnet build --configuration Release .vscode/dynamictradeinterface.interop.csproj
-                  dotnet build --configuration Release .vscode/autoseller.interop.csproj
+                  dotnet build --configuration Release Source/RealisticOrbitalTrade/RealisticOrbitalTrade.csproj
+                  dotnet build --configuration Release Source/RealisticOrbitalTrade.WeHadATrader/RealisticOrbitalTrade.WeHadATrader.csproj
+                  dotnet build --configuration Release Source/RealisticOrbitalTrade.DynamicTradeInterface/RealisticOrbitalTrade.DynamicTradeInterface.csproj
+                  dotnet build --configuration Release Source/RealisticOrbitalTrade.AutoSeller/RealisticOrbitalTrade.AutoSeller.csproj
 
             - name: Upload Mod Artifacts
               uses: actions/upload-artifact@v4

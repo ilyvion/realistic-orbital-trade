@@ -7,29 +7,29 @@ $VersionTargetPrefix = "D:\RimWorld"
 $VersionTargetSuffix = "Mods\RealisticOrbitalTrade"
 $Target = "$VersionTargetPrefix\$env:RimWorldVersion\$VersionTargetSuffix"
 
-$env:RimWorldSteamWorkshopFolderPath = "..\.deps\refs"
+$env:RimWorldSteamWorkshopFolderPath = "..\..\.deps\refs"
 # $env:RimWorldSteamWorkshopFolderPath = "C:\Program Files (x86)\Steam\steamapps\workshop\content\294100"
 
 # build dlls
-dotnet build --configuration $Configuration .vscode/mod.csproj
+dotnet build --configuration $Configuration Source/RealisticOrbitalTrade/RealisticOrbitalTrade.csproj
 if ($LASTEXITCODE -gt 0) {
     throw "Build failed"
 }
-dotnet build --configuration $Configuration .vscode/wehadatrader.interop.csproj
+dotnet build --configuration $Configuration Source/RealisticOrbitalTrade.WeHadATrader/RealisticOrbitalTrade.WeHadATrader.csproj
 if ($LASTEXITCODE -gt 0) {
     throw "Build failed"
 }
-dotnet build --configuration $Configuration .vscode/dynamictradeinterface.interop.csproj
+dotnet build --configuration $Configuration Source/RealisticOrbitalTrade.DynamicTradeInterface/RealisticOrbitalTrade.DynamicTradeInterface.csproj
 if ($LASTEXITCODE -gt 0) {
     throw "Build failed"
 }
-dotnet build --configuration $Configuration .vscode/autoseller.interop.csproj
+dotnet build --configuration $Configuration Source/RealisticOrbitalTrade.AutoSeller/RealisticOrbitalTrade.AutoSeller.csproj
 if ($LASTEXITCODE -gt 0) {
     throw "Build failed"
 }
 
 if ($env:RimWorldVersion -eq "1.5") {
-    dotnet build --configuration $Configuration .vscode/tweaksgalore.interop.csproj
+    dotnet build --configuration $Configuration Source/RealisticOrbitalTrade.TweaksGalore/RealisticOrbitalTrade.TweaksGalore.csproj
     if ($LASTEXITCODE -gt 0) {
         throw "Build failed"
     }
