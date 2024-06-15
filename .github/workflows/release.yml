@@ -20,7 +20,7 @@ jobs:
         steps:
             - name: Set Environment Variables
               run: |
-                  echo "MOD_PATH=$HOME/RealisticOrbitalTrade" >> $GITHUB_ENV
+                  echo "MOD_PATH=./RealisticOrbitalTrade" >> $GITHUB_ENV
                   echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
                   echo "NO_PREFIX_VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
 
@@ -34,12 +34,7 @@ jobs:
                   path: ${{ env.MOD_PATH }}
 
             - name: Zip Mod
-              run: |
-                  cd $HOME
-                  zip -r ./RealisticOrbitalTrade.zip ./RealisticOrbitalTrade/*
-
-            - name: Checkout Repository
-              uses: actions/checkout@v4
+              run: zip -r ${{ env.MOD_PATH }}.zip ${{ env.MOD_PATH }}/*
 
             - name: Get Changelog Entry
               id: changelog_reader
@@ -69,3 +64,21 @@ jobs:
                   asset_path: ${{ env.MOD_PATH }}.zip
                   asset_name: RealisticOrbitalTrade-${{ env.VERSION }}.zip
                   asset_content_type: application/zip
+
+            - name: Converts Markdown to Steam markup
+              id: markdown_steam
+              uses: ilyvion/steamdown@main
+              with:
+                  markdown: ${{ steps.changelog_reader.outputs.changes }}
+
+            - name: Upload to Steam Workshop
+              uses: ZehMatt/steam-workshop-upload@569de82c2fdf3042af8491379fb698829ba63a9d
+              with:
+                  appid: 294100
+                  itemid: 3236257897
+                  path: ${{ env.MOD_PATH }}
+                  changenote: ${{ steps.markdown_html.outputs.steam-markup }}
+              env:
+                  STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
+                  STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
+                  STEAM_TFASEED: ${{ secrets.STEAM_TFASEED }}
