@@ -78,17 +78,16 @@ internal class Dialog_RenegotiateTrade : Window
         quickSearchWidget.Reset();
     }
 
-    private bool renegotiationMessageShown = false;
     public override void PostOpen()
     {
         base.PostOpen();
         CacheTradeables();
 
-        if (!Settings.RenegotiationWarningShown && !renegotiationMessageShown)
+        if (!Settings._renegotiationWarningShown)
         {
             Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation("RealisticOrbitalTrade.RenegotiationWarning".Translate(), () =>
             {
-                Settings.RenegotiationWarningShown = true;
+                Settings._renegotiationWarningShown = true;
                 RealisticOrbitalTradeMod.instance.WriteSettings();
             }));
         }

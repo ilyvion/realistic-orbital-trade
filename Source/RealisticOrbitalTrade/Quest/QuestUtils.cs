@@ -48,22 +48,22 @@ internal class QuestUtils
 
         int originalTicksUntilCommsClosed = tradeShip.GetData().ticksUntilCommsClosed;
         int originalTicksUntilDeparture = tradeShip.ticksUntilDeparture;
-        bool tradeRequiresGraceTime = originalTicksUntilDeparture < Settings.MinTicksUntilDepartureBeforeGraceTime;
+        bool tradeRequiresGraceTime = originalTicksUntilDeparture < Settings._minTicksUntilDepartureBeforeGraceTime;
         bool tradeShipWasAlreadyInGraceTime = originalTicksUntilCommsClosed != -1;
 
         if (tradeRequiresGraceTime)
         {
             slate.Set("graceTimeTimeLeft", originalTicksUntilDeparture.ToStringTicksToPeriod());
-            slate.Set("graceTimeTimeMinimum", Settings.MinTicksUntilDepartureBeforeGraceTime.ToStringTicksToPeriod());
-            slate.Set("graceTimeTimeExtra", Settings.DepartureGraceTimeTicks.ToStringTicksToPeriod());
-            slate.Set("graceTimeTimeTotal", (originalTicksUntilDeparture + Settings.DepartureGraceTimeTicks).ToStringTicksToPeriod());
+            slate.Set("graceTimeTimeMinimum", Settings._minTicksUntilDepartureBeforeGraceTime.ToStringTicksToPeriod());
+            slate.Set("graceTimeTimeExtra", Settings._departureGraceTimeTicks.ToStringTicksToPeriod());
+            slate.Set("graceTimeTimeTotal", (originalTicksUntilDeparture + Settings._departureGraceTimeTicks).ToStringTicksToPeriod());
             quest.Letter(LetterDefOf.NeutralEvent, text: "[graceTimeLetterText]", label: "[graceTimeLetterLabel]");
 
             if (!tradeShipWasAlreadyInGraceTime)
             {
                 tradeShip.GetData().ticksUntilCommsClosed = originalTicksUntilDeparture;
             }
-            tradeShip.ticksUntilDeparture += Settings.DepartureGraceTimeTicks + Constants.AdditionalTicksAfterDeparture;
+            tradeShip.ticksUntilDeparture += Settings._departureGraceTimeTicks + Constants.AdditionalTicksAfterDeparture;
         }
 
         return tradeShip.ticksUntilDeparture - Constants.AdditionalTicksAfterDeparture;

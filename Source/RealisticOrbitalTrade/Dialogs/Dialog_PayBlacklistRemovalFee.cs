@@ -141,7 +141,7 @@ public class Dialog_PayBlacklistRemovalFee : Dialog_NodeTree
                         Slate slate = new();
                         slate.Set("thingsToReturn", GetThingsToReturn());
                         slate.Set("tradeShip", _tradeShip);
-                        slate.Set("tradePausesDepartureTimer", Settings.ActiveTradePausesDepartureTimer);
+                        slate.Set("tradePausesDepartureTimer", Settings._activeTradePausesDepartureTimer);
 
                         QuestUtility.GenerateQuestAndMakeAvailable(QuestScriptDefOf.ROT_TradeShipMakeAmends, slate);
                     },
