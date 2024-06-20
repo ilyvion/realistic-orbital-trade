@@ -41,7 +41,7 @@ jobs:
               uses: mindsers/changelog-reader-action@v2
               with:
                   version: ${{ env.NO_PREFIX_VERSION }}
-                  path: ./CHANGELOG.md
+                  path: ${{ env.MOD_PATH }}/CHANGELOG.md
 
             - name: Create Release
               id: create_release
