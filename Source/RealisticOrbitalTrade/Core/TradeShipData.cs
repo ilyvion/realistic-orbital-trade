@@ -12,9 +12,14 @@ internal class TradeShipData : IExposable
     public int ticksUntilCommsClosed = -1;
     public TradeAgreement? activeTradeAgreement;
 
+    public int minimumTradeThreshold;
+
     public TradeShipData(TradeShip tradeShip, bool getting)
     {
         RealisticOrbitalTradeMod.Dev(() => $"Instantiating new TradeShipData instance for {tradeShip} (getting? {getting})");
+
+        minimumTradeThreshold = Settings.GenerateDeviatingMinimumTradeThreshold();
+
         if (!getting)
         {
             tradeShip.SetData(this);
@@ -36,6 +41,12 @@ internal class TradeShipData : IExposable
     {
         Scribe_Values.Look(ref ticksUntilCommsClosed, "ticksUntilCommsClosed", 0);
         Scribe_References.Look(ref activeTradeAgreement, "activeTradeAgreement");
+        Scribe_Values.Look(ref minimumTradeThreshold, "minimumTradeThreshold", -1);
+
+        if (Scribe.mode == LoadSaveMode.PostLoadInit && minimumTradeThreshold == -1)
+        {
+            minimumTradeThreshold = Settings.GenerateDeviatingMinimumTradeThreshold();
+        }
     }
 
     public override string ToString()

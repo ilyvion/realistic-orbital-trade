@@ -1,8 +1,10 @@
+using System;
 using UnityEngine;
 using Verse;
 
 namespace RealisticOrbitalTrade
 {
+    [HotSwappable]
     internal class Settings : ModSettings
     {
         internal static bool _printDevMessages = false;
@@ -10,6 +12,11 @@ namespace RealisticOrbitalTrade
         internal static bool _activeTradePausesDepartureTimer = false;
         internal static int _minTicksUntilDepartureBeforeGraceTime = 20000;
         internal static int _departureGraceTimeTicks = 40000;
+        internal static int _minimumTradeThreshold = 600;
+        internal static bool _useMinimumTradeThreshold = false;
+        internal static int _minimumTradeDeviation = 15;
+
+        private static string _minimumTradeThresholdBuffer = string.Empty;
 
         public override void ExposeData()
         {
@@ -23,6 +30,14 @@ namespace RealisticOrbitalTrade
             Scribe_Values.Look(ref _activeTradePausesDepartureTimer, "activeTradePausesDepartureTimer", false);
             Scribe_Values.Look(ref _minTicksUntilDepartureBeforeGraceTime, "minTicksUntilDeparture", 20000);
             Scribe_Values.Look(ref _departureGraceTimeTicks, "departureGraceTimeTicks", 40000);
+            Scribe_Values.Look(ref _minimumTradeThreshold, "minimumTradeThreshold", 600);
+            Scribe_Values.Look(ref _useMinimumTradeThreshold, "useMinimumTradeThreshold", false);
+            Scribe_Values.Look(ref _minimumTradeDeviation, "minimumTradeDeviation", 15);
+
+            if (Scribe.mode == LoadSaveMode.PostLoadInit)
+            {
+                _minimumTradeThresholdBuffer = _minimumTradeThreshold.ToString();
+            }
         }
 
         public static void DoSettingsWindowContents(Rect inRect)
@@ -33,7 +48,21 @@ namespace RealisticOrbitalTrade
             if (Prefs.DevMode)
             {
                 listingStandard.CheckboxLabeled("DEV: Print dev log messages (rather verbose)", ref _printDevMessages);
+                listingStandard.Gap(4);
             }
+
+            listingStandard.CheckboxLabeled(
+                "RealisticOrbitalTrade.UseMinimumTradeThresholdLabel".Translate(),
+                ref _useMinimumTradeThreshold,
+                "RealisticOrbitalTrade.UseMinimumTradeThresholdTooltip".Translate());
+
+            listingStandard.Label("RealisticOrbitalTrade.MinimumTradeThresholdLabel".Translate());
+            listingStandard.TextFieldNumeric(ref _minimumTradeThreshold, ref _minimumTradeThresholdBuffer);
+
+            listingStandard.Label("RealisticOrbitalTrade.MinimumTradeVariationLabel".Translate(_minimumTradeDeviation), -1f, "RealisticOrbitalTrade.MinimumTradeVariationTooltip".Translate(_minimumTradeDeviation));
+            _minimumTradeDeviation = (int)listingStandard.Slider(_minimumTradeDeviation, 0, 100);
+
+            listingStandard.Gap(10);
 
             listingStandard.CheckboxLabeled(
                 "RealisticOrbitalTrade.ActiveTradePausesDepartureTimerLabel".Translate(),
@@ -60,6 +89,14 @@ namespace RealisticOrbitalTrade
             _departureGraceTimeTicks = (int)(departureGraceTime * 2500f);
 
             listingStandard.End();
+        }
+
+        public static int GenerateDeviatingMinimumTradeThreshold()
+        {
+            var baseline = _minimumTradeThreshold;
+            var deviation = baseline * Rand.RangeInclusive(-_minimumTradeDeviation, _minimumTradeDeviation) / 100;
+
+            return Math.Max(0, baseline + deviation);
         }
     }
 }

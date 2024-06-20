@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LanguageData>
+    <RealisticOrbitalTrade.UseMinimumTradeThresholdLabel>Enforce minimum trade value threshold</RealisticOrbitalTrade.UseMinimumTradeThresholdLabel>
+    <RealisticOrbitalTrade.UseMinimumTradeThresholdTooltip>Does it really make sense for an orbital trader and their crew to spend the time, fuel and energy it takes to send down two shuttles all for the sake of a single, cheap trade item? Enabling this and setting a threshold value below makes it so the traders won't accept trades that involves an exchange worth less than the threshold.</RealisticOrbitalTrade.UseMinimumTradeThresholdTooltip>
+    <RealisticOrbitalTrade.MinimumTradeThresholdLabel>Minimum trade value threshold baseline</RealisticOrbitalTrade.MinimumTradeThresholdLabel>
+    <RealisticOrbitalTrade.MinimumTradeVariationLabel>Minimum trade value threshold variation: {0}%</RealisticOrbitalTrade.MinimumTradeVariationLabel>
+    <RealisticOrbitalTrade.MinimumTradeVariationTooltip>For each trader, a random value up to {0}% of the baseline is calculated and either added to or subtracted from the baseline threshold to give the threshold some variation.</RealisticOrbitalTrade.MinimumTradeVariationTooltip>
     <RealisticOrbitalTrade.ActiveTradePausesDepartureTimerLabel>Active trade agreement pauses trade ship departure timer</RealisticOrbitalTrade.ActiveTradePausesDepartureTimerLabel>
     <RealisticOrbitalTrade.ActiveTradePausesDepartureTimerTooltip>By default (when this option is not enabled), the departure timer for the orbital trader continues ticking even during an active trade. However, when this option is enabled, an active trade pauses the timer, allowing you to take all the time you need to complete your trades.\n\nNOTE: The setting's value is applied to a trade agreement upon initiation. Therefore, altering this value won't impact ongoing trades; it will take effect only when you initiate your next trade.</RealisticOrbitalTrade.ActiveTradePausesDepartureTimerTooltip>
     <RealisticOrbitalTrade.NoEffectWhenActiveTradePausesDepartureIsEnabled>The settings below have no effect when the "Active trade agreement pauses trade ship departure timer" setting is enabled.</RealisticOrbitalTrade.NoEffectWhenActiveTradePausesDepartureIsEnabled>
@@ -8,6 +13,13 @@
     <RealisticOrbitalTrade.MinTimeUntilDepartureBeforeGraceTimeTooltip>If a trade is made when there is less time left before an orbital trader leaves than this setting, the orbital trader will extend their stay with an additional amount of time configurable below. For the sake of balance, the orbital trader will still stop accepting new trades once the original departure time is reached.</RealisticOrbitalTrade.MinTimeUntilDepartureBeforeGraceTimeTooltip>
     <RealisticOrbitalTrade.DepartureGraceTimeLabel>Grace time added if below minimum time: {0} hours</RealisticOrbitalTrade.DepartureGraceTimeLabel>
     <RealisticOrbitalTrade.DepartureGraceTimeTooltip>If a trade is made when there is less time left before an orbital trader leaves than the amount of time configurable above, the orbital trader will extend their stay with this additional amount of time. For the sake of balance, the orbital trader will still stop accepting new trades once the original departure time is reached.</RealisticOrbitalTrade.DepartureGraceTimeTooltip>
+
+    <RealisticOrbitalTrade.TradersMinimumTradeThreshold>The minimum amount of trade item value this trader is willing to trade for</RealisticOrbitalTrade.TradersMinimumTradeThreshold>
+    <RealisticOrbitalTrade.CurrentTradeValue>The current value of the items you have chosen to trade</RealisticOrbitalTrade.CurrentTradeValue>
+    <RealisticOrbitalTrade.TradeValueDifference>The difference between the current value of the items you have chosen to trade and the minimum value required by the trader. The value is negative and yellow when it's lower than required, and positive and green otherwise.</RealisticOrbitalTrade.TradeValueDifference>
+    <RealisticOrbitalTrade.TradeValue>trade value</RealisticOrbitalTrade.TradeValue>
+    <RealisticOrbitalTrade.TradeValueTip>This row shows the status of the trader's minimum trade treshold compared to your current trade value. See the other tips on the numeric values for more information.</RealisticOrbitalTrade.TradeValueTip>
+    <RealisticOrbitalTrade.TradeLessThanMinimumTradeThreshold>The trader is rejecting this trade because the total value of the traded items ({0}) is less than the enforced minimum trade value threshold ({1})</RealisticOrbitalTrade.TradeLessThanMinimumTradeThreshold>
 
     <RealisticOrbitalTrade.NotAnsweringForGraceTime>{0} is only waiting around to finish an already started agreement and is not interesting in initiating any new trades.</RealisticOrbitalTrade.NotAnsweringForGraceTime>
     <RealisticOrbitalTrade.NotAnsweringForActiveTrade>{0} reminds you to finish up your current trade agreement before starting another.</RealisticOrbitalTrade.NotAnsweringForActiveTrade>
