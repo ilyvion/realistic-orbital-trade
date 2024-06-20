@@ -55,19 +55,19 @@ internal static class MapPawnsGetAllHumanLike
 #endif
     public static List<Pawn> GetAllHumanLike(this MapPawns mapPawns)
     {
-#if v1_5
+#if v1_4
+        humanlikePawnsResult.Clear();
+        List<Pawn> allPawns = mapPawns.AllPawns;
+        for (int i = 0; i < allPawns.Count; i++)
+        {
+            if (allPawns[i].RaceProps.Humanlike)
+            {
+                humanlikePawnsResult.Add(allPawns[i]);
+            }
+        }
+        return humanlikePawnsResult;
+#else
         return mapPawns.AllHumanlike;
-#elif v1_4
-		humanlikePawnsResult.Clear();
-		List<Pawn> allPawns = mapPawns.AllPawns;
-		for (int i = 0; i < allPawns.Count; i++)
-		{
-			if (allPawns[i].RaceProps.Humanlike)
-			{
-				humanlikePawnsResult.Add(allPawns[i]);
-			}
-		}
-		return humanlikePawnsResult;
 #endif
     }
 }
