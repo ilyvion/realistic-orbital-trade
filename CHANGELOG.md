@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2024-06-21
+
 ### Added
 
 -   Added a mechanism for traders to have a minimum trade deal value requirement. It is off by default, but turning it on makes it so trader won't accept trades that involve goods of a total value lower than the set number. This is meant to add to the realism a bit to avoid traders sending whole transport ships to deliver a single bottle of beer.
@@ -109,7 +111,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.7.1...HEAD
+[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.7.1...v0.8.0
 [0.7.1]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.5.0...v0.6.0
