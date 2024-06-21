@@ -3,6 +3,7 @@ using System.Reflection.Emit;
 using System.Text;
 using HarmonyLib;
 using RealisticOrbitalTrade.Comps;
+using Verse.AI;
 
 namespace RealisticOrbitalTrade.Patch;
 
@@ -122,3 +123,60 @@ internal static class Rimworld_CompTransporter_SubtractFromToLoadList
         return codeMatcher.Instructions();
     }
 }
+
+// These two fix not hauling books out of book cases:
+#if v1_5
+[HarmonyPatch(typeof(LoadTransportersJobUtility), nameof(LoadTransportersJobUtility.FindThingToLoad))]
+internal static class Rimworld_LoadTransportersJobUtility_FindThingToLoad
+{
+    private static readonly MethodInfo _method_GenClosest_ClosestThingReachable = AccessTools.Method(typeof(GenClosest), nameof(GenClosest.ClosestThingReachable));
+    private static readonly MethodInfo _method_GenClosest_ClosestThingReachable_NewTemp = AccessTools.Method(typeof(GenClosest), nameof(GenClosest.ClosestThingReachable_NewTemp));
+
+    private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var codeMatcher = new CodeMatcher(instructions);
+
+        codeMatcher.SearchForward(i => i.opcode == OpCodes.Call && i.operand is MethodInfo m && m == _method_GenClosest_ClosestThingReachable);
+        if (!codeMatcher.IsValid)
+        {
+            RealisticOrbitalTradeMod.Warning("Could not patch LoadTransportersJobUtility.FindThingToLoad, IL does not match expectations: [call GenClosest.ClosestThingReachable] not found.");
+            return codeMatcher.Instructions();
+        }
+
+        codeMatcher.Operand = _method_GenClosest_ClosestThingReachable_NewTemp;
+
+        codeMatcher.Insert([
+            new(OpCodes.Ldc_I4_1)
+        ]);
+
+        return codeMatcher.Instructions();
+    }
+}
+
+[HarmonyPatch(typeof(GenClosest), nameof(GenClosest.ClosestThingReachable_NewTemp))]
+internal static class Rimworld_GenClosest_ClosestThingReachable_NewTemp
+{
+    private static readonly MethodInfo _method_GenClosest_ClosestThing_Global = AccessTools.Method(typeof(GenClosest), nameof(GenClosest.ClosestThing_Global));
+    private static readonly MethodInfo _method_GenClosest_ClosestThing_Global_NewTemp = AccessTools.Method(typeof(GenClosest), nameof(GenClosest.ClosestThing_Global_NewTemp));
+
+    private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var codeMatcher = new CodeMatcher(instructions);
+
+        codeMatcher.SearchForward(i => i.opcode == OpCodes.Call && i.operand is MethodInfo m && m == _method_GenClosest_ClosestThing_Global);
+        if (!codeMatcher.IsValid)
+        {
+            RealisticOrbitalTradeMod.Warning("Could not patch GenClosest.ClosestThingReachable_NewTemp, IL does not match expectations: [call GenClosest.ClosestThing_Global] not found.");
+            return codeMatcher.Instructions();
+        }
+
+        codeMatcher.Operand = _method_GenClosest_ClosestThing_Global_NewTemp;
+
+        codeMatcher.Insert([
+            new(OpCodes.Ldarg_S, 13)
+        ]);
+
+        return codeMatcher.Instructions();
+    }
+}
+#endif

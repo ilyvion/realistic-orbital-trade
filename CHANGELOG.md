@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 -   Added a mechanism for traders to have a minimum trade deal value requirement. It is off by default, but turning it on makes it so trader won't accept trades that involve goods of a total value lower than the set number. This is meant to add to the realism a bit to avoid traders sending whole transport ships to deliver a single bottle of beer.
+-   Patched transport hauling code so that hauling books out of bookcases now works as expected.
 
 ### Changed
 
