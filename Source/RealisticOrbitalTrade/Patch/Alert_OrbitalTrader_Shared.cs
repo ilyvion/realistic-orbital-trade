@@ -1,11 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using HarmonyLib;
-using RimWorld;
-using Verse;
 
 namespace RealisticOrbitalTrade.Patch;
 

@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using RealisticOrbitalTrade.Comps;
-using Verse;
 using Verse.AI;
 
 namespace RealisticOrbitalTrade;

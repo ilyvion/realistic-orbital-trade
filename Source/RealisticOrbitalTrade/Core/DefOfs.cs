@@ -1,7 +1,3 @@
-
-using RimWorld;
-using Verse;
-
 namespace RealisticOrbitalTrade;
 
 #pragma warning disable CS8618,CS0649

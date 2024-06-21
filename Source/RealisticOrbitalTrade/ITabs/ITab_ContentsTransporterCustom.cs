@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
 using RealisticOrbitalTrade.Patch;
-using RimWorld;
-using UnityEngine;
-using Verse;
 
 namespace RealisticOrbitalTrade.ITabs;
 

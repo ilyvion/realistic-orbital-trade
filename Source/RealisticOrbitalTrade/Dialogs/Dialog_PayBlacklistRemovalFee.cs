@@ -1,8 +1,3 @@
-using System.Collections.Generic;
-using RimWorld;
-using Verse;
-using UnityEngine;
-using System.Linq;
 using RimWorld.QuestGen;
 
 using RwThingDefOf = RimWorld.ThingDefOf;

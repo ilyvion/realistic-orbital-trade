@@ -1,9 +1,5 @@
-
-using System.Collections.Generic;
 using HarmonyLib;
 using RealisticOrbitalTrade.Dialogs;
-using RimWorld;
-using Verse;
 
 namespace RealisticOrbitalTrade.Patch;
 

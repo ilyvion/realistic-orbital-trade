@@ -1,7 +1,4 @@
-using System.Collections.Generic;
 using RealisticOrbitalTrade.Comps;
-using RimWorld;
-using Verse;
 using Verse.AI;
 
 namespace RealisticOrbitalTrade.ShipJobs;

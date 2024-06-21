@@ -1,7 +1,3 @@
-using System;
-using UnityEngine;
-using Verse;
-
 namespace RealisticOrbitalTrade
 {
     [HotSwappable]

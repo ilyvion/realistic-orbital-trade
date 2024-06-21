@@ -1,6 +1,3 @@
-using RimWorld;
-using Verse;
-
 namespace RealisticOrbitalTrade;
 
 internal static class ThingExtensions

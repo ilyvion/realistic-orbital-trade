@@ -1,6 +1,4 @@
 using System.Runtime.CompilerServices;
-using RimWorld;
-using Verse;
 
 namespace RealisticOrbitalTrade;
 

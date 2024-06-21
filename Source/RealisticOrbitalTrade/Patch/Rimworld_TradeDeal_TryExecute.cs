@@ -1,10 +1,5 @@
-using System;
-using System.Linq;
 using HarmonyLib;
-using RimWorld;
 using RimWorld.QuestGen;
-using UnityEngine;
-using Verse;
 
 namespace RealisticOrbitalTrade.Patch;
 

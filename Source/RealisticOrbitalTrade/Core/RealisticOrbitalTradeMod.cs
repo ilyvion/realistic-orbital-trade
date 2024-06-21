@@ -1,7 +1,4 @@
 using HarmonyLib;
-using Verse;
-using System;
-using UnityEngine;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -29,7 +26,9 @@ internal class RealisticOrbitalTradeMod : Mod
         // }
         // else
         // {
+        //Harmony.DEBUG = true;
         new Harmony(Constants.Id).PatchAll(Assembly.GetExecutingAssembly());
+        //Harmony.DEBUG = false;
         //}
 
         GetSettings<Settings>();
