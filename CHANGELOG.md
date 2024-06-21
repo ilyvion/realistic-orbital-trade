@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Added a mechanism for traders to have a minimum trade deal value requirement. It is off by default, but turning it on makes it so trader won't accept trades that involve goods of a total value lower than the set number. This is meant to add to the realism a bit to avoid traders sending whole transport ships to deliver a single bottle of beer.
 
+### Changed
+
+-   The second shuttle that delivers goods to the player now chooses its landing spot just-in-time instead of ahead-of-time. This should hopefully avoid things like it landing on top of other shuttles that have arrived in the meantime since the landing spot was originally chosen.
+
 ## [0.7.1] - 2024-06-09
 
 ### Fixed

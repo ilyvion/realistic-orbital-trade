@@ -161,12 +161,11 @@ public class QuestNode_Root_TradeShipTransportShip : QuestNode
         QuestUtility.AddQuestTag(ref transportShip.questTags, questTag);
 
         var map = tradeAgreement.tradeShip.Map;
-        IntVec3 landingSpot = QuestUtils.FindLandingSpot(map);
 
         // Put in a small delay so the shuttles don't come back to back
         quest.Delay(500, () =>
         {
-            quest.AddShipJob_Arrive(transportShip, map.Parent, null, landingSpot, ShipJobStartMode.Queue);
+            quest.AddShipJob_Arrive_FindLandingSpot_JIT(transportShip, map.Parent, null, ShipJobStartMode.Queue);
             quest.AddShipJob_Unload(transportShip);
             quest.AddShipJob_WaitTime(transportShip, 0, true);
         }, signalToTraderShuttleSentSatisfied).debugLabel = "toPlayerTransportShip arrival delay";
