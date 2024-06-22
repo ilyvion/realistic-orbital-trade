@@ -18,7 +18,7 @@
     <RealisticOrbitalTrade.CurrentTradeValue>The current value of the items you have chosen to trade</RealisticOrbitalTrade.CurrentTradeValue>
     <RealisticOrbitalTrade.TradeValueDifference>The difference between the current value of the items you have chosen to trade and the minimum value required by the trader. The value is negative and yellow when it's lower than required, and positive and green otherwise.</RealisticOrbitalTrade.TradeValueDifference>
     <RealisticOrbitalTrade.TradeValue>trade value</RealisticOrbitalTrade.TradeValue>
-    <RealisticOrbitalTrade.TradeValueTip>This row shows the status of the trader's minimum trade treshold compared to your current trade value. See the other tips on the numeric values for more information.</RealisticOrbitalTrade.TradeValueTip>
+    <RealisticOrbitalTrade.TradeValueTip>This row shows the status of the trader's minimum trade threshold compared to your current trade value. See the other tips on the numeric values for more information.</RealisticOrbitalTrade.TradeValueTip>
     <RealisticOrbitalTrade.TradeLessThanMinimumTradeThreshold>The trader is rejecting this trade because the total value of the traded items ({0}) is less than the enforced minimum trade value threshold ({1})</RealisticOrbitalTrade.TradeLessThanMinimumTradeThreshold>
 
     <RealisticOrbitalTrade.NotAnsweringForGraceTime>{0} is only waiting around to finish an already started agreement and is not interesting in initiating any new trades.</RealisticOrbitalTrade.NotAnsweringForGraceTime>
