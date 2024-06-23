@@ -55,10 +55,10 @@ internal static class Rimworld_CompShuttle_RequiredThingsLabel
     {
         try
         {
-            return Utils.InjectCallBeforeReturn(instructions, _methodInjectThingsLabel, i => i.IsLdloc(), new[] {
+            return Utils.InjectCallBeforeReturn(instructions, _methodInjectThingsLabel, i => i.IsLdloc(), [
                 new CodeInstruction(OpCodes.Ldarg_0),
                 new CodeInstruction(OpCodes.Ldloc_0),
-            });
+            ]);
         }
         catch (InjectCallBeforeReturnException e)
         {
@@ -111,14 +111,14 @@ internal static class Rimworld_CompTransporter_SubtractFromToLoadList
         var endLabel = codeMatcher.Operand;
         codeMatcher.Advance(1);
 
-        codeMatcher.Insert(new CodeInstruction[] {
+        codeMatcher.Insert([
             // == this
             new(OpCodes.Ldarg_0),
             // call patch method (HideFinishedMessageForTradeShuttle)
             new(OpCodes.Call, _methodHideFinishedMessageForTradeShuttle),
             // if HideFinishedMessageForTradeShuttle returns true, skip showing message
             new(OpCodes.Brtrue_S, endLabel)
-        });
+        ]);
 
         return codeMatcher.Instructions();
     }

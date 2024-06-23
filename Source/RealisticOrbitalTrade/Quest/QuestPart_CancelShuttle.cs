@@ -28,10 +28,7 @@ internal abstract class QuestPart_CancelShuttle : QuestPartActivable
                 },
                 hotKey = KeyBindingDefOf.Designator_Cancel,
             };
-            return new[]
-            {
-                commandActionCancel
-            };
+            return [commandActionCancel];
         }
         else
         {

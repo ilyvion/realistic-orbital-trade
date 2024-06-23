@@ -24,11 +24,11 @@ internal static class Utils
             codeMatcher.Advance(-1);
             if (matchInstruction(codeMatcher.Instruction))
             {
-                codeMatcher.Insert((additionalInstructionsBeforeCall ?? new CodeInstruction[] { }).Concat(new[]{
+                codeMatcher.Insert((additionalInstructionsBeforeCall ?? []).Concat([
                     // new CodeInstruction(OpCodes.Ldarg_0),
                     // new CodeInstruction(OpCodes.Ldloc_0),
                     new CodeInstruction(OpCodes.Call, methodToCall)
-                }));
+                ]));
 
                 return codeMatcher.Instructions();
             }

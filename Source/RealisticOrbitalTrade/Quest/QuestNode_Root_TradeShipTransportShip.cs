@@ -60,7 +60,7 @@ public class QuestNode_Root_TradeShipTransportShip : QuestNode
         quest.ReturnBoughtItemsToTradeShip(tradeAgreement, toPlayerTransportShip, signalToTraderShuttleKilled);
 
         // What to do if the player destroys either shuttle
-        quest.AnySignal(new[] { signalToTraderShuttleKilled, signalToPlayerShuttleKilled }, () =>
+        quest.AnySignal([signalToTraderShuttleKilled, signalToPlayerShuttleKilled], () =>
         {
             quest.Letter(LetterDefOf.NegativeEvent, signalListenMode: QuestPart.SignalListenMode.OngoingOnly, text: "[tradeShuttleKilledLetterText]", label: "[tradeShuttleKilledLetterLabel]");
             quest.BlacklistPlayerFactionInOrbitalTrade();
