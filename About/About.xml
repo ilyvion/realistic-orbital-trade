@@ -13,13 +13,13 @@
 
         &lt;size=24&gt;Version&lt;/size&gt;
 
-        This is version 0.8.0 for RimWorld 1.5 and 1.4
+        This is version 0.8.1 for RimWorld 1.5 and 1.4
     </description>
     <supportedVersions>
         <li>1.5</li>
         <li>1.4</li>
     </supportedVersions>
-    <modVersion IgnoreIfNoMatchingField="True">0.8.0</modVersion>
+    <modVersion IgnoreIfNoMatchingField="True">0.8.1</modVersion>
     <modDependencies>
         <li>
             <packageId>brrainz.harmony</packageId>

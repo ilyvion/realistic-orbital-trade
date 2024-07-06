@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.1] - 2024-07-06
+
+### Changed
+
+-   Made "parent" `ThingDef`s `Abstract` in the hope that it'll get a weird mod interaction to go away.
+
 ## [0.8.0] - 2024-06-21
 
 ### Added
@@ -111,7 +117,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.8.1...HEAD
+[0.8.1]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.7.1...v0.8.0
 [0.7.1]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.6.0...v0.7.0
