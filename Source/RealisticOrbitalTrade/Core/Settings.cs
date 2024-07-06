@@ -1,15 +1,17 @@
+using System.Globalization;
+
 namespace RealisticOrbitalTrade
 {
     [HotSwappable]
     internal class Settings : ModSettings
     {
-        internal static bool _printDevMessages = false;
-        internal static bool _renegotiationWarningShown = false;
-        internal static bool _activeTradePausesDepartureTimer = false;
+        internal static bool _printDevMessages;
+        internal static bool _renegotiationWarningShown;
+        internal static bool _activeTradePausesDepartureTimer;
         internal static int _minTicksUntilDepartureBeforeGraceTime = 20000;
         internal static int _departureGraceTimeTicks = 40000;
         internal static int _minimumTradeThreshold = 600;
-        internal static bool _useMinimumTradeThreshold = false;
+        internal static bool _useMinimumTradeThreshold;
         internal static int _minimumTradeDeviation = 15;
 
         private static string _minimumTradeThresholdBuffer = string.Empty;
@@ -32,7 +34,7 @@ namespace RealisticOrbitalTrade
 
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
-                _minimumTradeThresholdBuffer = _minimumTradeThreshold.ToString();
+                _minimumTradeThresholdBuffer = _minimumTradeThreshold.ToString(CultureInfo.CurrentCulture);
             }
         }
 
@@ -73,14 +75,14 @@ namespace RealisticOrbitalTrade
             listingStandard.Gap(4);
 
             var minHoursUntilDepartureBeforeGraceTime = _minTicksUntilDepartureBeforeGraceTime / 2500f;
-            listingStandard.Label(string.Format("RealisticOrbitalTrade.MinTimeUntilDepartureBeforeGraceTimeLabel".Translate(), minHoursUntilDepartureBeforeGraceTime), -1f, "RealisticOrbitalTrade.MinTimeUntilDepartureBeforeGraceTimeTooltip".Translate());
+            listingStandard.Label(string.Format(CultureInfo.CurrentCulture, "RealisticOrbitalTrade.MinTimeUntilDepartureBeforeGraceTimeLabel".Translate(), minHoursUntilDepartureBeforeGraceTime), -1f, "RealisticOrbitalTrade.MinTimeUntilDepartureBeforeGraceTimeTooltip".Translate());
             minHoursUntilDepartureBeforeGraceTime = listingStandard.Slider(minHoursUntilDepartureBeforeGraceTime, 1, 16);
             _minTicksUntilDepartureBeforeGraceTime = (int)(minHoursUntilDepartureBeforeGraceTime * 2500f);
 
             listingStandard.Gap(4);
 
             var departureGraceTime = _departureGraceTimeTicks / 2500f;
-            listingStandard.Label(string.Format("RealisticOrbitalTrade.DepartureGraceTimeLabel".Translate(), departureGraceTime), -1f, "RealisticOrbitalTrade.DepartureGraceTimeTooltip".Translate());
+            listingStandard.Label(string.Format(CultureInfo.CurrentCulture, "RealisticOrbitalTrade.DepartureGraceTimeLabel".Translate(), departureGraceTime), -1f, "RealisticOrbitalTrade.DepartureGraceTimeTooltip".Translate());
             departureGraceTime = listingStandard.Slider(departureGraceTime, 4, 24);
             _departureGraceTimeTicks = (int)(departureGraceTime * 2500f);
 

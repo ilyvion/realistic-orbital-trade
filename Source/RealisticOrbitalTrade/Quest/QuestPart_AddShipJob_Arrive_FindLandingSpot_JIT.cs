@@ -28,7 +28,7 @@ internal static class QuestGen_AddShipJob_Arrive_FindLandingSpot_JIT
         string? inSignal = null
     )
     {
-        QuestPart_AddShipJob_Arrive_FindLandingSpot_JIT questPart_AddShipJob_Arrive_FindLandingSpot_JIT = new QuestPart_AddShipJob_Arrive_FindLandingSpot_JIT
+        QuestPart_AddShipJob_Arrive_FindLandingSpot_JIT questPart_AddShipJob_Arrive_FindLandingSpot_JIT = new()
         {
             inSignal = inSignal ?? QuestGen.slate.Get<string>("inSignal"),
             shipJobStartMode = startMode,

@@ -92,6 +92,6 @@ internal class RealisticOrbitalTradeMod : Mod
 }
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-public class HotSwappableAttribute : Attribute
+public sealed class HotSwappableAttribute : Attribute
 {
 }

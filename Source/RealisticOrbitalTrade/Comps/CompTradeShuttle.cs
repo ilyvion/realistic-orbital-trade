@@ -8,10 +8,10 @@ namespace RealisticOrbitalTrade.Comps;
 [HotSwappable]
 public class CompTradeShuttle : ThingComp
 {
-    internal bool cancelled = false;
-    internal bool isToTrader = false;
+    internal bool cancelled;
+    internal bool isToTrader;
     internal TradeAgreement? tradeAgreement;
-    internal List<ThingDefCountWithRequirements> requiredSpecificItems = new();
+    internal List<ThingDefCountWithRequirements> requiredSpecificItems = [];
 
     private CompShuttle? _cachedCompShuttle;
     private CompShuttle Shuttle
@@ -58,7 +58,7 @@ public class CompTradeShuttle : ThingComp
         }
     }
 
-    private static readonly List<string> tmpRequiredLabels = new();
+    private static readonly List<string> tmpRequiredLabels = [];
     public override string? CompInspectStringExtra()
     {
         if (cancelled)
@@ -66,7 +66,7 @@ public class CompTradeShuttle : ThingComp
             return null;
         }
 
-        StringBuilder stringBuilder = new StringBuilder();
+        StringBuilder stringBuilder = new();
 
         CalculateRemainingRequiredItems();
 
@@ -135,8 +135,8 @@ public class CompTradeShuttle : ThingComp
         return false;
     }
 
-    private static readonly List<ThingDefCountWithRequirements> tmpRequiredSpecificItems = new();
-    private static readonly List<Thing> tmpAllSendableItems = new();
+    private static readonly List<ThingDefCountWithRequirements> tmpRequiredSpecificItems = [];
+    private static readonly List<Thing> tmpAllSendableItems = [];
     internal void CheckAutoload()
     {
         if (!isToTrader)
@@ -180,7 +180,7 @@ public class CompTradeShuttle : ThingComp
             {
                 continue;
             }
-            TransferableOneWay transferableOneWay = new TransferableOneWay();
+            TransferableOneWay transferableOneWay = new();
             foreach (var sendableItem in tmpAllSendableItems)
             {
                 if (requiredItem.Matches(sendableItem))
@@ -204,6 +204,11 @@ public class CompTradeShuttle : ThingComp
 
     public override IEnumerable<FloatMenuOption> CompFloatMenuOptions(Pawn selPawn)
     {
+        if (selPawn == null)
+        {
+            throw new ArgumentNullException(nameof(selPawn));
+        }
+
         if (cancelled)
         {
             yield break;
@@ -220,9 +225,6 @@ public class CompTradeShuttle : ThingComp
             "RealisticOrbitalTrade.RenegotiateTrade".Translate(),
             () =>
             {
-                if (parent == null)
-                    throw new ArgumentNullException("parent");
-
                 Job job = JobMaker.MakeJob(JobDefOf.ROT_RenegotiateTrade, parent);
                 selPawn.jobs.TryTakeOrderedJob(job, JobTag.Misc);
             },

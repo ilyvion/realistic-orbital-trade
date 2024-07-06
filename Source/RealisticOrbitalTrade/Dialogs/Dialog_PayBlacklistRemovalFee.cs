@@ -17,7 +17,7 @@ public class Dialog_PayBlacklistRemovalFee : Dialog_NodeTree
     private readonly TradeShip _tradeShip;
     private readonly Pawn _negotiator;
     private readonly List<ThingDefCountClass> _thingDefCounts;
-    private readonly Dictionary<ThingDef, PayWith> _payForPartsWith = new();
+    private readonly Dictionary<ThingDef, PayWith> _payForPartsWith = [];
 
     private ThingDefCountClass? CurrentThing => _thingDefCounts.Where(t => !_payForPartsWith.ContainsKey(t.thingDef)).FirstOrDefault();
     private IEnumerable<(ThingDefCountClass thingDefCount, PayWith payWith)> ThingDefPayments =>
@@ -72,7 +72,7 @@ public class Dialog_PayBlacklistRemovalFee : Dialog_NodeTree
         var nominalFee = WealthUtility.PlayerWealth * 0.01f;
         var totalSilver = LaborCost + nominalFee;
 
-        Dictionary<ThingDef, int> thingsToReturn = new();
+        Dictionary<ThingDef, int> thingsToReturn = [];
         foreach (var (thingDefCount, payWith) in ThingDefPayments)
         {
             if (payWith == PayWith.Parts)
@@ -195,9 +195,9 @@ public class Dialog_PayBlacklistRemovalFee : Dialog_NodeTree
     public override void DoWindowContents(Rect inRect)
     {
         Widgets.BeginGroup(inRect);
-        Rect rect = new Rect(0f, 0f, inRect.width / 2f, 70f);
+        Rect rect = new(0f, 0f, inRect.width / 2f, 70f);
         //Rect rect2 = new Rect(0f, rect.yMax, rect.width, 60f);
-        Rect rect3 = new Rect(inRect.width / 2f, 0f, inRect.width / 2f, 70f);
+        Rect rect3 = new(inRect.width / 2f, 0f, inRect.width / 2f, 70f);
         //Rect rect4 = new Rect(inRect.width / 2f, rect.yMax, rect.width, 60f);
         Text.Font = GameFont.Medium;
         Widgets.Label(rect, _negotiator.LabelCap);
@@ -205,7 +205,7 @@ public class Dialog_PayBlacklistRemovalFee : Dialog_NodeTree
         Widgets.Label(rect3, _tradeShip.GetCallLabel());
         Text.Anchor = TextAnchor.UpperLeft;
 
-        Rect rect5 = new Rect(0f, 80f, inRect.width, inRect.height - 80f);
+        Rect rect5 = new(0f, 80f, inRect.width, inRect.height - 80f);
         DrawNode(rect5);
     }
 }

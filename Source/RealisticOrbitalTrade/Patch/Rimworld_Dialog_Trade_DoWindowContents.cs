@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
@@ -36,15 +37,6 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
 
     internal static float lastTradeValueFlashTime = -100f;
 
-    private static readonly MethodInfo _method_Widgets_DrawLineHorizontal = AccessTools.Method(
-        typeof(Widgets),
-        nameof(Widgets.DrawLineHorizontal),
-        [typeof(float), typeof(float), typeof(float)]);
-
-    private static readonly MethodInfo _methodWillDrawThresholdRow = AccessTools.Method(
-        typeof(Rimworld_Dialog_Trade_DoWindowContents),
-        nameof(WillDrawThresholdRow));
-
     private static readonly MethodInfo _methodDrawThresholdRow = AccessTools.Method(
         typeof(Rimworld_Dialog_Trade_DoWindowContents),
         nameof(DrawThresholdRow));
@@ -80,7 +72,7 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
         tradersMinimumTradeThresholdLabelRect.xMin += 5f;
         tradersMinimumTradeThresholdLabelRect.xMax -= 5f;
         int minimumTradeThreshold = tradeAgreement.tradeShip.GetData().minimumTradeThreshold;
-        Widgets.Label(tradersMinimumTradeThresholdLabelRect, minimumTradeThreshold.ToString());
+        Widgets.Label(tradersMinimumTradeThresholdLabelRect, minimumTradeThreshold.ToString(CultureInfo.CurrentCulture));
         TooltipHandler.TipRegionByKey(tradersMinimumTradeThresholdRect, "RealisticOrbitalTrade.TradersMinimumTradeThreshold");
         rowWidth -= 175f;
         float combinedTradeValue = CalculateCombinedTradeValue();

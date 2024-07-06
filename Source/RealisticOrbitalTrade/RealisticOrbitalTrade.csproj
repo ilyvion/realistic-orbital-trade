@@ -6,6 +6,12 @@
         <LangVersion>12.0</LangVersion>
         <Nullable>enable</Nullable>
 
+        <EnableNETAnalyzers>True</EnableNETAnalyzers>
+        <AnalysisLevel>preview-all</AnalysisLevel>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>5</WarningLevel>
+        <NoWarn>CA1707</NoWarn>
+
         <RootNamespace>RealisticOrbitalTrade</RootNamespace>
         <AssemblyName>RealisticOrbitalTrade</AssemblyName>
         <VersionPrefix>0.8.0</VersionPrefix>

@@ -16,7 +16,7 @@ internal class RealisticOrbitalTradeGameComponent : GameComponent
 
     private bool _wasLoaded;
 
-    private List<TradeAgreement> _tradeAgreements = new();
+    private List<TradeAgreement> _tradeAgreements = [];
 
     private int _standing;
     public Standing Standing { get => (Standing)_standing; set => _standing = (int)value; }

@@ -18,8 +18,6 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                 return 0;
             }
         }
-
-
     }
 
     protected int loadID = -1;
@@ -28,8 +26,8 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
     public Pawn negotiator;
 
     public ThingOwner<Thing> thingsSoldToPlayer;
-    public List<ThingCountClass> thingsSoldToTrader = new();
-    public List<Pawn> pawnsSoldToTrader = new();
+    public List<ThingCountClass> thingsSoldToTrader = [];
+    public List<Pawn> pawnsSoldToTrader = [];
 
     public TransportShip? toTraderTransportShip;
     public TransportShip? toPlayerTransportShip;
@@ -69,7 +67,6 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
             }
             foreach (var item in thingsSoldToTrader)
             {
-                //RealisticOrbitalTradeMod.Dev("Thing sold to trader: " + item.thing.Label + " / " + item.Count);
                 Tradeable? tradeable = TransferableUtility.TradeableMatching(item.thing, tradeables);
                 if (tradeable == null)
                 {
@@ -84,7 +81,6 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                 }
                 tradeable.AddThing(item.thing, Transactor.Colony);
                 tradeable.ForceTo(tradeable.CountToTransfer - item.Count);
-                //RealisticOrbitalTradeMod.Dev("tradeable: " + tradeable);
             }
             foreach (var item in pawnsSoldToTrader)
             {

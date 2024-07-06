@@ -42,7 +42,7 @@ internal abstract class QuestPart_CancelShuttle : QuestPartActivable
         Scribe_References.Look(ref shuttle, "shuttle");
         if (Scribe.mode == LoadSaveMode.PostLoadInit && shuttle != null)
         {
-            if (shuttle?.TryGetComp<CompTradeShuttle>(out var compTradeShuttle) ?? false)
+            if (shuttle.TryGetComp<CompTradeShuttle>(out var compTradeShuttle))
             {
                 compTradeShuttle.cancelTradeAction = Complete;
             }
