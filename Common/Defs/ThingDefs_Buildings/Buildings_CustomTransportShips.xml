@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Defs>
-    <ThingDef Name="ROT_TradeShuttleBase" ParentName="ShuttleBase">
+    <!-- Abstract/base definitions -->
+    <ThingDef Name="ROT_TradeShuttleBase" ParentName="ShuttleBase" Abstract="True">
         <comps>
             <li>
                 <compClass>RealisticOrbitalTrade.Comps.CompTradeShuttle</compClass>
@@ -10,11 +11,7 @@
             <li>RealisticOrbitalTrade.ITabs.ITab_ContentsTransporterCustom</li>
         </inspectorTabs>
     </ThingDef>
-    <ThingDef ParentName="ROT_TradeShuttleBase">
-        <defName>ROT_TradeShuttle</defName>
-    </ThingDef>
-    <ThingDef Name="ROT_ExplosiveRiggedTradeShuttleBase" ParentName="ROT_TradeShuttleBase">
-        <defName>ROT_ExplosiveRiggedTradeShuttle</defName>
+    <ThingDef Name="ROT_ExplosiveRiggedTradeShuttleBase" ParentName="ROT_TradeShuttleBase" Abstract="True">
         <comps>
             <li Class="CompProperties_Explosive">
                 <explodeOnKilled>true</explodeOnKilled>
@@ -27,6 +24,14 @@
                 <inspectString>This shuttle is very obviously rigged with some kind of improvised explosive device.</inspectString>
             </li>
         </comps>
+    </ThingDef>
+
+    <!-- Concrete/actually used definitions -->
+    <ThingDef ParentName="ROT_TradeShuttleBase">
+        <defName>ROT_TradeShuttle</defName>
+    </ThingDef>
+    <ThingDef ParentName="ROT_ExplosiveRiggedTradeShuttleBase">
+        <defName>ROT_ExplosiveRiggedTradeShuttle</defName>
     </ThingDef>
     <ThingDef ParentName="ROT_ExplosiveRiggedTradeShuttleBase">
         <defName>ROT_ExplosiveRiggedAmendmentTradeShuttle</defName>
