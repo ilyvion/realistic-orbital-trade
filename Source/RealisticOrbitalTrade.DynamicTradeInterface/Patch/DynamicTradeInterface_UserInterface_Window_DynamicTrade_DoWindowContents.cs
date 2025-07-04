@@ -132,8 +132,35 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
             RealisticOrbitalTradeMod.Error($"Could not patch Window_DynamicTrade.DoWindowContents, IL does not match expectations ([call Text.LineHeightOf])");
             return originalInstructionList;
         }
+        codeMatcher.Advance(1);
+        if (codeMatcher.Opcode != OpCodes.Stloc_0
+            && codeMatcher.Opcode != OpCodes.Stloc_1
+            && codeMatcher.Opcode != OpCodes.Stloc_2
+            && codeMatcher.Opcode != OpCodes.Stloc_3
+            && codeMatcher.Opcode != OpCodes.Stloc_S)
+        {
+            RealisticOrbitalTradeMod.Error($"Could not patch Window_DynamicTrade.DoWindowContents, IL does not match expectations ([stloc.*]), was {codeMatcher.Opcode}");
+            return originalInstructionList;
+        }
 
-        codeMatcher.SearchForward(i => i.opcode == OpCodes.Ldloc_3);
+        var storeOpcode = codeMatcher.Opcode;
+        OpCode loadOpcode;
+        LocalBuilder? loadOperand = null;
+        if (storeOpcode == OpCodes.Stloc_0)
+            loadOpcode = OpCodes.Ldloc_0;
+        else if (storeOpcode == OpCodes.Stloc_1)
+            loadOpcode = OpCodes.Ldloc_1;
+        else if (storeOpcode == OpCodes.Stloc_2)
+            loadOpcode = OpCodes.Ldloc_2;
+        else if (storeOpcode == OpCodes.Stloc_3)
+            loadOpcode = OpCodes.Ldloc_3;
+        else
+        {
+            loadOpcode = OpCodes.Ldloc_S;
+            loadOperand = codeMatcher.Operand as LocalBuilder;
+        }
+
+        codeMatcher.SearchForward(i => i.opcode == loadOpcode && i.operand == loadOperand);
         if (!codeMatcher.IsValid)
         {
             RealisticOrbitalTradeMod.Error($"Could not patch Window_DynamicTrade.DoWindowContents, IL does not match expectations ([ldloc.3])");
