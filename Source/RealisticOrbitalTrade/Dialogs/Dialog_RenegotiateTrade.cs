@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using HarmonyLib;
 using RealisticOrbitalTrade.Comps;
 using Verse.AI;
 using Verse.Sound;
@@ -384,8 +383,7 @@ internal class Dialog_RenegotiateTrade : Window
                             // the pawn back out.
                             if (toTraderTransportShipContainer.Contains(pawn))
                             {
-                                IntVec3 dropLoc = toTraderTransportShip.shipThing.Position + ShipJob_Unload.DropoffSpotOffset;
-                                var unloaded = toTraderTransportShipContainer.TryDrop(pawn, dropLoc, toTraderShipThing.Map, ThingPlaceMode.Near, out var _, null, c =>
+                                var unloaded = toTraderTransportShipContainer.TryDrop(pawn, toTraderTransportShip.GetDropLocation(), toTraderShipThing.Map, ThingPlaceMode.Near, out var _, null, c =>
                                 {
                                     if (c.Fogged(toTraderShipThing.Map))
                                     {
@@ -503,7 +501,7 @@ internal class Dialog_RenegotiateTrade : Window
                                 // More items loaded than we've sold now; unload some
                                 var leftToUnload = countActuallyLoaded - countRequiredLoaded;
 
-                                IntVec3 dropLoc = toTraderTransportShip.shipThing.Position + ShipJob_Unload.DropoffSpotOffset;
+                                IntVec3 dropLoc = toTraderTransportShip.GetDropLocation();
                                 foreach (var loaded in actuallyLoaded)
                                 {
                                     var unloadAmount = Math.Min(leftToUnload, loaded.stackCount);

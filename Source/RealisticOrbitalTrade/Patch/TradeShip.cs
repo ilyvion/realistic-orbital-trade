@@ -1,4 +1,3 @@
-using HarmonyLib;
 using RealisticOrbitalTrade.Dialogs;
 
 namespace RealisticOrbitalTrade.Patch;

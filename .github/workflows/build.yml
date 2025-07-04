@@ -22,6 +22,17 @@ jobs:
               with:
                   dotnet-version: 6.0.x
 
+            - name: Build Mod for 1.6
+              env:
+                  RimWorldVersion: 1.6
+              run: dotnet build --configuration Release Source/RealisticOrbitalTrade/RealisticOrbitalTrade.csproj
+
+            - name: Build DynamicTradeInterface integration for 1.6
+              env:
+                  RimWorldVersion: 1.6
+              run: dotnet build --configuration Release Source/RealisticOrbitalTrade.DynamicTradeInterface/RealisticOrbitalTrade.DynamicTradeInterface.csproj
+
+
             - name: Build Mod for 1.5
               env:
                   RimWorldVersion: 1.5
@@ -46,6 +57,7 @@ jobs:
               env:
                   RimWorldVersion: 1.5
               run: dotnet build --configuration Release Source/RealisticOrbitalTrade.AutoSeller/RealisticOrbitalTrade.AutoSeller.csproj
+
 
             - name: Build Mod for 1.4
               env:
@@ -73,17 +85,18 @@ jobs:
                   name: RealisticOrbitalTrade-${{ inputs.artifact-suffix }}
                   path: |
                       About/
+                      1.6/
                       1.5/
                       1.4/
                       1.5_WeHadATrader/
                       1.4_WeHadATrader/
                       1.5_TweaksGalore/
+                      1.6_DynamicTradeInterface/
                       1.5_DynamicTradeInterface/
                       1.4_DynamicTradeInterface/
-                      1.4_AutoSeller/
                       1.5_AutoSeller/
+                      1.4_AutoSeller/
                       Common/
-                      UpdateLog/
                       Defs/
                       Patches/
                       LICENSE

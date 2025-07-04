@@ -1,6 +1,5 @@
 // This bug we're correcting is fixed in 1.5, so we only patch for 1.4
 #if v1_4
-using HarmonyLib;
 using RimWorld;
 using RimWorld.QuestGen;
 using Verse;

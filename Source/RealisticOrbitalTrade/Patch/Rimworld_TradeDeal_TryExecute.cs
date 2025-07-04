@@ -1,4 +1,3 @@
-using HarmonyLib;
 using RimWorld.QuestGen;
 
 namespace RealisticOrbitalTrade.Patch;
@@ -53,9 +52,11 @@ internal static class Rimworld_TradeDeal_TryExecute
         var tradeAgreementForQuest = TradeShipData.tradeAgreementForQuest;
         if (tradeAgreementForQuest == null)
         {
+            RealisticOrbitalTradeMod.Dev("Trade agreement for quest is null in TradeDeal.TryExecute postfix.");
             return;
         }
 
+        RealisticOrbitalTradeMod.Dev($"TradeDeal.TryExecute postfix: __result={__result}, actuallyTraded={actuallyTraded}, tradeAgreementForQuest={tradeAgreementForQuest}");
         if (__result)
         {
             if (actuallyTraded)

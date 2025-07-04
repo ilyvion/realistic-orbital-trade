@@ -19,9 +19,15 @@ public class ShipJob_CancelLoad : ShipJob
         return base.TryStart();
     }
 
+#if v1_6
+    public override void TickInterval(int delta)
+    {
+        base.TickInterval(delta);
+#else
     public override void Tick()
     {
         base.Tick();
+#endif
         if (!done)
         {
             // Stop autoloading and remove any things from leftToLoad

@@ -13,6 +13,10 @@
         <li IfModActive="Neronix17.TweaksGalore">1.5_TweaksGalore</li>
         <li IfModActive="zeracronius.dynamictradeinterface">1.5_DynamicTradeInterface</li>
         <li IfModActive="Supes.AutoSeller.Core">1.5_AutoSeller</li>
-        <li IfModActive="neronix17.toolbox">UpdateLog</li>
     </v1.5>
+    <v1.6>
+        <li>Common</li>
+        <li>1.6</li>
+        <li IfModActive="zeracronius.dynamictradeinterface">1.6_DynamicTradeInterface</li>
+    </v1.6>
 </loadFolders>

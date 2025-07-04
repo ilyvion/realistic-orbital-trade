@@ -1,5 +1,4 @@
 using System.Text;
-using HarmonyLib;
 using RimWorld.Planet;
 using Verse.AI;
 
@@ -51,7 +50,7 @@ public class CompTradeShuttle : ThingComp
             }
 
             ShuttleAutoLoad = true;
-            if (!Shuttle.LoadingInProgressOrReadyToLaunch)
+            if (!Transporter.LoadingInProgressOrReadyToLaunch)
             {
                 TransporterUtility.InitiateLoading(Gen.YieldSingle(Transporter));
             }

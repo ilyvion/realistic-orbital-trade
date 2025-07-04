@@ -13,6 +13,7 @@ namespace RealisticOrbitalTrade
         internal static int _minimumTradeThreshold = 600;
         internal static bool _useMinimumTradeThreshold;
         internal static int _minimumTradeDeviation = 15;
+        internal static bool _showIlyvionLaboratoryWarning = true;
 
         private static string _minimumTradeThresholdBuffer = string.Empty;
 
@@ -31,6 +32,8 @@ namespace RealisticOrbitalTrade
             Scribe_Values.Look(ref _minimumTradeThreshold, "minimumTradeThreshold", 600);
             Scribe_Values.Look(ref _useMinimumTradeThreshold, "useMinimumTradeThreshold", false);
             Scribe_Values.Look(ref _minimumTradeDeviation, "minimumTradeDeviation", 15);
+            Scribe_Values.Look(
+                ref _showIlyvionLaboratoryWarning, "showIlyvionLaboratoryWarning", true);
 
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
@@ -75,14 +78,22 @@ namespace RealisticOrbitalTrade
             listingStandard.Gap(4);
 
             var minHoursUntilDepartureBeforeGraceTime = _minTicksUntilDepartureBeforeGraceTime / 2500f;
-            listingStandard.Label(string.Format(CultureInfo.CurrentCulture, "RealisticOrbitalTrade.MinTimeUntilDepartureBeforeGraceTimeLabel".Translate(), minHoursUntilDepartureBeforeGraceTime), -1f, "RealisticOrbitalTrade.MinTimeUntilDepartureBeforeGraceTimeTooltip".Translate());
+            listingStandard.Label(string.Format(CultureInfo.CurrentCulture, "RealisticOrbitalTrade.MinTimeUntilDepartureBeforeGraceTimeLabel".Translate(), minHoursUntilDepartureBeforeGraceTime), -1f,
+#if v1_6
+                (TipSignal?)
+#endif
+                "RealisticOrbitalTrade.MinTimeUntilDepartureBeforeGraceTimeTooltip".Translate());
             minHoursUntilDepartureBeforeGraceTime = listingStandard.Slider(minHoursUntilDepartureBeforeGraceTime, 1, 16);
             _minTicksUntilDepartureBeforeGraceTime = (int)(minHoursUntilDepartureBeforeGraceTime * 2500f);
 
             listingStandard.Gap(4);
 
             var departureGraceTime = _departureGraceTimeTicks / 2500f;
-            listingStandard.Label(string.Format(CultureInfo.CurrentCulture, "RealisticOrbitalTrade.DepartureGraceTimeLabel".Translate(), departureGraceTime), -1f, "RealisticOrbitalTrade.DepartureGraceTimeTooltip".Translate());
+            listingStandard.Label(string.Format(CultureInfo.CurrentCulture, "RealisticOrbitalTrade.DepartureGraceTimeLabel".Translate(), departureGraceTime), -1f,
+#if v1_6
+                (TipSignal?)
+#endif
+                "RealisticOrbitalTrade.DepartureGraceTimeTooltip".Translate());
             departureGraceTime = listingStandard.Slider(departureGraceTime, 4, 24);
             _departureGraceTimeTicks = (int)(departureGraceTime * 2500f);
 

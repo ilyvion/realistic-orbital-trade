@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+-   Added a dialog to get people to add a future dependency. Since Rimworld doesn't have a good mechanism to automatically add new dependencies, we need to be a little in-your-face about it.
+-   Rimworld 1.6 support.
+
 ## [0.8.1] - 2024-07-06
 
 ### Changed

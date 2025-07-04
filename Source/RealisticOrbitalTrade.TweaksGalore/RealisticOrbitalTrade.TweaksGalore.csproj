@@ -8,12 +8,9 @@
 
         <RootNamespace>RealisticOrbitalTrade.TweaksGalore</RootNamespace>
         <AssemblyName>RealisticOrbitalTrade.TweaksGalore</AssemblyName>
-        <VersionPrefix>0.8.1</VersionPrefix>
 
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 
-        <!-- Intellisense doesn't work without specifying this explicitly -->
-        <RimWorldVersion Condition="'$(RimWorldVersion)'==''">1.5</RimWorldVersion>
         <RimWorldSteamWorkshopFolderPath Condition="'$(RimWorldSteamWorkshopFolderPath)'==''">..\..\.deps\refs</RimWorldSteamWorkshopFolderPath>
     </PropertyGroup>
 
@@ -34,6 +31,11 @@
     </PropertyGroup>
 
     <Choose>
+        <When Condition="'$(RimWorldVersion)' == '1.6'">
+            <PropertyGroup>
+                <DefineConstants>$(DefineConstants);v1_6</DefineConstants>
+            </PropertyGroup>
+        </When>
         <When Condition="'$(RimWorldVersion)' == '1.5'">
             <PropertyGroup>
                 <DefineConstants>$(DefineConstants);v1_5</DefineConstants>
@@ -45,7 +47,7 @@
         <PackageReference Include="Lib.Harmony" Version="2.2.2">
             <ExcludeAssets>runtime</ExcludeAssets>
         </PackageReference>
-        <PackageReference Include="Krafs.Rimworld.Ref" Version="$(RimWorldVersion).*">
+        <PackageReference Include="Krafs.Rimworld.Ref" Version="$(RimWorldVersion).*-*">
             <ExcludeAssets>runtime</ExcludeAssets>
         </PackageReference>
         <ProjectReference Include="..\RealisticOrbitalTrade\RealisticOrbitalTrade.csproj">

@@ -10,12 +10,9 @@
         The mod can be added to a game at any time. Removing the mod should be fine as long as there is no active trading quest at the time. There will be a fairly large list of once-off errors when first loading such a save, however.
 
         Mod compatibility is probably generally good, but there might be issues with mods that modify how orbital traders work or how vanilla shuttles work.
-
-        &lt;size=24&gt;Version&lt;/size&gt;
-
-        This is version 0.8.1 for RimWorld 1.5 and 1.4
     </description>
     <supportedVersions>
+        <li>1.6</li>
         <li>1.5</li>
         <li>1.4</li>
     </supportedVersions>

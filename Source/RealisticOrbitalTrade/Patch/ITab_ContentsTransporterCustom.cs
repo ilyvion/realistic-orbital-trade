@@ -1,6 +1,5 @@
 using System.Reflection;
 using System.Reflection.Emit;
-using HarmonyLib;
 using RealisticOrbitalTrade.ITabs;
 
 namespace RealisticOrbitalTrade.Patch;
@@ -64,7 +63,19 @@ internal static class Rimworld_ITab_ContentsBase_DoThingRow_Reverse
         }
     }
 
-    private static void FixThingIcon(Rect rect, ThingDef thingDef, ThingDef stuffDef, ThingStyleDef thingStyleDef, float scale, Color? color, int? graphicIndexOverride, ITab_ContentsBase instance, Thing thing)
+    private static void FixThingIcon(
+        Rect rect,
+        ThingDef thingDef,
+        ThingDef stuffDef,
+        ThingStyleDef thingStyleDef,
+        float scale,
+        Color? color,
+        int? graphicIndexOverride,
+#if v1_6
+        float alpha,
+#endif
+        ITab_ContentsBase instance,
+        Thing thing)
     {
         Widgets.ThingIcon(rect, thing);
     }
@@ -100,6 +111,9 @@ internal static class Rimworld_ITab_ContentsBase_DoThingRow_Reverse
             typeof(float),
             typeof(Color?),
             typeof(int?),
+#if v1_6
+            typeof(float),
+#endif
         ]);
     private static readonly MethodInfo _methodTextWordWrap_set = AccessTools.PropertySetter(typeof(Text), nameof(Text.WordWrap));
 
@@ -108,7 +122,20 @@ internal static class Rimworld_ITab_ContentsBase_DoThingRow_Reverse
 #pragma warning disable CS8625
     private static readonly MethodInfo _methodFixInfoCardButton = SymbolExtensions.GetMethodInfo(() => FixInfoCardButton(default, default, default, default, default));
 
-    private static readonly MethodInfo _methodFixThingIcon = SymbolExtensions.GetMethodInfo(() => FixThingIcon(default, default, default, default, default, default, default, default, default));
+    private static readonly MethodInfo _methodFixThingIcon = SymbolExtensions.GetMethodInfo(() =>
+        FixThingIcon(
+            default,
+            default,
+            default,
+            default,
+            default,
+            default,
+            default,
+#if v1_6
+            default,
+#endif
+            default,
+            default));
     private static readonly MethodInfo _methodFixLabel = SymbolExtensions.GetMethodInfo(() => FixLabel(default, default, default, default));
 #pragma warning restore CS8625
 

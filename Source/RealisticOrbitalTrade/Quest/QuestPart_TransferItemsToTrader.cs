@@ -1,4 +1,3 @@
-using HarmonyLib;
 using RimWorld.QuestGen;
 
 namespace RealisticOrbitalTrade.Quests;

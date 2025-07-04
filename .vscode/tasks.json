@@ -8,7 +8,7 @@
                 "kind": "build",
                 "isDefault": false
             },
-            "command": ".vscode/buildAll.ps1",
+            "command": ".vscode/buildAll.sh",
             "problemMatcher": []
         },
         {
@@ -18,9 +18,22 @@
                 "kind": "build",
                 "isDefault": false
             },
-            "command": ".vscode/build.ps1",
+            "command": ".vscode/build.sh",
             "args": [
                 "${input:rimWorldVersion}"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "build 1.6",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "command": ".vscode/build.sh",
+            "args": [
+                "1.6"
             ],
             "problemMatcher": []
         },
@@ -29,9 +42,9 @@
             "type": "shell",
             "group": {
                 "kind": "build",
-                "isDefault": true
+                "isDefault": false
             },
-            "command": ".vscode/build.ps1",
+            "command": ".vscode/build.sh",
             "args": [
                 "1.5"
             ],
@@ -44,7 +57,7 @@
                 "kind": "build",
                 "isDefault": false
             },
-            "command": ".vscode/build.ps1",
+            "command": ".vscode/build.sh",
             "args": [
                 "1.4"
             ],
