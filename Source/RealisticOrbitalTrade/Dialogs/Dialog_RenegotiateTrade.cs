@@ -85,7 +85,7 @@ internal class Dialog_RenegotiateTrade : Window
                     () =>
                     {
                         Settings._renegotiationWarningShown = true;
-                        RealisticOrbitalTradeMod.instance.WriteSettings();
+                        RealisticOrbitalTradeMod.Instance.WriteSettings();
                     }
                 )
             );
@@ -292,7 +292,7 @@ internal class Dialog_RenegotiateTrade : Window
                         }
                         else
                         {
-                            RealisticOrbitalTradeMod.Error(
+                            RealisticOrbitalTradeMod.Instance.LogError(
                                 "Can't cancel trade; cancelTradeAction is null!"
                             );
                         }
@@ -326,7 +326,7 @@ internal class Dialog_RenegotiateTrade : Window
                 || ((originalTradeable.CountToTransfer > 0) && (newTradeable.CountToTransfer > 0))
                 || originalTradeable.CountToTransfer == 0
                 || newTradeable.CountToTransfer == 0;
-            RealisticOrbitalTradeMod.Dev(() =>
+            RealisticOrbitalTradeMod.Instance.LogDevMessage(() =>
                 $"Tradeable {newTradeable.AnyThing.LabelNoCount} has change {change}(n:{newTradeable.CountToTransfer}/o:{originalTradeable.CountToTransfer}), same direction? {stillSameDirection}"
             );
             if (stillSameDirection)
@@ -334,22 +334,30 @@ internal class Dialog_RenegotiateTrade : Window
                 // The change is a mere reduction
                 if (change > 0 && originalTradeable.CountToTransfer < 0)
                 {
-                    RealisticOrbitalTradeMod.Dev(() => $"(1) That means the trader gets {-change}");
+                    RealisticOrbitalTradeMod.Instance.LogDevMessage(() =>
+                        $"(1) That means the trader gets {-change}"
+                    );
                     changes.Add((TransportShip.ToTrader, newTradeable, -change));
                 }
                 else if (change < 0 && originalTradeable.CountToTransfer < 0)
                 {
-                    RealisticOrbitalTradeMod.Dev(() => $"(2) That means the trader gets {-change}");
+                    RealisticOrbitalTradeMod.Instance.LogDevMessage(() =>
+                        $"(2) That means the trader gets {-change}"
+                    );
                     changes.Add((TransportShip.ToTrader, newTradeable, -change));
                 }
                 else if (change > 0 && originalTradeable.CountToTransfer > 0)
                 {
-                    RealisticOrbitalTradeMod.Dev(() => $"(3) That means the player gets {change}");
+                    RealisticOrbitalTradeMod.Instance.LogDevMessage(() =>
+                        $"(3) That means the player gets {change}"
+                    );
                     changes.Add((TransportShip.ToPlayer, newTradeable, change));
                 }
                 else if (change < 0 && originalTradeable.CountToTransfer > 0)
                 {
-                    RealisticOrbitalTradeMod.Dev(() => $"(4) That means the player gets {change}");
+                    RealisticOrbitalTradeMod.Instance.LogDevMessage(() =>
+                        $"(4) That means the player gets {change}"
+                    );
                     changes.Add((TransportShip.ToPlayer, newTradeable, change));
                 }
             }
@@ -358,13 +366,13 @@ internal class Dialog_RenegotiateTrade : Window
                 // The change "switched sides" and requires both reduction and increase
                 if (change > 0)
                 {
-                    RealisticOrbitalTradeMod.Dev(() =>
+                    RealisticOrbitalTradeMod.Instance.LogDevMessage(() =>
                         $"That means the trader gets {originalTradeable.CountToTransfer}..."
                     );
                     changes.Add(
                         (TransportShip.ToTrader, newTradeable, originalTradeable.CountToTransfer)
                     );
-                    RealisticOrbitalTradeMod.Dev(() =>
+                    RealisticOrbitalTradeMod.Instance.LogDevMessage(() =>
                         $"...and the player gets {newTradeable.CountToTransfer}"
                     );
                     changes.Add(
@@ -373,13 +381,13 @@ internal class Dialog_RenegotiateTrade : Window
                 }
                 else
                 {
-                    RealisticOrbitalTradeMod.Dev(() =>
+                    RealisticOrbitalTradeMod.Instance.LogDevMessage(() =>
                         $"That means the player gets {-originalTradeable.CountToTransfer}..."
                     );
                     changes.Add(
                         (TransportShip.ToPlayer, newTradeable, -originalTradeable.CountToTransfer)
                     );
-                    RealisticOrbitalTradeMod.Dev(() =>
+                    RealisticOrbitalTradeMod.Instance.LogDevMessage(() =>
                         $"...and the trader gets {-newTradeable.CountToTransfer}"
                     );
                     changes.Add(
@@ -390,13 +398,15 @@ internal class Dialog_RenegotiateTrade : Window
         }
         if (changes.Count == 0)
         {
-            RealisticOrbitalTradeMod.Dev(() => "No actual renegotiation took place.");
+            RealisticOrbitalTradeMod.Instance.LogDevMessage(() =>
+                "No actual renegotiation took place."
+            );
             Close();
             return;
         }
         foreach (var (transportShip, tradeable, amount) in changes)
         {
-            RealisticOrbitalTradeMod.Dev(() =>
+            RealisticOrbitalTradeMod.Instance.LogDevMessage(() =>
                 $"change for {transportShip}: {amount} {tradeable.AnyThing.LabelCapNoCount}"
             );
 
@@ -408,7 +418,7 @@ internal class Dialog_RenegotiateTrade : Window
                     {
                         if (tradedThingDef != RimWorld.ThingDefOf.Silver)
                         {
-                            RealisticOrbitalTradeMod.Error(
+                            RealisticOrbitalTradeMod.Instance.LogError(
                                 $"Only expecting to owe the player more silver after renegotiation; but owing {tradedThingDef}?!"
                             );
                             continue;
@@ -439,7 +449,7 @@ internal class Dialog_RenegotiateTrade : Window
                         )
                         {
                             var originalStackCount = thing.stackCount;
-                            RealisticOrbitalTradeMod.Dev(() =>
+                            RealisticOrbitalTradeMod.Instance.LogDevMessage(() =>
                                 $"-- Stack count: {originalStackCount}; asking to transfer {leftToTransfer}"
                             );
                             _ = tradeShipThings.TryAddOrTransfer(thing, leftToTransfer);
@@ -457,7 +467,7 @@ internal class Dialog_RenegotiateTrade : Window
                     {
                         if (tradedThingDef != RimWorld.ThingDefOf.Silver)
                         {
-                            RealisticOrbitalTradeMod.Error(
+                            RealisticOrbitalTradeMod.Instance.LogError(
                                 $"Only expecting to owe the trader more silver after renegotiation; but owing {tradedThingDef}?!"
                             );
                             continue;
@@ -511,7 +521,7 @@ internal class Dialog_RenegotiateTrade : Window
                                 );
                                 if (!unloaded)
                                 {
-                                    RealisticOrbitalTradeMod.Error(
+                                    RealisticOrbitalTradeMod.Instance.LogError(
                                         $"Could not unload {pawn} from transport ship after renegotiation!"
                                     );
                                 }
@@ -570,7 +580,7 @@ internal class Dialog_RenegotiateTrade : Window
                                         .FirstOrDefault(t => tradeable.ThingDef == t!.Value.def);
                                     if (!thingDefCountMaybeNull.HasValue)
                                     {
-                                        RealisticOrbitalTradeMod.Error(
+                                        RealisticOrbitalTradeMod.Instance.LogError(
                                             $"Needed to take {-amount} off the 'requiredItems' list, but could only remove {-amount - leftToTakeOff}"
                                         );
                                         break;
@@ -597,7 +607,7 @@ internal class Dialog_RenegotiateTrade : Window
                                         );
                                     if (thingDefCount == null)
                                     {
-                                        RealisticOrbitalTradeMod.Error(
+                                        RealisticOrbitalTradeMod.Instance.LogError(
                                             $"Needed to take {-amount} off the 'requiredItems' list, but could only remove {-amount - leftToTakeOff}"
                                         );
                                         break;
@@ -670,7 +680,7 @@ internal class Dialog_RenegotiateTrade : Window
                                     );
                                     if (!unloaded)
                                     {
-                                        RealisticOrbitalTradeMod.Error(
+                                        RealisticOrbitalTradeMod.Instance.LogError(
                                             $"Could not (fully) unload {tradedThingDef.label} from transport ship after renegotiation!"
                                         );
                                     }
@@ -699,7 +709,7 @@ internal class Dialog_RenegotiateTrade : Window
                                         )
                                 )
                                 {
-                                    RealisticOrbitalTradeMod.Dev(() =>
+                                    RealisticOrbitalTradeMod.Instance.LogDevMessage(() =>
                                         $"Cancelling hauling job for {p} for {tradeable.AnyThing.LabelNoCount}"
                                     );
                                     p.jobs.EndCurrentJob(JobCondition.Incompletable, false, true);
@@ -718,7 +728,7 @@ internal class Dialog_RenegotiateTrade : Window
                                         )
                                 )
                                 {
-                                    RealisticOrbitalTradeMod.Dev(() =>
+                                    RealisticOrbitalTradeMod.Instance.LogDevMessage(() =>
                                         $"Cancelling hauling job for {p} for {tradeable.AnyThing.LabelNoCount}"
                                     );
                                     p.jobs.EndCurrentJob(JobCondition.Incompletable, false, true);
@@ -728,7 +738,7 @@ internal class Dialog_RenegotiateTrade : Window
                     }
                     break;
                 default:
-                    RealisticOrbitalTradeMod.Error(
+                    RealisticOrbitalTradeMod.Instance.LogError(
                         $"Unknown tradeable type: {tradeable.AnyThing.LabelNoCount}"
                     );
                     break;

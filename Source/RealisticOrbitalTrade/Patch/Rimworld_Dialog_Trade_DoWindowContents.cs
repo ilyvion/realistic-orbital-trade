@@ -176,7 +176,7 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
         );
         if (!codeMatcher.IsValid)
         {
-            RealisticOrbitalTradeMod.Error(
+            RealisticOrbitalTradeMod.Instance.LogError(
                 $"Could not patch Dialog_Trade.DoWindowContents, IL does not match expectations ([ldfld Dialog_Trade.cachedCurrencyTradeable])"
             );
             return originalInstructionList;
@@ -186,7 +186,7 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
         );
         if (!codeMatcher.IsValid)
         {
-            RealisticOrbitalTradeMod.Error(
+            RealisticOrbitalTradeMod.Instance.LogError(
                 $"Could not patch Dialog_Trade.DoWindowContents, IL does not match expectations ([stloc.s 8])"
             );
             return originalInstructionList;
@@ -213,7 +213,7 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
         );
         if (!codeMatcher.IsValid)
         {
-            RealisticOrbitalTradeMod.Error(
+            RealisticOrbitalTradeMod.Instance.LogError(
                 $"Could not patch Dialog_Trade.DoWindowContents, IL does not match expectations ([ldc.r4 87])"
             );
             return originalInstructionList;
@@ -231,7 +231,7 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
         );
         if (!codeMatcher.IsValid)
         {
-            RealisticOrbitalTradeMod.Error(
+            RealisticOrbitalTradeMod.Instance.LogError(
                 $"Could not patch Dialog_Trade.DoWindowContents, IL does not match expectations ([ldc.r4 87])"
             );
             return originalInstructionList;
@@ -249,7 +249,7 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
         );
         if (!codeMatcher.IsValid)
         {
-            RealisticOrbitalTradeMod.Error(
+            RealisticOrbitalTradeMod.Instance.LogError(
                 $"Could not patch Dialog_Trade.DoWindowContents, IL does not match expectations ([stloc.s 4])"
             );
             return originalInstructionList;

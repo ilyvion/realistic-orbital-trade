@@ -15,7 +15,7 @@ internal class QuestPart_EndActiveTradeShipTradeAgreement : QuestPart
         {
             if (tradeAgreement == null)
             {
-                RealisticOrbitalTradeMod.Error(
+                RealisticOrbitalTradeMod.Instance.LogError(
                     "tradeAgreement is null in QuestPart_EndActiveTradeShipTradeAgreement. This is a bug, can't end trade agreement."
                 );
                 return;

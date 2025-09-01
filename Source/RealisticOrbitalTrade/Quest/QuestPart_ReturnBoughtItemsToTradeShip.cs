@@ -23,7 +23,7 @@ internal class QuestPart_ReturnBoughtItemsToTradeShip : QuestPart
             {
                 if (!things.TryAddOrTransfer(thing))
                 {
-                    RealisticOrbitalTradeMod.Warning(
+                    RealisticOrbitalTradeMod.Instance.LogWarning(
                         $"Failed returning {thing.Label} to orbital trader {tradeAgreement.tradeShip.TraderName} in QuestPart_ReturnBoughtItemsToTradeShip"
                     );
                     thing.Destroy();

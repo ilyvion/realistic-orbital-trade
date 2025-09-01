@@ -58,7 +58,7 @@ internal static class Alert_OrbitalTrader_Shared
         );
         if (!codeMatcher.IsValid)
         {
-            RealisticOrbitalTradeMod.Error(
+            RealisticOrbitalTradeMod.Instance.LogError(
                 $"Could not patch {modName}'s Alert_OrbitalTrader.GetExplanation, IL does not match expectations"
             );
             return codeMatcher.Instructions();
@@ -66,7 +66,7 @@ internal static class Alert_OrbitalTrader_Shared
         _ = codeMatcher.SearchForward(i => i.opcode == OpCodes.Pop);
         if (!codeMatcher.IsValid)
         {
-            RealisticOrbitalTradeMod.Error(
+            RealisticOrbitalTradeMod.Instance.LogError(
                 $"Could not patch {modName}'s Alert_OrbitalTrader.GetExplanation, IL does not match expectations"
             );
             return codeMatcher.Instructions();

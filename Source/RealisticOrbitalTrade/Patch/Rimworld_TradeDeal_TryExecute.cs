@@ -57,13 +57,13 @@ internal static class Rimworld_TradeDeal_TryExecute
         var tradeAgreementForQuest = TradeShipData.tradeAgreementForQuest;
         if (tradeAgreementForQuest == null)
         {
-            RealisticOrbitalTradeMod.Dev(
+            RealisticOrbitalTradeMod.Instance.LogDevMessage(
                 "Trade agreement for quest is null in TradeDeal.TryExecute postfix."
             );
             return;
         }
 
-        RealisticOrbitalTradeMod.Dev(
+        RealisticOrbitalTradeMod.Instance.LogDevMessage(
             $"TradeDeal.TryExecute postfix: __result={__result}, actuallyTraded={actuallyTraded}, tradeAgreementForQuest={tradeAgreementForQuest}"
         );
         if (__result)

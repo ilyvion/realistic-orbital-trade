@@ -41,7 +41,7 @@ internal static class Rimworld_ITab_ContentsTransporter_DoItemsLists_Reverse
             );
             if (!codeMatcher.IsValid)
             {
-                RealisticOrbitalTradeMod.Error(
+                RealisticOrbitalTradeMod.Instance.LogError(
                     "Could not reverse patch ITab_ContentsTransporter.DoItemsLists, IL does not match expectations: call to ITab_ContentsBase:DoThingRow not found."
                 );
                 return originalInstructionList;
@@ -189,7 +189,7 @@ internal static class Rimworld_ITab_ContentsBase_DoThingRow_Reverse
             );
             if (!codeMatcher.IsValid)
             {
-                RealisticOrbitalTradeMod.Error(
+                RealisticOrbitalTradeMod.Instance.LogError(
                     "Could not reverse patch ITab_ContentsBase.DoThingRow, IL does not match expectations: call to Widgets::InfoCardButton(Def) not found."
                 );
                 return originalInstructionList;
@@ -215,7 +215,7 @@ internal static class Rimworld_ITab_ContentsBase_DoThingRow_Reverse
             );
             if (!codeMatcher.IsValid)
             {
-                RealisticOrbitalTradeMod.Error(
+                RealisticOrbitalTradeMod.Instance.LogError(
                     "Could not reverse patch ITab_ContentsBase.DoThingRow, IL does not match expectations: call to Widgets::ThingIcon(Def) not found."
                 );
                 return originalInstructionList;
@@ -244,7 +244,7 @@ internal static class Rimworld_ITab_ContentsBase_DoThingRow_Reverse
             );
             if (!codeMatcher.IsValid)
             {
-                RealisticOrbitalTradeMod.Error(
+                RealisticOrbitalTradeMod.Instance.LogError(
                     "Could not reverse patch ITab_ContentsBase.DoThingRow, IL does not match expectations: call to set value of Text::WordWrap not found."
                 );
                 return originalInstructionList;

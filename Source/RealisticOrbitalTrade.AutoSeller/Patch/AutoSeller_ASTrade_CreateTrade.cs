@@ -25,7 +25,7 @@ internal static class AutoSeller_ASTrade_CreateTrade
         // It shouldn't be possible to get this far if we're blacklisted, but as an extra safety check
         if (RealisticOrbitalTradeGameComponent.Current.Standing == Standing.Blacklisted)
         {
-            RealisticOrbitalTradeMod.Error(
+            RealisticOrbitalTradeMod.Instance.LogError(
                 "Auto-seller got all the way to CreateTrade when blacklisted. This is a bug."
             );
             __result = false;

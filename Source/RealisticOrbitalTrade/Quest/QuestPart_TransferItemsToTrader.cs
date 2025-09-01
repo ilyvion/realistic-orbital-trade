@@ -39,7 +39,7 @@ internal class QuestPart_TransferItemsToTrader : QuestPart
                 }
                 if (!things.TryAddOrTransfer(thing))
                 {
-                    RealisticOrbitalTradeMod.Warning(
+                    RealisticOrbitalTradeMod.Instance.LogWarning(
                         $"Failed transferring {thing.Label} to orbital trader {tradeAgreement.tradeShip.TraderName} in QuestPart_TransferItemsToTrader"
                     );
                     thing.Destroy();

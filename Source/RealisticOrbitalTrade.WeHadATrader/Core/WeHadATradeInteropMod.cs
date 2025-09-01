@@ -3,7 +3,7 @@ namespace RealisticOrbitalTrade.WeHadATrader;
 /// <summary>
 /// The main mod class for Realistic Orbital Trade's We Had a Trader? integration.
 /// </summary>
-public class WeHadATraderInteropMod : Mod
+public class WeHadATraderInteropMod : IlyvionMod
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="WeHadATraderInteropMod"/> class.
@@ -14,6 +14,8 @@ public class WeHadATraderInteropMod : Mod
     {
         new Harmony(Constants.Id).PatchAll(Assembly.GetExecutingAssembly());
 
-        RealisticOrbitalTradeMod.Message("\"We Had a Trader?\" interop loaded successfully!");
+        RealisticOrbitalTradeMod.Instance.LogMessage(
+            "\"We Had a Trader?\" interop loaded successfully!"
+        );
     }
 }

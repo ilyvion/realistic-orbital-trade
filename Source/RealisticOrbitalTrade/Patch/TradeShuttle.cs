@@ -66,7 +66,7 @@ internal static class Rimworld_CompShuttle_RequiredThingsLabel
         }
         catch (InjectCallBeforeReturnException e)
         {
-            RealisticOrbitalTradeMod.Error(
+            RealisticOrbitalTradeMod.Instance.LogError(
                 "Could not patch CompShuttle.RequiredThingsLabel, IL does not match expectations"
             );
             return e.Instructions;
@@ -120,7 +120,7 @@ internal static class Rimworld_CompTransporter_SubtractFromToLoadList
         );
         if (!codeMatcher.IsValid)
         {
-            RealisticOrbitalTradeMod.Error(
+            RealisticOrbitalTradeMod.Instance.LogError(
                 "Could not patch CompTransporter.SubtractFromToLoadList, IL does not match expectations: call to get value of CompTransporter::AnyInGroupHasAnythingLeftToLoad not found."
             );
             return codeMatcher.Instructions();
@@ -170,7 +170,7 @@ internal static class Rimworld_LoadTransportersJobUtility_FindThingToLoad
         );
         if (!codeMatcher.IsValid)
         {
-            RealisticOrbitalTradeMod.Warning(
+            RealisticOrbitalTradeMod.Instance.LogWarning(
                 "Could not patch LoadTransportersJobUtility.FindThingToLoad, IL does not match expectations: [call GenClosest.ClosestThingReachable] not found."
             );
             return codeMatcher.Instructions();
@@ -207,7 +207,7 @@ internal static class Rimworld_GenClosest_ClosestThingReachable_NewTemp
         );
         if (!codeMatcher.IsValid)
         {
-            RealisticOrbitalTradeMod.Warning(
+            RealisticOrbitalTradeMod.Instance.LogWarning(
                 "Could not patch GenClosest.ClosestThingReachable_NewTemp, IL does not match expectations: [call GenClosest.ClosestThing_Global] not found."
             );
             return codeMatcher.Instructions();

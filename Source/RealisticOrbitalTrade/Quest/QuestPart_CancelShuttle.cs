@@ -59,7 +59,9 @@ internal abstract class QuestPart_CancelShuttle : QuestPartActivable
         base.PostQuestAdded();
         if (shuttle?.TryGetComp<CompTradeShuttle>(out var compTradeShuttle) ?? false)
         {
-            RealisticOrbitalTradeMod.Dev(() => "Setting cancel trade action on CompTradeShuttle");
+            RealisticOrbitalTradeMod.Instance.LogDevMessage(() =>
+                "Setting cancel trade action on CompTradeShuttle"
+            );
             compTradeShuttle.cancelTradeAction = Complete;
         }
     }

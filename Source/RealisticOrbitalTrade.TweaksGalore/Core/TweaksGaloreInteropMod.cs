@@ -3,7 +3,7 @@ namespace RealisticOrbitalTrade.TweaksGalore;
 /// <summary>
 /// The main mod class for Realistic Orbital Trade's Tweaks Galore integration.
 /// </summary>
-public class TweaksGaloreInteropMod : Mod
+public class TweaksGaloreInteropMod : IlyvionMod
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="TweaksGaloreInteropMod"/> class.
@@ -14,6 +14,8 @@ public class TweaksGaloreInteropMod : Mod
     {
         new Harmony(Constants.Id).PatchAll(Assembly.GetExecutingAssembly());
 
-        RealisticOrbitalTradeMod.Message("\"Tweaks Galore\" interop loaded successfully!");
+        RealisticOrbitalTradeMod.Instance.LogMessage(
+            "\"Tweaks Galore\" interop loaded successfully!"
+        );
     }
 }

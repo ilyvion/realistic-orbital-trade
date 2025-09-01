@@ -148,7 +148,7 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
         );
         if (!codeMatcher.IsValid)
         {
-            RealisticOrbitalTradeMod.Error(
+            RealisticOrbitalTradeMod.Instance.LogError(
                 $"Could not patch Window_DynamicTrade.DoWindowContents, IL does not match expectations ([ldfld Window_DynamicTrade._currencyFont])"
             );
             return originalInstructionList;
@@ -160,7 +160,7 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
             || m != _method_Text_LineHeightOf
         )
         {
-            RealisticOrbitalTradeMod.Error(
+            RealisticOrbitalTradeMod.Instance.LogError(
                 $"Could not patch Window_DynamicTrade.DoWindowContents, IL does not match expectations ([call Text.LineHeightOf])"
             );
             return originalInstructionList;
@@ -174,7 +174,7 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
             && codeMatcher.Opcode != OpCodes.Stloc_S
         )
         {
-            RealisticOrbitalTradeMod.Error(
+            RealisticOrbitalTradeMod.Instance.LogError(
                 $"Could not patch Window_DynamicTrade.DoWindowContents, IL does not match expectations ([stloc.*]), was {codeMatcher.Opcode}"
             );
             return originalInstructionList;
@@ -208,7 +208,7 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
         _ = codeMatcher.SearchForward(i => i.opcode == loadOpcode && i.operand == loadOperand);
         if (!codeMatcher.IsValid)
         {
-            RealisticOrbitalTradeMod.Error(
+            RealisticOrbitalTradeMod.Instance.LogError(
                 $"Could not patch Window_DynamicTrade.DoWindowContents, IL does not match expectations ([ldloc.3])"
             );
             return originalInstructionList;

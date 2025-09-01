@@ -32,14 +32,14 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         {
             if (toPlayerTransportShip == null)
             {
-                RealisticOrbitalTradeMod.Error(
+                RealisticOrbitalTradeMod.Instance.LogError(
                     "toPlayerTransportShip is null in TradeAgreement. This is a bug, can't calculate AllTradeables."
                 );
                 return [];
             }
             if (toTraderTransportShip == null)
             {
-                RealisticOrbitalTradeMod.Error(
+                RealisticOrbitalTradeMod.Instance.LogError(
                     "toTraderTransportShip is null in TradeAgreement. This is a bug, can't calculate AllTradeables."
                 );
                 return [];
@@ -109,6 +109,8 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         loadID = RealisticOrbitalTradeGameComponent.Current.GetNextTradeId();
     }
 
+    private bool _hasWarnedAboutOldTradeAgreementNonRenegotiable;
+
     public void ExposeData()
     {
         Scribe_Values.Look(ref loadID, "loadID", 0);
@@ -124,10 +126,10 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
             && (toPlayerTransportShip == null || toTraderTransportShip == null)
         )
         {
-            RealisticOrbitalTradeMod.WarningOnce(
+            RealisticOrbitalTradeMod.Instance.LogWarningOnce(
                 "Detected an active trade agreement from before "
                     + "trade renegotiation was added; this trade cannot be renegotiated.",
-                Constants.OldTradeNonRenegotiableKey
+                ref _hasWarnedAboutOldTradeAgreementNonRenegotiable
             );
         }
     }

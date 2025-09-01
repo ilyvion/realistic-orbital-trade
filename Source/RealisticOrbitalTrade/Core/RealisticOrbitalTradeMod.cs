@@ -5,17 +5,10 @@
 
 namespace RealisticOrbitalTrade;
 
-internal class RealisticOrbitalTradeMod : Mod
+internal partial class RealisticOrbitalTradeMod
 {
-#pragma warning disable CS8618 // Set by constructor
-    internal static RealisticOrbitalTradeMod instance;
-#pragma warning restore CS8618
-
-    public RealisticOrbitalTradeMod(ModContentPack content)
-        : base(content)
+    partial void Construct()
     {
-        instance = this;
-
         // if (!ModsConfig.RoyaltyActive)
         // {
         //     Error("Realistic Orbital Trade requires the Royalty DLC to be active to work. The mod's functionality has therefore been disabled and trade will behave as in vanilla.");
@@ -37,41 +30,7 @@ internal class RealisticOrbitalTradeMod : Mod
         Settings.DoSettingsWindowContents(inRect);
     }
 
-    public override string SettingsCategory() => Content.Name;
-
-    public static void Message(string msg) => Log.Message("[Realistic Orbital Trade] " + msg);
-
-    public static void Dev(string msg)
-    {
-        if (Prefs.DevMode && Settings._printDevMessages)
-        {
-            Log.Message("[Realistic Orbital Trade][DEV] " + msg);
-        }
-    }
-
-    public static void Dev(Func<string> produceMsg)
-    {
-        if (Prefs.DevMode && Settings._printDevMessages)
-        {
-            Log.Message("[Realistic Orbital Trade][DEV] " + produceMsg());
-        }
-    }
-
-    public static void Warning(string msg) => Log.Warning("[Realistic Orbital Trade] " + msg);
-
-    public static void WarningOnce(string msg, int key) =>
-        Log.WarningOnce("[Realistic Orbital Trade] " + msg, Constants.MessageKeyBase + key);
-
-    public static void Error(string msg) => Log.Error("[Realistic Orbital Trade] " + msg);
-
-    public static void Exception(string msg, Exception? e = null)
-    {
-        Message(msg);
-        if (e != null)
-        {
-            Log.Error(e.ToString());
-        }
-    }
+    protected override bool HasSettings => true;
 }
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]

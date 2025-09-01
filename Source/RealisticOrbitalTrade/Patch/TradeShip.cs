@@ -18,6 +18,8 @@ internal static class Rimworld_TradeShip_ExposeData
 [HarmonyPatch(typeof(TradeShip), nameof(TradeShip.GiveSoldThingToPlayer))]
 internal static class Rimworld_TradeShip_GiveSoldThingToPlayer
 {
+    private static bool _hasWarnedAboutMissingTradeAgreement;
+
     private static bool Prefix(
         TradeShip __instance,
         Thing toGive,
@@ -28,9 +30,9 @@ internal static class Rimworld_TradeShip_GiveSoldThingToPlayer
         var tradeAgreement = TradeShipData.tradeAgreementForQuest;
         if (tradeAgreement == null)
         {
-            RealisticOrbitalTradeMod.WarningOnce(
+            RealisticOrbitalTradeMod.Instance.LogWarningOnce(
                 "Trade ship did not have a trade agreement arranged. Mod incompatibility?",
-                Constants.MissingTradeAgreementKey
+                ref _hasWarnedAboutMissingTradeAgreement
             );
             return true;
         }
@@ -44,7 +46,7 @@ internal static class Rimworld_TradeShip_GiveSoldThingToPlayer
                 .GetValue<List<Pawn>>()
                 .Remove(item);
         }
-        RealisticOrbitalTradeMod.Dev(() =>
+        RealisticOrbitalTradeMod.Instance.LogDevMessage(() =>
             $"Adding {thing.Label} to list of things to give to player on successful trade"
         );
         _ = tradeAgreement.thingsSoldToPlayer.TryAddOrTransfer(thing);
@@ -56,19 +58,21 @@ internal static class Rimworld_TradeShip_GiveSoldThingToPlayer
 [HarmonyPatch(typeof(TradeShip), nameof(TradeShip.GiveSoldThingToTrader))]
 internal static class Rimworld_TradeShip_GiveSoldThingToTrader
 {
+    private static bool _hasWarnedAboutMissingTradeAgreement;
+
     private static bool Prefix(Thing toGive, int countToGive, Pawn playerNegotiator)
     {
         var tradeAgreement = TradeShipData.tradeAgreementForQuest;
         if (tradeAgreement == null)
         {
-            RealisticOrbitalTradeMod.WarningOnce(
+            RealisticOrbitalTradeMod.Instance.LogWarningOnce(
                 "Trade ship did not have a trade agreement arranged. Mod incompatibility?",
-                Constants.MissingTradeAgreementKey
+                ref _hasWarnedAboutMissingTradeAgreement
             );
             return true;
         }
 
-        RealisticOrbitalTradeMod.Dev(() =>
+        RealisticOrbitalTradeMod.Instance.LogDevMessage(() =>
             $"Adding {toGive.LabelCapNoCount} x{countToGive} to list of things player needs to load onto shuttle"
         );
         if (toGive is Pawn pawn)

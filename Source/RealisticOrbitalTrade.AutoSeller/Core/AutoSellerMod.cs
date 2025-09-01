@@ -3,7 +3,7 @@ namespace RealisticOrbitalTrade.AutoSeller;
 /// <summary>
 /// The main mod class for Realistic Orbital Trade's AutoSeller integration.
 /// </summary>
-public class AutoSellerMod : Mod
+public class AutoSellerMod : IlyvionMod
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="AutoSellerMod"/> class.
@@ -14,6 +14,6 @@ public class AutoSellerMod : Mod
     {
         new Harmony(Constants.Id).PatchAll(Assembly.GetExecutingAssembly());
 
-        RealisticOrbitalTradeMod.Message("\"AutoSeller\" interop loaded successfully!");
+        RealisticOrbitalTradeMod.Instance.LogMessage("\"AutoSeller\" interop loaded successfully!");
     }
 }

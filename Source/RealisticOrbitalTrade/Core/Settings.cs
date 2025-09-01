@@ -11,7 +11,6 @@ internal class Settings : ModSettings
     internal static int _minimumTradeThreshold = 600;
     internal static bool _useMinimumTradeThreshold;
     internal static int _minimumTradeDeviation = 15;
-    internal static bool _showIlyvionLaboratoryWarning = true;
 
     private static string _minimumTradeThresholdBuffer = string.Empty;
 
@@ -38,7 +37,6 @@ internal class Settings : ModSettings
         Scribe_Values.Look(ref _minimumTradeThreshold, "minimumTradeThreshold", 600);
         Scribe_Values.Look(ref _useMinimumTradeThreshold, "useMinimumTradeThreshold", false);
         Scribe_Values.Look(ref _minimumTradeDeviation, "minimumTradeDeviation", 15);
-        Scribe_Values.Look(ref _showIlyvionLaboratoryWarning, "showIlyvionLaboratoryWarning", true);
 
         if (Scribe.mode == LoadSaveMode.PostLoadInit)
         {

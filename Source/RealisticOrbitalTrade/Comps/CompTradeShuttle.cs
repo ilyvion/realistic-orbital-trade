@@ -156,7 +156,7 @@ internal class CompTradeShuttle : ThingComp
 
         if (tradeAgreement == null)
         {
-            RealisticOrbitalTradeMod.Error(
+            RealisticOrbitalTradeMod.Instance.LogError(
                 "tradeAgreement is null in CompTradeShuttle. This is a bug, autoloading impossible."
             );
             return;
@@ -258,7 +258,7 @@ internal class CompTradeShuttle : ThingComp
         {
             if (tradeAgreement == null)
             {
-                RealisticOrbitalTradeMod.Error(
+                RealisticOrbitalTradeMod.Instance.LogError(
                     "tradeAgreement is null in CompTradeShuttle. This is a bug, renegotiation impossible."
                 );
                 return new FloatMenuOption(
