@@ -1,6 +1,3 @@
-using System.Reflection;
-using System.Runtime.CompilerServices;
-
 [assembly: InternalsVisibleTo("RealisticOrbitalTrade.TweaksGalore")]
 [assembly: InternalsVisibleTo("RealisticOrbitalTrade.WeHadATrader")]
 [assembly: InternalsVisibleTo("RealisticOrbitalTrade.DynamicTradeInterface")]
@@ -31,7 +28,7 @@ internal class RealisticOrbitalTradeMod : Mod
         //Harmony.DEBUG = false;
         //}
 
-        GetSettings<Settings>();
+        _ = GetSettings<Settings>();
     }
 
     public override void DoSettingsWindowContents(Rect inRect)
@@ -40,15 +37,9 @@ internal class RealisticOrbitalTradeMod : Mod
         Settings.DoSettingsWindowContents(inRect);
     }
 
-    public override string SettingsCategory()
-    {
-        return Content.Name;
-    }
+    public override string SettingsCategory() => Content.Name;
 
-    public static void Message(string msg)
-    {
-        Log.Message("[Realistic Orbital Trade] " + msg);
-    }
+    public static void Message(string msg) => Log.Message("[Realistic Orbital Trade] " + msg);
 
     public static void Dev(string msg)
     {
@@ -66,20 +57,12 @@ internal class RealisticOrbitalTradeMod : Mod
         }
     }
 
-    public static void Warning(string msg)
-    {
-        Log.Warning("[Realistic Orbital Trade] " + msg);
-    }
+    public static void Warning(string msg) => Log.Warning("[Realistic Orbital Trade] " + msg);
 
-    public static void WarningOnce(string msg, int key)
-    {
+    public static void WarningOnce(string msg, int key) =>
         Log.WarningOnce("[Realistic Orbital Trade] " + msg, Constants.MessageKeyBase + key);
-    }
 
-    public static void Error(string msg)
-    {
-        Log.Error("[Realistic Orbital Trade] " + msg);
-    }
+    public static void Error(string msg) => Log.Error("[Realistic Orbital Trade] " + msg);
 
     public static void Exception(string msg, Exception? e = null)
     {
@@ -92,4 +75,4 @@ internal class RealisticOrbitalTradeMod : Mod
 }
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-public sealed class HotSwappableAttribute : Attribute { }
+internal sealed class HotSwappableAttribute : Attribute { }

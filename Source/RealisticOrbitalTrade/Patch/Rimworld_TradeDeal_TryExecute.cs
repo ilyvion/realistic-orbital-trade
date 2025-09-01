@@ -29,7 +29,7 @@ internal static class Rimworld_TradeDeal_TryExecute
             combinedTradeValue += Math.Abs(item.CurTotalCurrencyCostForDestination);
         }
 
-        int minimumTradeThreshold = tradeAgreementForQuest
+        var minimumTradeThreshold = tradeAgreementForQuest
             .tradeShip.GetData()
             .minimumTradeThreshold;
         if (combinedTradeValue < minimumTradeThreshold)
@@ -74,7 +74,7 @@ internal static class Rimworld_TradeDeal_TryExecute
                 slate.Set("tradeAgreement", tradeAgreementForQuest);
                 slate.Set("traderName", tradeAgreementForQuest.tradeShip.TraderName);
 
-                QuestUtility.GenerateQuestAndMakeAvailable(
+                _ = QuestUtility.GenerateQuestAndMakeAvailable(
                     QuestScriptDefOf.ROT_TradeShipTransportShip,
                     slate
                 );

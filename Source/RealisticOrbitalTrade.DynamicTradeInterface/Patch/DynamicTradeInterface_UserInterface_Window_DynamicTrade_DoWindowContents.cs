@@ -1,11 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using System.Reflection.Emit;
-using RimWorld;
-using UnityEngine;
-using Verse;
 
 namespace RealisticOrbitalTrade.Patch;
 
@@ -18,7 +11,7 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
     static DynamicTradeInterface_UserInterface_Window_DynamicTrade_DoWindowContents()
     {
         Harmony harmony = new(Constants.Id);
-        harmony.Patch(
+        _ = harmony.Patch(
             AccessTools.Method(
                 "DynamicTradeInterface.UserInterface.Window_DynamicTrade:DoWindowContents"
             ),
@@ -29,7 +22,7 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
                 )
             )
         );
-        harmony.Patch(
+        _ = harmony.Patch(
             _method_Window_DynamicTrade_DrawCurrencyRow,
             postfix: new HarmonyMethod(
                 AccessTools.Method(
@@ -59,51 +52,46 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
         nameof(WillDrawThresholdRow)
     );
 
-    private static bool WillDrawThresholdRow()
-    {
-        return Settings._useMinimumTradeThreshold && TradeShipData.tradeAgreementForQuest != null;
-    }
+    private static bool WillDrawThresholdRow() =>
+        Settings._useMinimumTradeThreshold && TradeShipData.tradeAgreementForQuest != null;
 
     private static void DrawThresholdRow(Rect currencyRowRect, GameFont ____currencyFont)
     {
-        TradeAgreement? tradeAgreement = TradeShipData.tradeAgreementForQuest;
+        var tradeAgreement = TradeShipData.tradeAgreementForQuest;
         if (!Settings._useMinimumTradeThreshold || tradeAgreement == null)
         {
             return;
         }
 
-        GameFont currentFont = Text.Font;
+        var currentFont = Text.Font;
         Text.Font = ____currencyFont;
 
         var thresholdRowRect = new Rect(currencyRowRect);
         thresholdRowRect.y += currencyRowRect.height;
 
-        bool flash =
-            Time.time - Rimworld_Dialog_Trade_DoWindowContents.lastTradeValueFlashTime < 1f;
+        var flash = Time.time - Rimworld_Dialog_Trade_DoWindowContents.lastTradeValueFlashTime < 1f;
         if (flash)
         {
             GUI.DrawTexture(thresholdRowRect, TransferableUIUtility.FlashTex);
         }
 
-        float curX = thresholdRowRect.x + 60f;
+        var curX = thresholdRowRect.x + 60f;
         Rect labelRect = new(curX, thresholdRowRect.y, 200f, thresholdRowRect.height);
-        TaggedString tradeValueLabel = "RealisticOrbitalTrade.TradeValue"
-            .Translate()
-            .CapitalizeFirst();
+        var tradeValueLabel = "RealisticOrbitalTrade.TradeValue".Translate().CapitalizeFirst();
         Widgets.Label(labelRect, tradeValueLabel);
         if (Mouse.IsOver(labelRect))
         {
             TooltipHandler.TipRegionByKey(labelRect, "RealisticOrbitalTrade.TradeValueTip");
         }
 
-        float combinedTradeValue =
+        var combinedTradeValue =
             Rimworld_Dialog_Trade_DoWindowContents.CalculateCombinedTradeValue();
 
-        float centerX = thresholdRowRect.center.x;
-        thresholdRowRect.SplitVerticallyWithMargin(
+        var centerX = thresholdRowRect.center.x;
+        _ = thresholdRowRect.SplitVerticallyWithMargin(
             out var left,
             out var right,
-            out var _,
+            out _,
             100f,
             thresholdRowRect.width / 2f
         );
@@ -120,8 +108,8 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
         Widgets.Label(left, ((int)Math.Round(combinedTradeValue)).ToStringCached());
         TooltipHandler.TipRegionByKey(left, "RealisticOrbitalTrade.CurrentTradeValue");
 
-        int minimumTradeThreshold = tradeAgreement.tradeShip.GetData().minimumTradeThreshold;
-        int tradeValueDifference = (int)Math.Round(combinedTradeValue) - minimumTradeThreshold;
+        var minimumTradeThreshold = tradeAgreement.tradeShip.GetData().minimumTradeThreshold;
+        var tradeValueDifference = (int)Math.Round(combinedTradeValue) - minimumTradeThreshold;
         GUI.color = tradeValueDifference < 0 ? Color.yellow : Color.green;
 
         Rect currencyLabelRect = new(
@@ -137,7 +125,7 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
         );
         GUI.color = Color.white;
 
-        Widgets.Label(right, minimumTradeThreshold.ToString());
+        Widgets.Label(right, minimumTradeThreshold.ToString(CultureInfo.InvariantCulture));
         TooltipHandler.TipRegionByKey(right, "RealisticOrbitalTrade.TradersMinimumTradeThreshold");
 
         Text.Font = currentFont;
@@ -153,7 +141,7 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
 
         var codeMatcher = new CodeMatcher(originalInstructionList, generator);
 
-        codeMatcher.SearchForward(i =>
+        _ = codeMatcher.SearchForward(i =>
             i.opcode == OpCodes.Ldfld
             && i.operand is FieldInfo f
             && f == _field_Window_DynamicTrade_currencyFont
@@ -165,7 +153,7 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
             );
             return originalInstructionList;
         }
-        codeMatcher.Advance(1);
+        _ = codeMatcher.Advance(1);
         if (
             codeMatcher.Opcode != OpCodes.Call
             || codeMatcher.Operand is not MethodInfo m
@@ -177,7 +165,7 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
             );
             return originalInstructionList;
         }
-        codeMatcher.Advance(1);
+        _ = codeMatcher.Advance(1);
         if (
             codeMatcher.Opcode != OpCodes.Stloc_0
             && codeMatcher.Opcode != OpCodes.Stloc_1
@@ -196,20 +184,28 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
         OpCode loadOpcode;
         LocalBuilder? loadOperand = null;
         if (storeOpcode == OpCodes.Stloc_0)
+        {
             loadOpcode = OpCodes.Ldloc_0;
+        }
         else if (storeOpcode == OpCodes.Stloc_1)
+        {
             loadOpcode = OpCodes.Ldloc_1;
+        }
         else if (storeOpcode == OpCodes.Stloc_2)
+        {
             loadOpcode = OpCodes.Ldloc_2;
+        }
         else if (storeOpcode == OpCodes.Stloc_3)
+        {
             loadOpcode = OpCodes.Ldloc_3;
+        }
         else
         {
             loadOpcode = OpCodes.Ldloc_S;
             loadOperand = codeMatcher.Operand as LocalBuilder;
         }
 
-        codeMatcher.SearchForward(i => i.opcode == loadOpcode && i.operand == loadOperand);
+        _ = codeMatcher.SearchForward(i => i.opcode == loadOpcode && i.operand == loadOperand);
         if (!codeMatcher.IsValid)
         {
             RealisticOrbitalTradeMod.Error(
@@ -217,11 +213,11 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
             );
             return originalInstructionList;
         }
-        codeMatcher.Advance(1);
+        _ = codeMatcher.Advance(1);
 
-        codeMatcher.CreateLabel(out var skipDupLabel);
+        _ = codeMatcher.CreateLabel(out var skipDupLabel);
 
-        codeMatcher.Insert(
+        _ = codeMatcher.Insert(
             [
                 new(OpCodes.Call, _methodWillDrawThresholdRow),
                 new(OpCodes.Brfalse_S, skipDupLabel),

@@ -1,15 +1,16 @@
-using System.Reflection;
+#pragma warning disable IDE0060 // Remove unused parameter
+#pragma warning disable IDE0062 // Make local function 'static'
+
 using System.Reflection.Emit;
 using System.Text;
 using RealisticOrbitalTrade.Comps;
-using Verse.AI;
 
 namespace RealisticOrbitalTrade.Patch;
 
 [HarmonyPatch(typeof(CompShuttle), nameof(CompShuttle.IsRequired))]
 internal static class Rimworld_CompShuttle_IsRequired
 {
-    private static void Postfix(CompShuttle __instance, Thing thing, ref bool __result)
+    internal static void Postfix(CompShuttle __instance, Thing thing, ref bool __result)
     {
         var compTradeShuttle = __instance.parent?.TryGetComp<CompTradeShuttle>();
         if (!__result && compTradeShuttle != null)
@@ -22,13 +23,10 @@ internal static class Rimworld_CompShuttle_IsRequired
 [HarmonyPatch(typeof(CompShuttle), "CheckAutoload")]
 internal static class Rimworld_CompShuttle_CheckAutoload_SpecificItems
 {
-    private static void Postfix(CompShuttle __instance)
+    internal static void Postfix(CompShuttle __instance)
     {
         var compTradeShuttle = __instance.parent?.TryGetComp<CompTradeShuttle>();
-        if (compTradeShuttle != null)
-        {
-            compTradeShuttle.CheckAutoload();
-        }
+        compTradeShuttle?.CheckAutoload();
     }
 }
 
@@ -43,7 +41,7 @@ internal static class Rimworld_CompShuttle_RequiredThingsLabel
         {
             foreach (var requiredItem in compTradeShuttle.requiredSpecificItems)
             {
-                stringBuilder.AppendLine("  - " + requiredItem.Label.CapitalizeFirst());
+                _ = stringBuilder.AppendLine("  - " + requiredItem.Label.CapitalizeFirst());
             }
         }
     }
@@ -53,7 +51,7 @@ internal static class Rimworld_CompShuttle_RequiredThingsLabel
             InjectThingsLabel(new(), new())
     );
 
-    private static IEnumerable<CodeInstruction> Transpiler(
+    internal static IEnumerable<CodeInstruction> Transpiler(
         IEnumerable<CodeInstruction> instructions
     )
     {
@@ -80,7 +78,7 @@ internal static class Rimworld_CompShuttle_RequiredThingsLabel
 [HarmonyPatch(nameof(CompShuttle.AllRequiredThingsLoaded), MethodType.Getter)]
 internal static class Rimworld_CompShuttle_AllRequiredThingsLoaded
 {
-    private static void Postfix(CompShuttle __instance, ref bool __result)
+    internal static void Postfix(CompShuttle __instance, ref bool __result)
     {
         var compTradeShuttle = __instance.parent?.TryGetComp<CompTradeShuttle>();
         if (__result && compTradeShuttle != null)
@@ -93,10 +91,8 @@ internal static class Rimworld_CompShuttle_AllRequiredThingsLoaded
 [HarmonyPatch(typeof(CompTransporter), nameof(CompTransporter.SubtractFromToLoadList))]
 internal static class Rimworld_CompTransporter_SubtractFromToLoadList
 {
-    private static bool HideFinishedMessageForTradeShuttle(CompTransporter compTransporter)
-    {
-        return compTransporter?.parent.TryGetComp<CompTradeShuttle>() != null;
-    }
+    private static bool HideFinishedMessageForTradeShuttle(CompTransporter compTransporter) =>
+        compTransporter?.parent.TryGetComp<CompTradeShuttle>() != null;
 
 #pragma warning disable CS8625
     private static readonly MethodInfo _methodHideFinishedMessageForTradeShuttle =
@@ -109,13 +105,15 @@ internal static class Rimworld_CompTransporter_SubtractFromToLoadList
             nameof(CompTransporter.AnyInGroupHasAnythingLeftToLoad)
         );
 
+#pragma warning disable CA1859 // Use concrete types when possible for improved performance
     private static IEnumerable<CodeInstruction> Transpiler(
+#pragma warning restore CA1859 // Use concrete types when possible for improved performance
         IEnumerable<CodeInstruction> instructions
     )
     {
         var codeMatcher = new CodeMatcher(instructions);
 
-        codeMatcher.SearchForward(i =>
+        _ = codeMatcher.SearchForward(i =>
             i.opcode == OpCodes.Call
             && i.operand is MethodInfo m
             && m == _methodCompTransporterAnyInGroupHasAnythingLeftToLoad_get
@@ -127,11 +125,11 @@ internal static class Rimworld_CompTransporter_SubtractFromToLoadList
             );
             return codeMatcher.Instructions();
         }
-        codeMatcher.Advance(1);
+        _ = codeMatcher.Advance(1);
         var endLabel = codeMatcher.Operand;
-        codeMatcher.Advance(1);
+        _ = codeMatcher.Advance(1);
 
-        codeMatcher.Insert(
+        _ = codeMatcher.Insert(
             [
                 // == this
                 new(OpCodes.Ldarg_0),
@@ -159,13 +157,13 @@ internal static class Rimworld_LoadTransportersJobUtility_FindThingToLoad
     private static readonly MethodInfo _method_GenClosest_ClosestThingReachable_NewTemp =
         AccessTools.Method(typeof(GenClosest), nameof(GenClosest.ClosestThingReachable_NewTemp));
 
-    private static IEnumerable<CodeInstruction> Transpiler(
+    internal static IEnumerable<CodeInstruction> Transpiler(
         IEnumerable<CodeInstruction> instructions
     )
     {
         var codeMatcher = new CodeMatcher(instructions);
 
-        codeMatcher.SearchForward(i =>
+        _ = codeMatcher.SearchForward(i =>
             i.opcode == OpCodes.Call
             && i.operand is MethodInfo m
             && m == _method_GenClosest_ClosestThingReachable
@@ -180,7 +178,7 @@ internal static class Rimworld_LoadTransportersJobUtility_FindThingToLoad
 
         codeMatcher.Operand = _method_GenClosest_ClosestThingReachable_NewTemp;
 
-        codeMatcher.Insert([new(OpCodes.Ldc_I4_1)]);
+        _ = codeMatcher.Insert([new(OpCodes.Ldc_I4_1)]);
 
         return codeMatcher.Instructions();
     }
@@ -196,13 +194,13 @@ internal static class Rimworld_GenClosest_ClosestThingReachable_NewTemp
     private static readonly MethodInfo _method_GenClosest_ClosestThing_Global_NewTemp =
         AccessTools.Method(typeof(GenClosest), nameof(GenClosest.ClosestThing_Global_NewTemp));
 
-    private static IEnumerable<CodeInstruction> Transpiler(
+    internal static IEnumerable<CodeInstruction> Transpiler(
         IEnumerable<CodeInstruction> instructions
     )
     {
         var codeMatcher = new CodeMatcher(instructions);
 
-        codeMatcher.SearchForward(i =>
+        _ = codeMatcher.SearchForward(i =>
             i.opcode == OpCodes.Call
             && i.operand is MethodInfo m
             && m == _method_GenClosest_ClosestThing_Global
@@ -217,7 +215,7 @@ internal static class Rimworld_GenClosest_ClosestThingReachable_NewTemp
 
         codeMatcher.Operand = _method_GenClosest_ClosestThing_Global_NewTemp;
 
-        codeMatcher.Insert([new(OpCodes.Ldarg_S, 13)]);
+        _ = codeMatcher.Insert([new(OpCodes.Ldarg_S, 13)]);
 
         return codeMatcher.Instructions();
     }

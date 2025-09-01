@@ -9,10 +9,8 @@ internal class ITab_ContentsTransporterCustom : ITab_ContentsTransporter
         canRemoveThings = false;
     }
 
-    protected override void DoItemsLists(Rect inRect, ref float curY)
-    {
+    protected override void DoItemsLists(Rect inRect, ref float curY) =>
         Rimworld_ITab_ContentsTransporter_DoItemsLists_Reverse.DoItemsLists(this, inRect, ref curY);
-    }
 
     internal new void DoThingRow(
         ThingDef thingDef,
@@ -21,8 +19,7 @@ internal class ITab_ContentsTransporterCustom : ITab_ContentsTransporter
         float width,
         ref float curY,
         Action<int> discardAction
-    )
-    {
+    ) =>
         Rimworld_ITab_ContentsBase_DoThingRow_Reverse.DoThingRow(
             this,
             thingDef,
@@ -32,5 +29,4 @@ internal class ITab_ContentsTransporterCustom : ITab_ContentsTransporter
             ref curY,
             discardAction
         );
-    }
 }

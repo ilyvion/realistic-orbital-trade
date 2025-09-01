@@ -1,5 +1,3 @@
-using System.Runtime.CompilerServices;
-
 namespace RealisticOrbitalTrade;
 
 internal class TradeShipData : IExposable
@@ -26,10 +24,7 @@ internal class TradeShipData : IExposable
         }
     }
 
-    public bool HasActiveTradeAgreement
-    {
-        get => activeTradeAgreement != null;
-    }
+    public bool HasActiveTradeAgreement => activeTradeAgreement != null;
 
     public static void EndTradeAgreementIfExists()
     {
@@ -65,16 +60,17 @@ internal static class TradeShipExtensions
     {
         if (_tradeShipExtra.TryGetValue(tradeShip, out _))
         {
-            _tradeShipExtra.Remove(tradeShip);
+            _ = _tradeShipExtra.Remove(tradeShip);
         }
         _tradeShipExtra.Add(tradeShip, tradeShipData);
     }
 
-    private static ConditionalWeakTable<TradeShip, TradeShipData> _tradeShipExtra = new();
+#pragma warning disable IDE0028 // Simplify collection initialization
+    private static readonly ConditionalWeakTable<TradeShip, TradeShipData> _tradeShipExtra = new();
+#pragma warning restore IDE0028 // Simplify collection initialization
 
-    public static TradeShipData GetData(this TradeShip tradeShip)
-    {
-        return _tradeShipExtra.GetValue(
+    public static TradeShipData GetData(this TradeShip tradeShip) =>
+        _tradeShipExtra.GetValue(
             tradeShip,
             (tradeShip) =>
             {
@@ -84,5 +80,4 @@ internal static class TradeShipExtensions
                 return new(tradeShip, true);
             }
         );
-    }
 }

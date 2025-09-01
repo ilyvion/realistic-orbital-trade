@@ -3,21 +3,14 @@ using Verse.AI;
 
 namespace RealisticOrbitalTrade.ShipJobs;
 
-public class ShipJob_CancelLoad : ShipJob
+internal class ShipJob_CancelLoad : ShipJob
 {
     private bool done;
 
     protected override bool ShouldEnd => done;
     public override bool Interruptible => false;
 
-    public override bool TryStart()
-    {
-        if (!transportShip.ShipExistsAndIsSpawned)
-        {
-            return false;
-        }
-        return base.TryStart();
-    }
+    public override bool TryStart() => transportShip.ShipExistsAndIsSpawned && base.TryStart();
 
 #if v1_6
     public override void TickInterval(int delta)
@@ -31,8 +24,7 @@ public class ShipJob_CancelLoad : ShipJob
         if (!done)
         {
             // Stop autoloading and remove any things from leftToLoad
-            CompTradeShuttle compTradeShuttle =
-                transportShip.shipThing.TryGetComp<CompTradeShuttle>();
+            var compTradeShuttle = transportShip.shipThing.TryGetComp<CompTradeShuttle>();
             compTradeShuttle.cancelled = true;
             compTradeShuttle.ShuttleAutoLoad = false;
             transportShip.TransporterComp.leftToLoad?.Clear();
@@ -58,15 +50,15 @@ public class ShipJob_CancelLoad : ShipJob
 internal static class MapPawnsGetAllHumanLike
 {
 #if v1_4
-    private static List<Pawn> humanlikePawnsResult = new List<Pawn>();
+    private static readonly List<Pawn> humanlikePawnsResult = [];
 #endif
 
     public static List<Pawn> GetAllHumanLike(this MapPawns mapPawns)
     {
 #if v1_4
         humanlikePawnsResult.Clear();
-        List<Pawn> allPawns = mapPawns.AllPawns;
-        for (int i = 0; i < allPawns.Count; i++)
+        var allPawns = mapPawns.AllPawns;
+        for (var i = 0; i < allPawns.Count; i++)
         {
             if (allPawns[i].RaceProps.Humanlike)
             {

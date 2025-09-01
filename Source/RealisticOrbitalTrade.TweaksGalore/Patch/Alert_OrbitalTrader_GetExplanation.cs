@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using RealisticOrbitalTrade.Patch;
 using TweaksGalore;
 
@@ -9,8 +8,5 @@ internal static class Alert_OrbitalTrader_GetExplanation
 {
     private static IEnumerable<CodeInstruction> Transpiler(
         IEnumerable<CodeInstruction> instructions
-    )
-    {
-        return Alert_OrbitalTrader_Shared.TranspileGetExplanation(instructions, "Tweaks Galore");
-    }
+    ) => Alert_OrbitalTrader_Shared.TranspileGetExplanation(instructions, "Tweaks Galore");
 }

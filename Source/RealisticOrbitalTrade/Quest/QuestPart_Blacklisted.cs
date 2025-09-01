@@ -41,7 +41,7 @@ internal static class QuestGen_Blacklisted
         }
         if (complete != null)
         {
-            string blacklistedSignal = QuestGen.GenerateNewSignal("Blacklisted");
+            var blacklistedSignal = QuestGen.GenerateNewSignal("Blacklisted");
             QuestGenUtility.RunInner(complete, blacklistedSignal);
             questPart.outSignalsCompleted.Add(blacklistedSignal);
         }

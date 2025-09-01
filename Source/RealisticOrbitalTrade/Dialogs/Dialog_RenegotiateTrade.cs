@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using RealisticOrbitalTrade.Comps;
+using RealisticOrbitalTrade.Extensions;
 using Verse.AI;
 using Verse.Sound;
 
@@ -128,7 +129,7 @@ internal class Dialog_RenegotiateTrade : Window
                     .ToStringPercent()
             )
         );
-        float num = inRect.width - 590f;
+        var num = inRect.width - 590f;
         Rect rect = new(num, 0f, inRect.width - num, 58f);
         Widgets.BeginGroup(rect);
         Text.Font = GameFont.Medium;
@@ -137,7 +138,7 @@ internal class Dialog_RenegotiateTrade : Window
         Widgets.Label(rect2, Faction.OfPlayer.Name.Truncate(rect2.width));
         Rect rect3 = new(rect.width / 2f, 0f, rect.width / 2f, rect.height);
         Text.Anchor = TextAnchor.UpperRight;
-        string text = tradeAgreement.tradeShip.TraderName;
+        var text = tradeAgreement.tradeShip.TraderName;
         if (Text.CalcSize(text).x > rect3.width)
         {
             Text.Font = GameFont.Small;
@@ -153,15 +154,15 @@ internal class Dialog_RenegotiateTrade : Window
         Text.Anchor = TextAnchor.UpperLeft;
         GUI.color = new Color(1f, 1f, 1f, 0.6f);
         Text.Font = GameFont.Tiny;
-        Rect rect4 = new(rect.width / 2f - 100f - 30f, 0f, 200f, rect.height);
+        Rect rect4 = new((rect.width / 2f) - 100f - 30f, 0f, 200f, rect.height);
         Text.Anchor = TextAnchor.LowerCenter;
         Widgets.Label(rect4, "PositiveBuysNegativeSells".Translate());
         Text.Anchor = TextAnchor.UpperLeft;
         GUI.color = Color.white;
         Widgets.EndGroup();
 
-        float num2 = 0f;
-        float num3 = inRect.width - 16f;
+        var num2 = 0f;
+        var num3 = inRect.width - 16f;
         TradeUI.DrawTradeableRow(new Rect(0f, 58f, num3, 30f), CachedCurrencyTradeable, 1);
         GUI.color = Color.gray;
         Widgets.DrawLineHorizontal(0f, 87f, num3);
@@ -172,7 +173,7 @@ internal class Dialog_RenegotiateTrade : Window
         FillMainRect(mainRect);
         Text.Font = GameFont.Small;
         Rect rect5 = new(
-            inRect.width / 2f - AcceptButtonSize.x / 2f,
+            (inRect.width / 2f) - (AcceptButtonSize.x / 2f),
             inRect.height - 55f,
             AcceptButtonSize.x,
             AcceptButtonSize.y
@@ -417,9 +418,9 @@ internal class Dialog_RenegotiateTrade : Window
                         TransferableUtility.TransferNoSplit(
                             cachedCurrencyTradeable.thingsTrader,
                             amount,
-                            (Thing toGive, int countToGive) =>
+                            (toGive, countToGive) =>
                             {
-                                toPlayerTransportShipContainer.TryAddOrTransfer(
+                                _ = toPlayerTransportShipContainer.TryAddOrTransfer(
                                     toGive,
                                     countToGive
                                 );
@@ -441,7 +442,7 @@ internal class Dialog_RenegotiateTrade : Window
                             RealisticOrbitalTradeMod.Dev(() =>
                                 $"-- Stack count: {originalStackCount}; asking to transfer {leftToTransfer}"
                             );
-                            tradeShipThings.TryAddOrTransfer(thing, leftToTransfer);
+                            _ = tradeShipThings.TryAddOrTransfer(thing, leftToTransfer);
                             leftToTransfer -= originalStackCount;
                             if (leftToTransfer == 0)
                             {
@@ -465,7 +466,7 @@ internal class Dialog_RenegotiateTrade : Window
                         TransferableUtility.TransferNoSplit(
                             cachedCurrencyTradeable.thingsColony,
                             amount,
-                            (Thing toGive, int countToGive) =>
+                            (toGive, countToGive) =>
                             {
                                 ThingCountClass thingCount = new(toGive, countToGive);
                                 tradeAgreement.thingsSoldToTrader.Add(thingCount);
@@ -487,9 +488,9 @@ internal class Dialog_RenegotiateTrade : Window
                         if (tradeable.AnyThing is Pawn pawn)
                         {
                             // Remove from sold list
-                            tradeAgreement.pawnsSoldToTrader.Remove(pawn);
+                            _ = tradeAgreement.pawnsSoldToTrader.Remove(pawn);
                             // Remove from shuttle's required cargo list
-                            toTraderCompShuttle.requiredPawns.Remove(pawn);
+                            _ = toTraderCompShuttle.requiredPawns.Remove(pawn);
 
                             // If already loaded onto the shuttle, make the shuttle drop
                             // the pawn back out.
@@ -500,15 +501,11 @@ internal class Dialog_RenegotiateTrade : Window
                                     toTraderTransportShip.GetDropLocation(),
                                     toTraderShipThing.Map,
                                     ThingPlaceMode.Near,
-                                    out var _,
+                                    out _,
                                     null,
                                     c =>
                                     {
-                                        if (c.Fogged(toTraderShipThing.Map))
-                                        {
-                                            return false;
-                                        }
-                                        return !pawn.Downed;
+                                        return !c.Fogged(toTraderShipThing.Map) && !pawn.Downed;
                                     },
                                     false
                                 );
@@ -537,19 +534,13 @@ internal class Dialog_RenegotiateTrade : Window
                             var leftToTakeOff = -amount;
                             do
                             {
-                                ThingCountClass thingCount;
-                                if (tradeable.AnyThing.HasRequirements())
-                                {
-                                    thingCount = tradeAgreement.thingsSoldToTrader.FirstOrDefault(
-                                        t => t.thing.GetInnerIfMinified() == tradeable.AnyThing
+                                var thingCount = tradeable.AnyThing.HasRequirements()
+                                    ? tradeAgreement.thingsSoldToTrader.FirstOrDefault(t =>
+                                        t.thing.GetInnerIfMinified() == tradeable.AnyThing
+                                    )
+                                    : tradeAgreement.thingsSoldToTrader.FirstOrDefault(t =>
+                                        t.thing.def == tradedThingDef
                                     );
-                                }
-                                else
-                                {
-                                    thingCount = tradeAgreement.thingsSoldToTrader.FirstOrDefault(
-                                        t => t.thing.def == tradedThingDef
-                                    );
-                                }
                                 if (thingCount == null)
                                 {
                                     break;
@@ -562,7 +553,7 @@ internal class Dialog_RenegotiateTrade : Window
                                 else
                                 {
                                     leftToTakeOff -= thingCount.Count;
-                                    tradeAgreement.thingsSoldToTrader.Remove(thingCount);
+                                    _ = tradeAgreement.thingsSoldToTrader.Remove(thingCount);
                                 }
                             } while (leftToTakeOff > 0);
 
@@ -593,7 +584,7 @@ internal class Dialog_RenegotiateTrade : Window
                                     else
                                     {
                                         leftToTakeOff -= thingDefCount.count;
-                                        toTraderCompTradeShuttle.requiredSpecificItems.Remove(
+                                        _ = toTraderCompTradeShuttle.requiredSpecificItems.Remove(
                                             thingDefCount
                                         );
                                     }
@@ -624,7 +615,7 @@ internal class Dialog_RenegotiateTrade : Window
                                     else
                                     {
                                         leftToTakeOff -= thingDefCount.Count;
-                                        toTraderCompShuttle.requiredItems.Remove(thingDefCount);
+                                        _ = toTraderCompShuttle.requiredItems.Remove(thingDefCount);
                                     }
                                 }
                             } while (leftToTakeOff > 0);
@@ -634,16 +625,22 @@ internal class Dialog_RenegotiateTrade : Window
                             int countActuallyLoaded;
                             if (tradeable.AnyThing.HasRequirements())
                             {
-                                actuallyLoaded = toTraderTransportShipContainer
-                                    .Where(t => t.GetInnerIfMinified() == tradeable.AnyThing)
-                                    .ToList();
+                                actuallyLoaded =
+                                [
+                                    .. toTraderTransportShipContainer.Where(t =>
+                                        t.GetInnerIfMinified() == tradeable.AnyThing
+                                    ),
+                                ];
                                 countActuallyLoaded = actuallyLoaded.Sum(t => t.stackCount);
                             }
                             else
                             {
-                                actuallyLoaded = toTraderTransportShipContainer
-                                    .Where(t => t.GetInnerIfMinified().def == tradeable.ThingDef)
-                                    .ToList();
+                                actuallyLoaded =
+                                [
+                                    .. toTraderTransportShipContainer.Where(t =>
+                                        t.GetInnerIfMinified().def == tradeable.ThingDef
+                                    ),
+                                ];
                                 countActuallyLoaded = actuallyLoaded.Sum(t => t.stackCount);
                             }
 
@@ -653,7 +650,7 @@ internal class Dialog_RenegotiateTrade : Window
                                 // More items loaded than we've sold now; unload some
                                 var leftToUnload = countActuallyLoaded - countRequiredLoaded;
 
-                                IntVec3 dropLoc = toTraderTransportShip.GetDropLocation();
+                                var dropLoc = toTraderTransportShip.GetDropLocation();
                                 foreach (var loaded in actuallyLoaded)
                                 {
                                     var unloadAmount = Math.Min(leftToUnload, loaded.stackCount);
@@ -663,15 +660,12 @@ internal class Dialog_RenegotiateTrade : Window
                                         toTraderShipThing.Map,
                                         ThingPlaceMode.Near,
                                         unloadAmount,
-                                        out var _,
+                                        out _,
                                         null,
                                         c =>
                                         {
-                                            if (c.Fogged(toTraderShipThing.Map))
-                                            {
-                                                return false;
-                                            }
-                                            return c.GetFirstPawn(toTraderShipThing.Map) == null;
+                                            return !c.Fogged(toTraderShipThing.Map)
+                                                && c.GetFirstPawn(toTraderShipThing.Map) == null;
                                         }
                                     );
                                     if (!unloaded)
@@ -733,11 +727,16 @@ internal class Dialog_RenegotiateTrade : Window
                         }
                     }
                     break;
+                default:
+                    RealisticOrbitalTradeMod.Error(
+                        $"Unknown tradeable type: {tradeable.AnyThing.LabelNoCount}"
+                    );
+                    break;
             }
         }
 
         // Immediately re-evaluate the auto-load list on the shuttle
-        Traverse.Create(toTraderCompShuttle).Method("CheckAutoload").GetValue();
+        _ = Traverse.Create(toTraderCompShuttle).Method("CheckAutoload").GetValue();
 
         SoundDefOf.ExecuteTrade.PlayOneShotOnCamera();
         Close(doCloseSound: false);
@@ -746,14 +745,14 @@ internal class Dialog_RenegotiateTrade : Window
     private void FillMainRect(Rect mainRect)
     {
         Text.Font = GameFont.Small;
-        float height = 6f + CachedTradeables.Count * 30f;
+        var height = 6f + (CachedTradeables.Count * 30f);
         Rect viewRect = new(0f, 0f, mainRect.width - 16f, height);
         Widgets.BeginScrollView(mainRect, ref scrollPosition, viewRect);
-        float num = 6f;
-        float num2 = scrollPosition.y - 30f;
-        float num3 = scrollPosition.y + mainRect.height;
-        int num4 = 0;
-        for (int i = 0; i < CachedTradeables.Count; i++)
+        var num = 6f;
+        var num2 = scrollPosition.y - 30f;
+        var num3 = scrollPosition.y + mainRect.height;
+        var num4 = 0;
+        for (var i = 0; i < CachedTradeables.Count; i++)
         {
             if (num > num2 && num < num3)
             {
@@ -771,8 +770,8 @@ internal class Dialog_RenegotiateTrade : Window
         Map map
     )
     {
-        IReadOnlyList<Pawn> pawns = map.mapPawns.AllPawnsSpawned;
-        foreach (Pawn pawn in pawns)
+        var pawns = map.mapPawns.AllPawnsSpawned;
+        foreach (var pawn in pawns)
         {
             if (
                 pawn.CurJobDef == RimWorld.JobDefOf.HaulToTransporter
@@ -785,28 +784,23 @@ internal class Dialog_RenegotiateTrade : Window
         }
     }
 
-    public static void FlashSilver()
-    {
+    public static void FlashSilver() =>
         // XXX: Sigh, this just feels so wrong. But it's how it's been coded in RimWorld.
         Dialog_Trade.lastCurrencyFlashTime = Time.time;
-    }
 
     private Vector2 scrollPosition = Vector2.zero;
 
     private readonly QuickSearchWidget quickSearchWidget = new();
     public override QuickSearchWidget CommonSearchWidget => quickSearchWidget;
 
-    public override void Notify_CommonSearchChanged()
-    {
-        CacheTradeables();
-    }
+    public override void Notify_CommonSearchChanged() => CacheTradeables();
 
     private void UpdateCurrencyCount()
     {
-        float num = 0f;
-        for (int i = 0; i < allTradeables.Count; i++)
+        var num = 0f;
+        for (var i = 0; i < allTradeables.Count; i++)
         {
-            Tradeable tradeable = allTradeables[i];
+            var tradeable = allTradeables[i];
             if (!tradeable.IsCurrency)
             {
                 num += tradeable.CurTotalCurrencyCostForSource;
@@ -827,7 +821,7 @@ internal class Dialog_RenegotiateTrade : Window
             .TransporterComp
             .innerContainer;
 
-        cachedCurrencyTradeable = allTradeables.FirstOrDefault((Tradeable x) => x.IsCurrency);
+        cachedCurrencyTradeable = allTradeables.FirstOrDefault(x => x.IsCurrency);
         if (cachedCurrencyTradeable == null)
         {
             // If a trade is 100% even (i.e. no exchange of silver) we need to add it ourselves.
@@ -857,25 +851,27 @@ internal class Dialog_RenegotiateTrade : Window
             cachedCurrencyTradeable.AddThing(item, Transactor.Trader);
         }
 
-        cachedTradeables = (
-            from tr in allTradeables
-            where
-                !tr.IsCurrency
-                && (
-                    tr.TraderWillTrade
-                    || !TradeSession.trader.TraderKind.hideThingsNotWillingToTrade
-                )
-            where quickSearchWidget.filter.Matches(tr.Label)
-            orderby (!tr.TraderWillTrade) ? (-1) : 0 descending
-            select tr
-        )
-            .ThenBy((Tradeable tr) => tr, sorter1.Comparer)
-            .ThenBy((Tradeable tr) => tr, sorter2.Comparer)
-            .ThenBy(TransferableUIUtility.DefaultListOrderPriority)
-            .ThenBy((Tradeable tr) => tr.ThingDef.label)
-            .ThenBy((Tradeable tr) => tr.AnyThing.TryGetQuality(out var qc) ? ((int)qc) : (-1))
-            .ThenBy((Tradeable tr) => tr.AnyThing.HitPoints)
-            .ToList();
+        cachedTradeables =
+        [
+            .. (
+                from tr in allTradeables
+                where
+                    !tr.IsCurrency
+                    && (
+                        tr.TraderWillTrade
+                        || !TradeSession.trader.TraderKind.hideThingsNotWillingToTrade
+                    )
+                where quickSearchWidget.filter.Matches(tr.Label)
+                orderby (!tr.TraderWillTrade) ? (-1) : 0 descending
+                select tr
+            )
+                .ThenBy(tr => tr, sorter1.Comparer)
+                .ThenBy(tr => tr, sorter2.Comparer)
+                .ThenBy(TransferableUIUtility.DefaultListOrderPriority)
+                .ThenBy(tr => tr.ThingDef.label)
+                .ThenBy(tr => tr.AnyThing.TryGetQuality(out var qc) ? ((int)qc) : (-1))
+                .ThenBy(tr => tr.AnyThing.HitPoints),
+        ];
         quickSearchWidget.noResultsMatched = !cachedTradeables.Any();
     }
 }

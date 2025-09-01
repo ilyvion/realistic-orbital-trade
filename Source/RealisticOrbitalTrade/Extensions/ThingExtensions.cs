@@ -4,8 +4,8 @@ internal static class ThingExtensions
 {
     public static bool HasRequirements(this Thing thing)
     {
-        bool healthAffectsPrice = thing.GetInnerIfMinified().def.healthAffectsPrice;
-        bool hasQuality = QualityUtility.TryGetQuality(thing.GetInnerIfMinified(), out var _);
+        var healthAffectsPrice = thing.GetInnerIfMinified().def.healthAffectsPrice;
+        var hasQuality = QualityUtility.TryGetQuality(thing.GetInnerIfMinified(), out var _);
         return healthAffectsPrice || hasQuality || thing is MinifiedThing;
     }
 
@@ -17,14 +17,9 @@ internal static class ThingExtensions
     )
     {
         healthAffectsPrice = thing.GetInnerIfMinified().def.healthAffectsPrice;
-        if (QualityUtility.TryGetQuality(thing.GetInnerIfMinified(), out var category))
-        {
-            qualityCategory = category;
-        }
-        else
-        {
-            qualityCategory = null;
-        }
+        qualityCategory = QualityUtility.TryGetQuality(thing.GetInnerIfMinified(), out var category)
+            ? category
+            : null;
         hasInnerThing = thing is MinifiedThing;
         return healthAffectsPrice || qualityCategory.HasValue || hasInnerThing;
     }

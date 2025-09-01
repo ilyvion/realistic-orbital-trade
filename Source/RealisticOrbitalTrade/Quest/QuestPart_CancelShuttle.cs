@@ -24,10 +24,7 @@ internal abstract class QuestPart_CancelShuttle : QuestPartActivable
                 defaultDesc = DefaultDesc,
                 icon = Cancel,
                 activateSound = SoundDefOf.Tick_Low,
-                action = () =>
-                {
-                    Complete();
-                },
+                action = Complete,
                 hotKey = KeyBindingDefOf.Designator_Cancel,
             };
             return [commandActionCancel];

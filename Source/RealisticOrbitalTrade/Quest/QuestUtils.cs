@@ -19,19 +19,11 @@ internal class QuestUtils
         );
         signalshuttleKilled = QuestGenUtility.HardcodedSignalWithQuestID($"{shuttleName}.Killed");
 
-        Thing shuttle;
-        if (RealisticOrbitalTradeGameComponent.Current.Standing == Standing.Good)
-        {
-            shuttle = ThingMaker.MakeThing(ThingDefOf.ROT_TradeShuttle);
-        }
-        else if (!isForAmends)
-        {
-            shuttle = ThingMaker.MakeThing(ThingDefOf.ROT_ExplosiveRiggedTradeShuttle);
-        }
-        else
-        {
-            shuttle = ThingMaker.MakeThing(ThingDefOf.ROT_ExplosiveRiggedAmendmentTradeShuttle);
-        }
+        var shuttle =
+            RealisticOrbitalTradeGameComponent.Current.Standing == Standing.Good
+                ? ThingMaker.MakeThing(ThingDefOf.ROT_TradeShuttle)
+            : !isForAmends ? ThingMaker.MakeThing(ThingDefOf.ROT_ExplosiveRiggedTradeShuttle)
+            : ThingMaker.MakeThing(ThingDefOf.ROT_ExplosiveRiggedAmendmentTradeShuttle);
         slate.Set(shuttleName, shuttle);
         QuestUtility.AddQuestTag(ref shuttle.questTags, questTag);
 
@@ -46,11 +38,11 @@ internal class QuestUtils
         //                                                  it can be extended again, but the comms
         //                                                  should close just as early.
 
-        int originalTicksUntilCommsClosed = tradeShip.GetData().ticksUntilCommsClosed;
-        int originalTicksUntilDeparture = tradeShip.ticksUntilDeparture;
-        bool tradeRequiresGraceTime =
+        var originalTicksUntilCommsClosed = tradeShip.GetData().ticksUntilCommsClosed;
+        var originalTicksUntilDeparture = tradeShip.ticksUntilDeparture;
+        var tradeRequiresGraceTime =
             originalTicksUntilDeparture < Settings._minTicksUntilDepartureBeforeGraceTime;
-        bool tradeShipWasAlreadyInGraceTime = originalTicksUntilCommsClosed != -1;
+        var tradeShipWasAlreadyInGraceTime = originalTicksUntilCommsClosed != -1;
 
         if (tradeRequiresGraceTime)
         {
@@ -69,7 +61,7 @@ internal class QuestUtils
                     originalTicksUntilDeparture + Settings._departureGraceTimeTicks
                 ).ToStringTicksToPeriod()
             );
-            quest.Letter(
+            _ = quest.Letter(
                 LetterDefOf.NeutralEvent,
                 text: "[graceTimeLetterText]",
                 label: "[graceTimeLetterLabel]"
@@ -88,21 +80,17 @@ internal class QuestUtils
 
     public static void CancelTransportShip(Quest quest, TransportShip transportShip)
     {
-        quest.AddShipJob(transportShip, ShipJobDefOf.ROT_CancelLoad, ShipJobStartMode.Instant);
-        quest.AddShipJob(transportShip, RWShipJobDefOf.Unload, ShipJobStartMode.Queue);
-        quest.AddShipJob(transportShip, RWShipJobDefOf.FlyAway, ShipJobStartMode.Queue);
+        _ = quest.AddShipJob(transportShip, ShipJobDefOf.ROT_CancelLoad, ShipJobStartMode.Instant);
+        _ = quest.AddShipJob(transportShip, RWShipJobDefOf.Unload, ShipJobStartMode.Queue);
+        _ = quest.AddShipJob(transportShip, RWShipJobDefOf.FlyAway, ShipJobStartMode.Queue);
     }
 
-    public static IntVec3 FindLandingSpot(Map map)
-    {
-        return DropCellFinder.GetBestShuttleLandingSpot(map, null);
-    }
+    public static IntVec3 FindLandingSpot(Map map) =>
+        DropCellFinder.GetBestShuttleLandingSpot(map, null);
 }
 
 internal static class QuestUtilsExtensions
 {
-    public static void CancelTransportShip(this Quest quest, TransportShip transportShip)
-    {
+    public static void CancelTransportShip(this Quest quest, TransportShip transportShip) =>
         QuestUtils.CancelTransportShip(quest, transportShip);
-    }
 }

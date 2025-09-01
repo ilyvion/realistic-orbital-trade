@@ -1,4 +1,3 @@
-using System.Reflection;
 using System.Reflection.Emit;
 using RealisticOrbitalTrade.Comps;
 
@@ -14,17 +13,17 @@ internal static class Utils
     )
     {
         var codeMatcher = new CodeMatcher(instructions);
-        codeMatcher.End();
+        _ = codeMatcher.End();
         if (codeMatcher.Instruction.opcode != OpCodes.Ret)
         {
             throw new InjectCallBeforeReturnException(codeMatcher.Instructions());
         }
         while (codeMatcher.Pos > 0)
         {
-            codeMatcher.Advance(-1);
+            _ = codeMatcher.Advance(-1);
             if (matchInstruction(codeMatcher.Instruction))
             {
-                codeMatcher.Insert(
+                _ = codeMatcher.Insert(
                     (additionalInstructionsBeforeCall ?? []).Concat(
                         [
                             // new CodeInstruction(OpCodes.Ldarg_0),
@@ -61,7 +60,7 @@ internal static class Utils
             )
         )
         {
-            Thing thing = thingCount.thing.GetInnerIfMinified();
+            var thing = thingCount.thing.GetInnerIfMinified();
             compTradeShuttle.requiredSpecificItems.Add(
                 new ThingDefCountWithRequirements
                 {
@@ -85,17 +84,21 @@ internal static class Utils
     }
 }
 
+#pragma warning disable CA1032 // Implement standard exception constructors
+/// <summary>
+/// Exception thrown when injecting a call before a return instruction fails.
+/// </summary>
+/// <remarks>
+/// Initializes a new instance of the <see cref="InjectCallBeforeReturnException"/> class.
+/// </remarks>
+/// <param name="instructions">The instructions at the point the exception was thrown.</param>
 [Serializable]
-public class InjectCallBeforeReturnException : Exception
+public class InjectCallBeforeReturnException(IEnumerable<CodeInstruction> instructions)
+    : Exception()
 {
-    public IEnumerable<CodeInstruction> Instructions { get; }
-
-    public InjectCallBeforeReturnException(IEnumerable<CodeInstruction> instructions)
-        : base()
-    {
-        Instructions = instructions;
-    }
+    /// <summary>
+    /// Gets the instructions at the point the exception was thrown.
+    /// </summary>
+    public IEnumerable<CodeInstruction> Instructions { get; } = instructions;
 }
-
-[AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Method)]
-public class ReloadableAttribute : Attribute { }
+#pragma warning restore CA1032 // Implement standard exception constructors

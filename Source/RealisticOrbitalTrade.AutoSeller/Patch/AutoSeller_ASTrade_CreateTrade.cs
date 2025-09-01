@@ -1,18 +1,12 @@
-using System.Reflection;
-using RimWorld;
-using Verse;
-
 namespace RealisticOrbitalTrade.AutoSeller.Patch;
 
 [HarmonyPatch]
 internal static class AutoSeller_ASTrade_CreateTrade
 {
-    private static MethodInfo TargetMethod()
-    {
-        return AccessTools.Method("RWAutoSell.ASTrade:CreateTrade");
-    }
+    internal static MethodInfo TargetMethod() =>
+        AccessTools.Method("RWAutoSell.ASTrade:CreateTrade");
 
-    private static bool Prefix(ITrader Ship, Pawn pawn, ref bool __result)
+    internal static bool Prefix(ITrader Ship, Pawn pawn, ref bool __result)
     {
         // Only modify behavior for trade ships
         if (Ship is not TradeShip tradeShip)
@@ -21,7 +15,7 @@ internal static class AutoSeller_ASTrade_CreateTrade
         }
 
         // Don't allow running for trade ships already in the middle of trading
-        TradeShipData tradeShipData = tradeShip.GetData();
+        var tradeShipData = tradeShip.GetData();
         if (tradeShipData.HasActiveTradeAgreement)
         {
             __result = false;

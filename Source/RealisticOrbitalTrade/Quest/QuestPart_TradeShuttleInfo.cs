@@ -8,80 +8,39 @@ internal class QuestPart_TradeShuttleLeaveDelay : QuestPart_ShuttleLeaveDelay
     public bool tradePausesDepartureTimer;
     public string? traderName;
 
-    public override bool AlertCritical
-    {
-        get
-        {
-            if (!tradePausesDepartureTimer)
-            {
-                return base.AlertCritical;
-            }
-            else
-            {
-                return false;
-            }
-        }
-    }
+    public override bool AlertCritical => !tradePausesDepartureTimer && base.AlertCritical;
 
-    public override string AlertLabel
-    {
-        get
-        {
-            if (!tradePausesDepartureTimer)
-            {
-                return "RealisticOrbitalTrade.QuestPartShuttleLeaveDelay".Translate(
+    public override string AlertLabel =>
+        !tradePausesDepartureTimer
+            ? (string)
+                "RealisticOrbitalTrade.QuestPartShuttleLeaveDelay".Translate(
                     TicksLeft.ToStringTicksToPeriodVerbose()
-                );
-            }
-            else
-            {
-                return "RealisticOrbitalTrade.ActiveTradeShuttle".Translate();
-            }
-        }
-    }
+                )
+            : (string)"RealisticOrbitalTrade.ActiveTradeShuttle".Translate();
 
-    public override string AlertExplanation
-    {
-        get
-        {
-            if (!tradePausesDepartureTimer)
-            {
-                if (quest.hidden)
-                {
-                    return "RealisticOrbitalTrade.QuestPartShuttleLeaveDelayDescHidden".Translate(
+    public override string AlertExplanation =>
+        !tradePausesDepartureTimer
+            ? quest.hidden
+                ? (string)
+                    "RealisticOrbitalTrade.QuestPartShuttleLeaveDelayDescHidden".Translate(
                         TicksLeft.ToStringTicksToPeriodVerbose().Colorize(ColoredText.DateTimeColor)
-                    );
-                }
-                return "RealisticOrbitalTrade.QuestPartShuttleLeaveDelayDesc".Translate(
+                    )
+                : (string)
+                    "RealisticOrbitalTrade.QuestPartShuttleLeaveDelayDesc".Translate(
+                        quest.name,
+                        TicksLeft
+                            .ToStringTicksToPeriodVerbose()
+                            .Colorize(ColoredText.DateTimeColor),
+                        shuttle.TryGetComp<CompShuttle>().RequiredThingsLabel
+                    )
+            : (string)
+                "RealisticOrbitalTrade.TradeShuttleRequires".Translate(
                     quest.name,
-                    TicksLeft.ToStringTicksToPeriodVerbose().Colorize(ColoredText.DateTimeColor),
                     shuttle.TryGetComp<CompShuttle>().RequiredThingsLabel
                 );
-            }
-            else
-            {
-                return "RealisticOrbitalTrade.TradeShuttleRequires".Translate(
-                    quest.name,
-                    shuttle.TryGetComp<CompShuttle>().RequiredThingsLabel
-                );
-            }
-        }
-    }
 
-    public override string? ExpiryInfoPart
-    {
-        get
-        {
-            if (!tradePausesDepartureTimer)
-            {
-                return base.ExpiryInfoPart;
-            }
-            else
-            {
-                return null;
-            }
-        }
-    }
+    public override string? ExpiryInfoPart =>
+        !tradePausesDepartureTimer ? base.ExpiryInfoPart : null;
 
     public override string? ExtraInspectString(ISelectable target)
     {
@@ -147,7 +106,7 @@ internal static class QuestGen_TradeShuttleLeaveDelay
         };
         if (inSignalsDisable != null)
         {
-            foreach (string item in inSignalsDisable)
+            foreach (var item in inSignalsDisable)
             {
                 questPart.inSignalsDisable.Add(item);
             }
@@ -158,7 +117,7 @@ internal static class QuestGen_TradeShuttleLeaveDelay
         }
         if (complete != null)
         {
-            string shuttleLeaveDelaySignal = QuestGen.GenerateNewSignal("ShuttleLeaveDelay");
+            var shuttleLeaveDelaySignal = QuestGen.GenerateNewSignal("ShuttleLeaveDelay");
             QuestGenUtility.RunInner(complete, shuttleLeaveDelaySignal);
             questPart.outSignalsCompleted.Add(shuttleLeaveDelaySignal);
         }

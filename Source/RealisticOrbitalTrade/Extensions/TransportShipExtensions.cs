@@ -1,11 +1,17 @@
-public static class TransportShipExtensions
+namespace RealisticOrbitalTrade.Extensions;
+
+internal static class TransportShipExtensions
 {
     public static IntVec3 GetDropLocation(this TransportShip transportShip)
     {
+        if (transportShip == null)
+        {
+            throw new ArgumentNullException(nameof(transportShip));
+        }
 #if v1_6
-        IntVec3 dropLoc = transportShip.shipThing.InteractionCell;
+        var dropLoc = transportShip.shipThing.InteractionCell;
 #else
-        IntVec3 dropLoc = transportShip.shipThing.Position + ShipJob_Unload.DropoffSpotOffset;
+        var dropLoc = transportShip.shipThing.Position + ShipJob_Unload.DropoffSpotOffset;
 #endif
         return dropLoc;
     }

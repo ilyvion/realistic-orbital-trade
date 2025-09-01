@@ -5,7 +5,7 @@ using Verse.AI;
 namespace RealisticOrbitalTrade.Comps;
 
 [HotSwappable]
-public class CompTradeShuttle : ThingComp
+internal class CompTradeShuttle : ThingComp
 {
     internal bool cancelled;
     internal bool isToTrader;
@@ -52,7 +52,7 @@ public class CompTradeShuttle : ThingComp
             ShuttleAutoLoad = true;
             if (!Transporter.LoadingInProgressOrReadyToLaunch)
             {
-                TransporterUtility.InitiateLoading(Gen.YieldSingle(Transporter));
+                _ = TransporterUtility.InitiateLoading(Gen.YieldSingle(Transporter));
             }
         }
     }
@@ -77,7 +77,11 @@ public class CompTradeShuttle : ThingComp
         }
         if (tmpRequiredLabels.Any())
         {
+#if v1_4 || v1_5
             stringBuilder.AppendInNewLine(
+#else
+            _ = stringBuilder.AppendInNewLine(
+#endif
                 "RealisticOrbitalTrade.RequiredThings".Translate()
                     + ": "
                     + tmpRequiredLabels.ToCommaList().CapitalizeFirst()
@@ -91,20 +95,20 @@ public class CompTradeShuttle : ThingComp
         tmpRequiredSpecificItems.Clear();
         tmpRequiredSpecificItems.AddRange(requiredSpecificItems);
 
-        ThingOwner innerContainer = Transporter.innerContainer;
+        var innerContainer = Transporter.innerContainer;
         foreach (var storedItem in innerContainer)
         {
             if (storedItem is Pawn)
             {
                 continue;
             }
-            int stackCount = storedItem.stackCount;
-            for (int i = 0; i < tmpRequiredSpecificItems.Count; i++)
+            var stackCount = storedItem.stackCount;
+            for (var i = 0; i < tmpRequiredSpecificItems.Count; i++)
             {
-                ThingDefCountWithRequirements requiredSpecificItem = tmpRequiredSpecificItems[i];
+                var requiredSpecificItem = tmpRequiredSpecificItems[i];
                 if (requiredSpecificItem.Matches(storedItem))
                 {
-                    int additionalItemsNeeded = Mathf.Min(requiredSpecificItem.count, stackCount);
+                    var additionalItemsNeeded = Mathf.Min(requiredSpecificItem.count, stackCount);
                     if (additionalItemsNeeded > 0)
                     {
                         tmpRequiredSpecificItems[i] = tmpRequiredSpecificItems[i]
@@ -183,7 +187,7 @@ public class CompTradeShuttle : ThingComp
                 continue;
             }
 
-            int numberOfMatches = 0;
+            var numberOfMatches = 0;
             foreach (var sendableItem in tmpAllSendableItems)
             {
                 if (requiredItem.Matches(sendableItem))
@@ -203,7 +207,7 @@ public class CompTradeShuttle : ThingComp
                     transferableOneWay.things.Add(sendableItem);
                 }
             }
-            int count = Mathf.Min(requiredItem.count, numberOfMatches);
+            var count = Mathf.Min(requiredItem.count, numberOfMatches);
             Transporter.AddToTheToLoadList(transferableOneWay, count);
         }
     }
@@ -241,8 +245,8 @@ public class CompTradeShuttle : ThingComp
                 "RealisticOrbitalTrade.RenegotiateTrade".Translate(),
                 () =>
                 {
-                    Job job = JobMaker.MakeJob(JobDefOf.ROT_RenegotiateTrade, parent);
-                    selPawn.jobs.TryTakeOrderedJob(job, JobTag.Misc);
+                    var job = JobMaker.MakeJob(JobDefOf.ROT_RenegotiateTrade, parent);
+                    _ = selPawn.jobs.TryTakeOrderedJob(job, JobTag.Misc);
                 },
                 MenuOptionPriority.InitiateSocial
             ),
@@ -262,35 +266,27 @@ public class CompTradeShuttle : ThingComp
                     null
                 );
             }
-            if (
-                tradeAgreement.toPlayerTransportShip == null
+            return tradeAgreement.toPlayerTransportShip == null
                 || tradeAgreement.toTraderTransportShip == null
-            )
-            {
-                return new FloatMenuOption(
-                    "RealisticOrbitalTrade.RenegotiateTrade".Translate()
-                        + " "
-                        + "RealisticOrbitalTrade.OldTradeNonRenegotiable".Translate(),
-                    null
-                );
-            }
-            if (!selPawn.CanReach(parent, PathEndMode.Touch, Danger.Some))
-            {
-                return new FloatMenuOption("CannotUseNoPath".Translate(), null);
-            }
-            if (!selPawn.health.capacities.CapableOf(PawnCapacityDefOf.Talking))
-            {
-                return new FloatMenuOption(
-                    "CannotUseReason".Translate(
-                        "IncapableOfCapacity".Translate(
-                            PawnCapacityDefOf.Talking.label,
-                            selPawn.Named("PAWN")
-                        )
-                    ),
-                    null
-                );
-            }
-            return null;
+                    ? new FloatMenuOption(
+                        "RealisticOrbitalTrade.RenegotiateTrade".Translate()
+                            + " "
+                            + "RealisticOrbitalTrade.OldTradeNonRenegotiable".Translate(),
+                        null
+                    )
+                : !selPawn.CanReach(parent, PathEndMode.Touch, Danger.Some)
+                    ? new FloatMenuOption("CannotUseNoPath".Translate(), null)
+                : !selPawn.health.capacities.CapableOf(PawnCapacityDefOf.Talking)
+                    ? new FloatMenuOption(
+                        "CannotUseReason".Translate(
+                            "IncapableOfCapacity".Translate(
+                                PawnCapacityDefOf.Talking.label,
+                                selPawn.Named("PAWN")
+                            )
+                        ),
+                        null
+                    )
+                : null;
         }
     }
 }
@@ -307,15 +303,12 @@ internal struct ThingDefCountWithRequirements : IExposable
     public bool hasQuality;
     public QualityCategory quality;
 
-    public string Label
-    {
-        get { return GenLabel.ThingLabel(def, stuffDef, count) + LabelExtras(); }
-    }
+    public readonly string Label => GenLabel.ThingLabel(def, stuffDef, count) + LabelExtras();
 
-    private string LabelExtras()
+    private readonly string LabelExtras()
     {
-        string text = string.Empty;
-        bool reducedHealth = healthAffectsPrice && hitPoints < maxHitPoints;
+        var text = string.Empty;
+        var reducedHealth = healthAffectsPrice && hitPoints < maxHitPoints;
         if (reducedHealth || hasQuality)
         {
             text += " (";
@@ -349,7 +342,7 @@ internal struct ThingDefCountWithRequirements : IExposable
         Scribe_Values.Look(ref quality, "quality");
     }
 
-    internal bool Matches(Thing thing)
+    internal readonly bool Matches(Thing thing)
     {
         if (isInnerThing)
         {
@@ -362,7 +355,7 @@ internal struct ThingDefCountWithRequirements : IExposable
                 return false;
             }
         }
-        QualityUtility.TryGetQuality(thing, out var thingQuality);
+        _ = QualityUtility.TryGetQuality(thing, out var thingQuality);
         return def == thing.def
             && stuffDef == thing.Stuff
             && count != 0
@@ -370,9 +363,8 @@ internal struct ThingDefCountWithRequirements : IExposable
             && (!hasQuality || thingQuality == quality);
     }
 
-    internal ThingDefCountWithRequirements WithCount(int count)
-    {
-        return new()
+    internal ThingDefCountWithRequirements WithCount(int count) =>
+        new()
         {
             def = def,
             count = count,
@@ -381,5 +373,4 @@ internal struct ThingDefCountWithRequirements : IExposable
             hasQuality = hasQuality,
             quality = quality,
         };
-    }
 }

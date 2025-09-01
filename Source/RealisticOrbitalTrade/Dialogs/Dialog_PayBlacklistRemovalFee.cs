@@ -3,7 +3,7 @@ using RwThingDefOf = RimWorld.ThingDefOf;
 
 namespace RealisticOrbitalTrade.Dialogs;
 
-public class Dialog_PayBlacklistRemovalFee : Dialog_NodeTree
+internal class Dialog_PayBlacklistRemovalFee : Dialog_NodeTree
 {
     private enum PayWith
     {
@@ -19,7 +19,7 @@ public class Dialog_PayBlacklistRemovalFee : Dialog_NodeTree
     private readonly Dictionary<ThingDef, PayWith> _payForPartsWith = [];
 
     private ThingDefCountClass? CurrentThing =>
-        _thingDefCounts.Where(t => !_payForPartsWith.ContainsKey(t.thingDef)).FirstOrDefault();
+        _thingDefCounts.FirstOrDefault(t => !_payForPartsWith.ContainsKey(t.thingDef));
     private IEnumerable<(ThingDefCountClass thingDefCount, PayWith payWith)> ThingDefPayments =>
         _thingDefCounts
             .Select(t =>
@@ -36,19 +36,15 @@ public class Dialog_PayBlacklistRemovalFee : Dialog_NodeTree
         _tradeShip = tradeShip;
         _negotiator = negotiator;
 
-        _thingDefCounts = ThingDefOf
-            .ROT_TradeShuttle.killedLeavings.Select(i =>
+        _thingDefCounts =
+        [
+            .. ThingDefOf.ROT_TradeShuttle.killedLeavings.Select(i =>
             {
-                if (i.thingDef == RwThingDefOf.ChunkSlagSteel)
-                {
-                    return new ThingDefCountClass(RwThingDefOf.Steel, i.count * 15);
-                }
-                else
-                {
-                    return i;
-                }
-            })
-            .ToList();
+                return i.thingDef == RwThingDefOf.ChunkSlagSteel
+                    ? new ThingDefCountClass(RwThingDefOf.Steel, i.count * 15)
+                    : i;
+            }),
+        ];
 
         SetupNextText();
         SetupNextOptions();
@@ -56,13 +52,13 @@ public class Dialog_PayBlacklistRemovalFee : Dialog_NodeTree
 
     private float CalculateCostOf(ThingDefCountClass thingDefCount)
     {
-        float marketValue = thingDefCount.thingDef.BaseMarketValue;
-        float totalCountMarketValue = marketValue * thingDefCount.count;
-        PriceType priceType = _tradeShip.TraderKind.PriceTypeFor(
+        var marketValue = thingDefCount.thingDef.BaseMarketValue;
+        var totalCountMarketValue = marketValue * thingDefCount.count;
+        var priceType = _tradeShip.TraderKind.PriceTypeFor(
             thingDefCount.thingDef,
             TradeAction.PlayerBuys
         );
-        float priceGainNegotiator = _negotiator.GetStatValue(StatDefOf.TradePriceImprovement);
+        var priceGainNegotiator = _negotiator.GetStatValue(StatDefOf.TradePriceImprovement);
 
         var partsCost =
             totalCountMarketValue
@@ -98,7 +94,7 @@ public class Dialog_PayBlacklistRemovalFee : Dialog_NodeTree
         }
         thingsToReturn.Add(RwThingDefOf.Silver, (int)totalSilver);
 
-        return thingsToReturn.Select(t => new ThingDefCount(t.Key, t.Value)).ToList();
+        return [.. thingsToReturn.Select(t => new ThingDefCount(t.Key, t.Value))];
     }
 
     private void SetupNextText()
@@ -165,7 +161,7 @@ public class Dialog_PayBlacklistRemovalFee : Dialog_NodeTree
                             Settings._activeTradePausesDepartureTimer
                         );
 
-                        QuestUtility.GenerateQuestAndMakeAvailable(
+                        _ = QuestUtility.GenerateQuestAndMakeAvailable(
                             QuestScriptDefOf.ROT_TradeShipMakeAmends,
                             slate
                         );

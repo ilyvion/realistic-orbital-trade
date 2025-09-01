@@ -5,7 +5,7 @@ using RimWorld.QuestGen;
 namespace RealisticOrbitalTrade.Quests;
 
 [HotSwappable]
-public class QuestNode_Root_TradeShipTransportShip : QuestNode
+internal class QuestNode_Root_TradeShipTransportShip : QuestNode
 {
     protected override void RunInt()
     {
@@ -42,20 +42,20 @@ public class QuestNode_Root_TradeShipTransportShip : QuestNode
 
         tradeAgreement.toPlayerTransportShip = toPlayerTransportShip;
 
-        quest.CancelTrade(toTraderShuttle, outSignalCancelled: cancelTradeSignal);
+        _ = quest.CancelTrade(toTraderShuttle, outSignalCancelled: cancelTradeSignal);
         quest.Signal(
             cancelTradeSignal,
             () =>
             {
                 quest.CancelTransportShip(toTraderTransportShip);
-                quest.ReturnBoughtItemsToTradeShip(tradeAgreement, toPlayerTransportShip);
-                quest.Letter(
+                _ = quest.ReturnBoughtItemsToTradeShip(tradeAgreement, toPlayerTransportShip);
+                _ = quest.Letter(
                     LetterDefOf.NeutralEvent,
                     text: "[cancelledTradeLetterText]",
                     label: "[cancelledTradeLetterLabel]"
                 );
-                quest.EndActiveTradeShipTradeAgreement(tradeAgreement);
-                quest.End(
+                _ = quest.EndActiveTradeShipTradeAgreement(tradeAgreement);
+                _ = quest.End(
                     QuestEndOutcome.Fail,
                     signalListenMode: QuestPart.SignalListenMode.OngoingOnly
                 );
@@ -66,7 +66,7 @@ public class QuestNode_Root_TradeShipTransportShip : QuestNode
         var ticksUntilShuttleDeparture = !tradeAgreement.tradePausesDepartureTimer
             ? QuestUtils.CheckTradeShipRequiresGraceTime(quest, slate, tradeAgreement.tradeShip)
             : tradeAgreement.tradeShip.ticksUntilDeparture;
-        quest.TradeShuttleLeaveDelay(
+        _ = quest.TradeShuttleLeaveDelay(
             toTraderShuttle,
             tradeAgreement.tradePausesDepartureTimer,
             tradeAgreement.tradeShip.TraderName,
@@ -75,14 +75,14 @@ public class QuestNode_Root_TradeShipTransportShip : QuestNode
             complete: () =>
             {
                 quest.CancelTransportShip(toTraderTransportShip);
-                quest.ReturnBoughtItemsToTradeShip(tradeAgreement, toPlayerTransportShip);
-                quest.Letter(
+                _ = quest.ReturnBoughtItemsToTradeShip(tradeAgreement, toPlayerTransportShip);
+                _ = quest.Letter(
                     LetterDefOf.NeutralEvent,
                     text: "[expiredTradeLetterText]",
                     label: "[expiredTradeLetterLabel]"
                 );
-                quest.EndActiveTradeShipTradeAgreement(tradeAgreement);
-                quest.End(
+                _ = quest.EndActiveTradeShipTradeAgreement(tradeAgreement);
+                _ = quest.End(
                     QuestEndOutcome.Fail,
                     signalListenMode: QuestPart.SignalListenMode.OngoingOnly
                 );
@@ -90,7 +90,7 @@ public class QuestNode_Root_TradeShipTransportShip : QuestNode
         );
 
         // What to do if the player destroys the first shuttle
-        quest.ReturnBoughtItemsToTradeShip(
+        _ = quest.ReturnBoughtItemsToTradeShip(
             tradeAgreement,
             toPlayerTransportShip,
             signalToTraderShuttleKilled
@@ -101,15 +101,15 @@ public class QuestNode_Root_TradeShipTransportShip : QuestNode
             [signalToTraderShuttleKilled, signalToPlayerShuttleKilled],
             () =>
             {
-                quest.Letter(
+                _ = quest.Letter(
                     LetterDefOf.NegativeEvent,
                     signalListenMode: QuestPart.SignalListenMode.OngoingOnly,
                     text: "[tradeShuttleKilledLetterText]",
                     label: "[tradeShuttleKilledLetterLabel]"
                 );
-                quest.BlacklistPlayerFactionInOrbitalTrade();
-                quest.EndActiveTradeShipTradeAgreement(tradeAgreement);
-                quest.End(
+                _ = quest.BlacklistPlayerFactionInOrbitalTrade();
+                _ = quest.EndActiveTradeShipTradeAgreement(tradeAgreement);
+                _ = quest.End(
                     QuestEndOutcome.Fail,
                     signalListenMode: QuestPart.SignalListenMode.OngoingOnly
                 );
@@ -117,20 +117,20 @@ public class QuestNode_Root_TradeShipTransportShip : QuestNode
         );
 
         // What to do if the player becomes blacklisted externally (i.e. destroyed another trader's shuttle)
-        quest.Blacklisted(
+        _ = quest.Blacklisted(
             inSignalDisable: signalToTraderShuttleSentSatisfied,
             complete: () =>
             {
                 quest.CancelTransportShip(toTraderTransportShip);
-                quest.ReturnBoughtItemsToTradeShip(tradeAgreement, toPlayerTransportShip);
-                quest.Letter(
+                _ = quest.ReturnBoughtItemsToTradeShip(tradeAgreement, toPlayerTransportShip);
+                _ = quest.Letter(
                     LetterDefOf.NegativeEvent,
                     signalListenMode: QuestPart.SignalListenMode.OngoingOnly,
                     text: "[blacklistedLetterText]",
                     label: "[blacklistedLetterLabel]"
                 );
-                quest.EndActiveTradeShipTradeAgreement(tradeAgreement);
-                quest.End(
+                _ = quest.EndActiveTradeShipTradeAgreement(tradeAgreement);
+                _ = quest.End(
                     QuestEndOutcome.Fail,
                     signalListenMode: QuestPart.SignalListenMode.OngoingOnly
                 );
@@ -142,8 +142,8 @@ public class QuestNode_Root_TradeShipTransportShip : QuestNode
             signalToTraderShuttleSentSatisfied,
             () =>
             {
-                quest.TransferItemsToTrader(tradeAgreement, toTraderTransportShip);
-                quest.ExtendTradeShipDepartureIfVeryShort(tradeAgreement.tradeShip);
+                _ = quest.TransferItemsToTrader(tradeAgreement, toTraderTransportShip);
+                _ = quest.ExtendTradeShipDepartureIfVeryShort(tradeAgreement.tradeShip);
             }
         );
 
@@ -159,13 +159,13 @@ public class QuestNode_Root_TradeShipTransportShip : QuestNode
                         500,
                         () =>
                         {
-                            quest.Letter(
+                            _ = quest.Letter(
                                 LetterDefOf.PositiveEvent,
                                 text: "[tradeSuccessLetterText]",
                                 label: "[tradeSuccessLetterLabel]"
                             );
-                            quest.EndActiveTradeShipTradeAgreement(tradeAgreement);
-                            quest.End(
+                            _ = quest.EndActiveTradeShipTradeAgreement(tradeAgreement);
+                            _ = quest.End(
                                 QuestEndOutcome.Success,
                                 signalListenMode: QuestPart.SignalListenMode.OngoingOnly
                             );
@@ -203,24 +203,20 @@ public class QuestNode_Root_TradeShipTransportShip : QuestNode
         }
 
         var transportShip = quest
-            .GenerateTransportShip(
-                TransportShipDefOf.Ship_Shuttle,
-                Enumerable.Empty<Thing>(),
-                shuttle
-            )
+            .GenerateTransportShip(TransportShipDefOf.Ship_Shuttle, [], shuttle)
             .transportShip;
         slate.Set("toTraderTransportShip", transportShip);
         QuestUtility.AddQuestTag(ref transportShip.questTags, questTag);
 
         var map = tradeAgreement.tradeShip.Map;
-        IntVec3 landingSpot = QuestUtils.FindLandingSpot(map);
+        var landingSpot = QuestUtils.FindLandingSpot(map);
 
-        quest.Letter(
+        _ = quest.Letter(
             LetterDefOf.PositiveEvent,
             text: "[tradeAcceptedLetterText]",
             label: "[tradeAcceptedLetterLabel]"
         );
-        quest.AddShipJob_Arrive(
+        _ = quest.AddShipJob_Arrive(
             transportShip,
             map.Parent,
             null,
@@ -285,14 +281,14 @@ public class QuestNode_Root_TradeShipTransportShip : QuestNode
                 500,
                 () =>
                 {
-                    quest.AddShipJob_Arrive_FindLandingSpot_JIT(
+                    _ = quest.AddShipJob_Arrive_FindLandingSpot_JIT(
                         transportShip,
                         map.Parent,
                         null,
                         ShipJobStartMode.Queue
                     );
-                    quest.AddShipJob_Unload(transportShip);
-                    quest.AddShipJob_WaitTime(transportShip, 0, true);
+                    _ = quest.AddShipJob_Unload(transportShip);
+                    _ = quest.AddShipJob_WaitTime(transportShip, 0, true);
                 },
                 signalToTraderShuttleSentSatisfied
             )
@@ -301,8 +297,13 @@ public class QuestNode_Root_TradeShipTransportShip : QuestNode
         return (shuttle, transportShip);
     }
 
+    /// <inheritdoc/>
     protected override bool TestRunInt(Slate slate)
     {
+        if (slate == null)
+        {
+            throw new ArgumentNullException(nameof(slate));
+        }
         var tradeAgreement = slate.Get<TradeAgreement>("tradeAgreement")!;
 
         return tradeAgreement.tradeShip.GetData().ticksUntilCommsClosed != 0;

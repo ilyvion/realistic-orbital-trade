@@ -4,22 +4,20 @@ using Verse.AI;
 namespace RealisticOrbitalTrade;
 
 [HotSwappable]
-public class JobDriver_RenegotiateTrade : JobDriver
+internal class JobDriver_RenegotiateTrade : JobDriver
 {
     private ThingWithComps Shuttle => (ThingWithComps)job.GetTarget(TargetIndex.A).Thing;
     private TradeAgreement? TradeAgreement => Shuttle.GetComp<CompTradeShuttle>().tradeAgreement;
 
-    public override bool TryMakePreToilReservations(bool errorOnFailed)
-    {
-        return pawn.Reserve(job.targetA, job, errorOnFailed: errorOnFailed);
-    }
+    public override bool TryMakePreToilReservations(bool errorOnFailed) =>
+        pawn.Reserve(job.targetA, job, errorOnFailed: errorOnFailed);
 
     protected override IEnumerable<Toil> MakeNewToils()
     {
-        this.FailOnDespawnedOrNull(TargetIndex.A);
+        _ = this.FailOnDespawnedOrNull(TargetIndex.A);
         yield return Toils_Goto.Goto(TargetIndex.A, PathEndMode.Touch);
 
-        Toil renegotiateTrade = ToilMaker.MakeToil("MakeNewToils");
+        var renegotiateTrade = ToilMaker.MakeToil("MakeNewToils");
         renegotiateTrade.initAction = () =>
         {
             var tradeAgreement = TradeAgreement;

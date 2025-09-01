@@ -1,4 +1,3 @@
-using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 
@@ -16,11 +15,11 @@ internal static class Alert_OrbitalTrader_Shared
             var ticksUntilCommsClosed = tradeShip.GetData().ticksUntilCommsClosed;
             if (ticksUntilCommsClosed > 0)
             {
-                stringBuilder.Remove(
+                _ = stringBuilder.Remove(
                     stringBuilder.Length - Environment.NewLine.Length,
                     Environment.NewLine.Length
                 );
-                stringBuilder.AppendLine(
+                _ = stringBuilder.AppendLine(
                     " "
                         + "RealisticOrbitalTrade.UntilCommsCloseForTrade".Translate(
                             ticksUntilCommsClosed.ToStringTicksToPeriod()
@@ -29,11 +28,11 @@ internal static class Alert_OrbitalTrader_Shared
             }
             else if (ticksUntilCommsClosed == 0)
             {
-                stringBuilder.Remove(
+                _ = stringBuilder.Remove(
                     stringBuilder.Length - Environment.NewLine.Length,
                     Environment.NewLine.Length
                 );
-                stringBuilder.AppendLine(
+                _ = stringBuilder.AppendLine(
                     " " + "RealisticOrbitalTrade.CommsClosedForTrade".Translate()
                 );
             }
@@ -54,7 +53,7 @@ internal static class Alert_OrbitalTrader_Shared
     )
     {
         var codeMatcher = new CodeMatcher(instructions);
-        codeMatcher.SearchForward(i =>
+        _ = codeMatcher.SearchForward(i =>
             i.opcode == OpCodes.Ldfld && i.operand is FieldInfo f && f == _fieldTicksUntilDeparture
         );
         if (!codeMatcher.IsValid)
@@ -64,7 +63,7 @@ internal static class Alert_OrbitalTrader_Shared
             );
             return codeMatcher.Instructions();
         }
-        codeMatcher.SearchForward(i => i.opcode == OpCodes.Pop);
+        _ = codeMatcher.SearchForward(i => i.opcode == OpCodes.Pop);
         if (!codeMatcher.IsValid)
         {
             RealisticOrbitalTradeMod.Error(
@@ -75,7 +74,7 @@ internal static class Alert_OrbitalTrader_Shared
 
         // We should be in the right spot now. Transpiler, go go go!
 
-        codeMatcher.Insert(
+        _ = codeMatcher.Insert(
             [
                 new(OpCodes.Ldloc_3),
                 new(OpCodes.Ldloc_0),

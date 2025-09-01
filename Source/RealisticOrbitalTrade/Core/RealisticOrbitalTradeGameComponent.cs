@@ -9,7 +9,9 @@ internal enum Standing
     Forgiven,
 }
 
-internal class RealisticOrbitalTradeGameComponent : GameComponent
+#pragma warning disable CS9113 // Parameter is unread.
+internal class RealisticOrbitalTradeGameComponent(Game _game) : GameComponent
+#pragma warning restore CS9113 // Parameter is unread.
 {
     public static RealisticOrbitalTradeGameComponent Current =>
         VerseCurrent.Game.GetComponent<RealisticOrbitalTradeGameComponent>();
@@ -26,8 +28,6 @@ internal class RealisticOrbitalTradeGameComponent : GameComponent
         set => _standing = (int)value;
     }
 
-    public RealisticOrbitalTradeGameComponent(Game _) { }
-
     public int GetNextTradeId()
     {
         if (Scribe.mode == LoadSaveMode.LoadingVars && !_wasLoaded)
@@ -43,7 +43,7 @@ internal class RealisticOrbitalTradeGameComponent : GameComponent
                 "Getting next unique ID during saving. This may cause bugs."
             );
         }
-        int result = _nextTradeID;
+        var result = _nextTradeID;
         _nextTradeID++;
         if (_nextTradeID == int.MaxValue)
         {
@@ -75,7 +75,7 @@ internal class RealisticOrbitalTradeGameComponent : GameComponent
             $"Ending trade agreement with {tradeAgreement.tradeShip} using {tradeAgreement.negotiator}"
         );
         tradeAgreement.tradeShip.GetData().activeTradeAgreement = null;
-        _tradeAgreements.Remove(tradeAgreement);
+        _ = _tradeAgreements.Remove(tradeAgreement);
     }
 
     public override void ExposeData()

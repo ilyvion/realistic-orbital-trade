@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using RealisticOrbitalTrade.Patch;
 using WeHadATrader;
 
@@ -9,8 +8,5 @@ internal static class Alert_OrbitalTrader_GetExplanation
 {
     private static IEnumerable<CodeInstruction> Transpiler(
         IEnumerable<CodeInstruction> instructions
-    )
-    {
-        return Alert_OrbitalTrader_Shared.TranspileGetExplanation(instructions, "We Had a Trader?");
-    }
+    ) => Alert_OrbitalTrader_Shared.TranspileGetExplanation(instructions, "We Had a Trader?");
 }

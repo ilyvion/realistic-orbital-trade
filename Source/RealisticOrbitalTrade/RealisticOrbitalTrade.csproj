@@ -3,6 +3,8 @@
         <UseLaboratory>true</UseLaboratory>
         <RootNamespace>RealisticOrbitalTrade</RootNamespace>
         <AssemblyName>RealisticOrbitalTrade</AssemblyName>
+        <!-- TODO: Remove and fix -->
+        <NoWarn>CA1502;CA1506</NoWarn>
     </PropertyGroup>
     <ItemGroup></ItemGroup>
 </Project>

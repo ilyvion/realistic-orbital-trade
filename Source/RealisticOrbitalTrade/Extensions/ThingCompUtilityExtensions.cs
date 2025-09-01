@@ -2,7 +2,7 @@
 namespace RealisticOrbitalTrade;
 
 // Backport some 1.5 methods
-public static class ThingCompUtilityExtensions
+internal static class ThingCompUtilityExtensions
 {
     public static bool TryGetComp<T>(
         this Thing thing,
@@ -10,8 +10,7 @@ public static class ThingCompUtilityExtensions
     )
         where T : ThingComp
     {
-        ThingWithComps? thingWithComps = thing as ThingWithComps;
-        comp = ((thingWithComps != null) ? thingWithComps.GetComp<T>() : null);
+        comp = (thing is ThingWithComps thingWithComps) ? thingWithComps.GetComp<T>() : null;
         return comp != null;
     }
 

@@ -12,16 +12,10 @@ internal static class RimWorld_VersionUpdateDialogMaker_CreateVersionUpdateDialo
     private const string IlyvionLaboratoryGitHubUrl =
         "https://github.com/ilyvion/ilyvion-laboratory/releases/latest";
 
-    static bool ShownThisTime;
+    private static bool ShownThisTime;
 
-    private static bool IsIlyvionLaboratoryActive()
-    {
-#if v1_3
-        return ModLister.GetActiveModWithIdentifier("ilyvion.laboratory") == null;
-#else
-        return ModLister.GetActiveModWithIdentifier("ilyvion.laboratory", true) == null;
-#endif
-    }
+    private static bool IsIlyvionLaboratoryActive() =>
+        ModLister.GetActiveModWithIdentifier("ilyvion.laboratory", true) == null;
 
     private static void Postfix()
     {

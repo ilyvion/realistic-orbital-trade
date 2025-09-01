@@ -1,4 +1,5 @@
-using System.Reflection;
+#pragma warning disable IDE0060 // Remove unused parameter
+#pragma warning disable IDE0062 // Make local function 'static'
 using System.Reflection.Emit;
 using RealisticOrbitalTrade.ITabs;
 
@@ -33,7 +34,7 @@ internal static class Rimworld_ITab_ContentsTransporter_DoItemsLists_Reverse
 
             // --- Override call to ITab_ContentsBase:DoThingRow
 
-            codeMatcher.SearchForward(i =>
+            _ = codeMatcher.SearchForward(i =>
                 i.opcode == OpCodes.Call
                 && i.operand is MethodInfo m
                 && m == _method_ITab_ContentsBase_DoThingRow
@@ -46,8 +47,8 @@ internal static class Rimworld_ITab_ContentsTransporter_DoItemsLists_Reverse
                 return originalInstructionList;
             }
 
-            codeMatcher.RemoveInstruction();
-            codeMatcher.Insert(
+            _ = codeMatcher.RemoveInstruction();
+            _ = codeMatcher.Insert(
                 [new(OpCodes.Callvirt, _method_ITab_ContentsTransporterCustom_DoThingRow)]
             );
 
@@ -57,7 +58,7 @@ internal static class Rimworld_ITab_ContentsTransporter_DoItemsLists_Reverse
         // Make compiler happy. This gets patched out anyway.
         _ = inRect;
         _ = curY;
-        Transpiler(null!);
+        _ = Transpiler(null!);
     }
 }
 
@@ -73,18 +74,11 @@ internal static class Rimworld_ITab_ContentsBase_DoThingRow_Reverse
         Def def,
         ITab_ContentsBase instance,
         Thing thing
-    )
-    {
+    ) =>
         // Always show an info card for the inner thing, not the minified thing
-        if (thing is MinifiedThing minifiedThing)
-        {
-            return Widgets.InfoCardButton(x, y, minifiedThing.InnerThing);
-        }
-        else
-        {
-            return Widgets.InfoCardButton(x, y, thing);
-        }
-    }
+        thing is MinifiedThing minifiedThing
+            ? Widgets.InfoCardButton(x, y, minifiedThing.InnerThing)
+            : Widgets.InfoCardButton(x, y, thing);
 
     private static void FixThingIcon(
         Rect rect,
@@ -99,27 +93,17 @@ internal static class Rimworld_ITab_ContentsBase_DoThingRow_Reverse
 #endif
         ITab_ContentsBase instance,
         Thing thing
-    )
-    {
-        Widgets.ThingIcon(rect, thing);
-    }
+    ) => Widgets.ThingIcon(rect, thing);
 
     private static string FixLabel(
         string originalLabel,
         ITab_ContentsBase instance,
         int countToTransfer,
         List<Thing> things
-    )
-    {
-        if (countToTransfer == 1)
-        {
-            return things[0].LabelCap;
-        }
-        else
-        {
-            return $"{things[0].LabelCapNoCount} x{countToTransfer}";
-        }
-    }
+    ) =>
+        countToTransfer == 1
+            ? things[0].LabelCap
+            : $"{things[0].LabelCapNoCount} x{countToTransfer}";
 
     private static readonly MethodInfo _methodWidgetsInfoCardButtonDef = AccessTools.Method(
         typeof(Widgets),
@@ -198,7 +182,7 @@ internal static class Rimworld_ITab_ContentsBase_DoThingRow_Reverse
 
             // --- Override call to Widgets::InfoCardButton(Def)
 
-            codeMatcher.SearchForward(i =>
+            _ = codeMatcher.SearchForward(i =>
                 i.opcode == OpCodes.Call
                 && i.operand is MethodInfo m
                 && m == _methodWidgetsInfoCardButtonDef
@@ -211,8 +195,8 @@ internal static class Rimworld_ITab_ContentsBase_DoThingRow_Reverse
                 return originalInstructionList;
             }
 
-            codeMatcher.RemoveInstruction();
-            codeMatcher.Insert(
+            _ = codeMatcher.RemoveInstruction();
+            _ = codeMatcher.Insert(
                 [
                     new(OpCodes.Ldarg_0),
                     new(OpCodes.Ldarg_3),
@@ -224,7 +208,7 @@ internal static class Rimworld_ITab_ContentsBase_DoThingRow_Reverse
 
             // --- Override call to Widgets::ThingIcon(Def)
 
-            codeMatcher.SearchForward(i =>
+            _ = codeMatcher.SearchForward(i =>
                 i.opcode == OpCodes.Call
                 && i.operand is MethodInfo m
                 && m == _methodWidgetsThingIconDef
@@ -237,8 +221,8 @@ internal static class Rimworld_ITab_ContentsBase_DoThingRow_Reverse
                 return originalInstructionList;
             }
 
-            codeMatcher.RemoveInstruction();
-            codeMatcher.Insert(
+            _ = codeMatcher.RemoveInstruction();
+            _ = codeMatcher.Insert(
                 [
                     // == this
                     new(OpCodes.Ldarg_0),
@@ -253,7 +237,7 @@ internal static class Rimworld_ITab_ContentsBase_DoThingRow_Reverse
 
             // --- Replace value of label text
 
-            codeMatcher.SearchForward(i =>
+            _ = codeMatcher.SearchForward(i =>
                 i.opcode == OpCodes.Call
                 && i.operand is MethodInfo m
                 && m == _methodTextWordWrap_set
@@ -265,13 +249,13 @@ internal static class Rimworld_ITab_ContentsBase_DoThingRow_Reverse
                 );
                 return originalInstructionList;
             }
-            codeMatcher.Advance(-1);
+            _ = codeMatcher.Advance(-1);
 
             // We need to move this label to our first instruction
-            List<Label> labels = codeMatcher.Labels.ToList();
+            var labels = codeMatcher.Labels.ToList();
             codeMatcher.Labels.Clear();
 
-            codeMatcher.Insert(
+            _ = codeMatcher.Insert(
                 [
                     // Original value (used in pass-through)
                     new(OpCodes.Ldloc_3) { labels = labels },
@@ -301,6 +285,6 @@ internal static class Rimworld_ITab_ContentsBase_DoThingRow_Reverse
         _ = width;
         _ = curY;
         _ = discardAction;
-        Transpiler(null!);
+        _ = Transpiler(null!);
     }
 }

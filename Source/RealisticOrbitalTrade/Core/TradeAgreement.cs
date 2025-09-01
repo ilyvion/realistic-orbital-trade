@@ -7,17 +7,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
     {
         public int cap = cap;
 
-        public override int CountHeldBy(Transactor trans)
-        {
-            if (trans == Transactor.Colony)
-            {
-                return cap;
-            }
-            else
-            {
-                return 0;
-            }
-        }
+        public override int CountHeldBy(Transactor trans) => trans == Transactor.Colony ? cap : 0;
     }
 
     protected int loadID = -1;
@@ -58,7 +48,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
             List<Tradeable> tradeables = [];
             foreach (var item in toPlayerTransportShip.TransporterComp.innerContainer)
             {
-                Tradeable? tradeable = TransferableUtility.TradeableMatching(item, tradeables);
+                var tradeable = TransferableUtility.TradeableMatching(item, tradeables);
                 if (tradeable == null)
                 {
                     tradeable = (item is not Pawn) ? new Tradeable() : new Tradeable_Pawn();
@@ -69,10 +59,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
             }
             foreach (var item in thingsSoldToTrader)
             {
-                Tradeable? tradeable = TransferableUtility.TradeableMatching(
-                    item.thing,
-                    tradeables
-                );
+                var tradeable = TransferableUtility.TradeableMatching(item.thing, tradeables);
                 if (tradeable == null)
                 {
                     tradeable =
@@ -90,7 +77,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
             }
             foreach (var item in pawnsSoldToTrader)
             {
-                Tradeable? tradeable = TransferableUtility.TradeableMatching(item, tradeables);
+                var tradeable = TransferableUtility.TradeableMatching(item, tradeables);
                 if (tradeable == null)
                 {
                     tradeable = new Tradeable_Pawn();
@@ -103,10 +90,8 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         }
     }
 
-    public IEnumerable<Thing> ColonyThingsTraderWillingToBuy()
-    {
-        return new Pawn_TraderTracker(negotiator).ColonyThingsWillingToBuy(negotiator);
-    }
+    public IEnumerable<Thing> ColonyThingsTraderWillingToBuy() =>
+        new Pawn_TraderTracker(negotiator).ColonyThingsWillingToBuy(negotiator);
 
 #pragma warning disable CS8618 // Required by savegame logic
     public TradeAgreement()
@@ -147,18 +132,10 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         }
     }
 
-    public string GetUniqueLoadID()
-    {
-        return "TradeData_" + loadID;
-    }
+    public string GetUniqueLoadID() => "TradeData_" + loadID;
 
-    public void GetChildHolders(List<IThingHolder> outChildren)
-    {
+    public void GetChildHolders(List<IThingHolder> outChildren) =>
         ThingOwnerUtility.AppendThingHoldersFromThings(outChildren, GetDirectlyHeldThings());
-    }
 
-    public ThingOwner GetDirectlyHeldThings()
-    {
-        return thingsSoldToPlayer;
-    }
+    public ThingOwner GetDirectlyHeldThings() => thingsSoldToPlayer;
 }

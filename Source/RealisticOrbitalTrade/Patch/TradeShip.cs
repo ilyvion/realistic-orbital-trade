@@ -1,3 +1,6 @@
+#pragma warning disable IDE0060 // Remove unused parameter
+#pragma warning disable IDE0062 // Make local function 'static'
+
 using RealisticOrbitalTrade.Dialogs;
 
 namespace RealisticOrbitalTrade.Patch;
@@ -32,15 +35,19 @@ internal static class Rimworld_TradeShip_GiveSoldThingToPlayer
             return true;
         }
 
-        Thing thing = toGive.SplitOff(countToGive);
+        var thing = toGive.SplitOff(countToGive);
         if (thing is Pawn item)
         {
-            Traverse.Create(__instance).Field("soldPrisoners").GetValue<List<Pawn>>().Remove(item);
+            _ = Traverse
+                .Create(__instance)
+                .Field("soldPrisoners")
+                .GetValue<List<Pawn>>()
+                .Remove(item);
         }
         RealisticOrbitalTradeMod.Dev(() =>
             $"Adding {thing.Label} to list of things to give to player on successful trade"
         );
-        tradeAgreement.thingsSoldToPlayer.TryAddOrTransfer(thing);
+        _ = tradeAgreement.thingsSoldToPlayer.TryAddOrTransfer(thing);
 
         return false;
     }
@@ -80,10 +87,8 @@ internal static class Rimworld_TradeShip_GiveSoldThingToTrader
 [HarmonyPatch(typeof(TradeShip), nameof(TradeShip.PassingShipTick))]
 internal static class Rimworld_TradeShip_PassingShipTick
 {
-    private static void Prefix(TradeShip __instance, out int __state)
-    {
+    private static void Prefix(TradeShip __instance, out int __state) =>
         __state = __instance.ticksUntilDeparture;
-    }
 
     private static void Postfix(TradeShip __instance, int __state)
     {
@@ -119,7 +124,7 @@ internal static class Rimworld_TradeShip_TryOpenComms
 {
     private static bool Prefix(TradeShip __instance, Pawn negotiator)
     {
-        TradeShipData tradeShipExtra = __instance.GetData();
+        var tradeShipExtra = __instance.GetData();
         if (tradeShipExtra.ticksUntilCommsClosed == 0)
         {
             Messages.Message(
@@ -144,11 +149,11 @@ internal static class Rimworld_TradeShip_TryOpenComms
         {
             Find.WindowStack.Add(new Dialog_PayBlacklistRemovalFee(__instance, negotiator));
 
-            float level = negotiator.health.capacities.GetLevel(PawnCapacityDefOf.Talking);
-            float level2 = negotiator.health.capacities.GetLevel(PawnCapacityDefOf.Hearing);
+            var level = negotiator.health.capacities.GetLevel(PawnCapacityDefOf.Talking);
+            var level2 = negotiator.health.capacities.GetLevel(PawnCapacityDefOf.Hearing);
             if (level < 0.95f || level2 < 0.95f)
             {
-                TaggedString text =
+                var text =
                     (!(level < 0.95f))
                         ? "NegotiatorHearingImpaired".Translate(negotiator.LabelShort, negotiator)
                         : "NegotiatorTalkingImpaired".Translate(negotiator.LabelShort, negotiator);

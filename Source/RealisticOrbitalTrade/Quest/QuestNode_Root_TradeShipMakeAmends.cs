@@ -2,7 +2,7 @@ using RimWorld.QuestGen;
 
 namespace RealisticOrbitalTrade.Quests;
 
-public class QuestNode_Root_TradeShipMakeAmends : QuestNode
+internal class QuestNode_Root_TradeShipMakeAmends : QuestNode
 {
     protected override void RunInt()
     {
@@ -30,44 +30,40 @@ public class QuestNode_Root_TradeShipMakeAmends : QuestNode
         compShuttle.requiredItems = thingsToReturn;
 
         var transportShip = quest
-            .GenerateTransportShip(
-                TransportShipDefOf.Ship_Shuttle,
-                Enumerable.Empty<Thing>(),
-                shuttle
-            )
+            .GenerateTransportShip(TransportShipDefOf.Ship_Shuttle, [], shuttle)
             .transportShip;
         slate.Set("transportShip", transportShip);
         QuestUtility.AddQuestTag(ref transportShip.questTags, questTag);
 
         var map = tradeShip.Map;
-        IntVec3 landingSpot = QuestUtils.FindLandingSpot(map);
+        var landingSpot = QuestUtils.FindLandingSpot(map);
 
-        quest.Letter(
+        _ = quest.Letter(
             LetterDefOf.PositiveEvent,
             text: "[introLetterText]",
             label: "[introLetterLabel]"
         );
-        quest.AddShipJob_Arrive(
+        _ = quest.AddShipJob_Arrive(
             transportShip,
             map.Parent,
             null,
             landingSpot,
             ShipJobStartMode.Queue
         );
-        quest.AddShipJob_WaitForever(transportShip, true, true);
+        _ = quest.AddShipJob_WaitForever(transportShip, true, true);
 
-        quest.CancelAmendment(shuttle, outSignalCancelled: cancelAmendmentSignal);
+        _ = quest.CancelAmendment(shuttle, outSignalCancelled: cancelAmendmentSignal);
         quest.Signal(
             cancelAmendmentSignal,
             () =>
             {
                 quest.CancelTransportShip(transportShip);
-                quest.Letter(
+                _ = quest.Letter(
                     LetterDefOf.NeutralEvent,
                     text: "[cancelledLetterText]",
                     label: "[cancelledLetterLabel]"
                 );
-                quest.End(
+                _ = quest.End(
                     QuestEndOutcome.Fail,
                     signalListenMode: QuestPart.SignalListenMode.OngoingOnly
                 );
@@ -78,7 +74,7 @@ public class QuestNode_Root_TradeShipMakeAmends : QuestNode
         var ticksUntilShuttleDeparture = !tradePausesDepartureTimer
             ? QuestUtils.CheckTradeShipRequiresGraceTime(quest, slate, tradeShip)
             : tradeShip.ticksUntilDeparture;
-        quest.TradeShuttleLeaveDelay(
+        _ = quest.TradeShuttleLeaveDelay(
             shuttle,
             tradePausesDepartureTimer,
             tradeShip.TraderName,
@@ -87,12 +83,12 @@ public class QuestNode_Root_TradeShipMakeAmends : QuestNode
             complete: () =>
             {
                 quest.CancelTransportShip(transportShip);
-                quest.Letter(
+                _ = quest.Letter(
                     LetterDefOf.NeutralEvent,
                     text: "[expiredOfferLetterText]",
                     label: "[expiredOfferLetterLabel]"
                 );
-                quest.End(
+                _ = quest.End(
                     QuestEndOutcome.Fail,
                     signalListenMode: QuestPart.SignalListenMode.OngoingOnly
                 );
@@ -104,13 +100,13 @@ public class QuestNode_Root_TradeShipMakeAmends : QuestNode
             signalShuttleKilled,
             () =>
             {
-                quest.Letter(
+                _ = quest.Letter(
                     LetterDefOf.NegativeEvent,
                     signalListenMode: QuestPart.SignalListenMode.OngoingOnly,
                     text: "[shuttleKilledLetterText]",
                     label: "[shuttleKilledLetterLabel]"
                 );
-                quest.End(
+                _ = quest.End(
                     QuestEndOutcome.Fail,
                     signalListenMode: QuestPart.SignalListenMode.OngoingOnly
                 );
@@ -124,18 +120,18 @@ public class QuestNode_Root_TradeShipMakeAmends : QuestNode
             {
                 // Put in a small delay so the quest finishes slightly later than immediately after the
                 // shuttle starts taking off
-                quest.Delay(
+                _ = quest.Delay(
                     500,
                     () =>
                     {
-                        quest.ExtendTradeShipDepartureIfVeryShort(tradeShip);
-                        quest.Letter(
+                        _ = quest.ExtendTradeShipDepartureIfVeryShort(tradeShip);
+                        _ = quest.Letter(
                             LetterDefOf.PositiveEvent,
                             text: "[successLetterText]",
                             label: "[successLetterLabel]"
                         );
-                        quest.ForgivePlayerFactionInOrbitalTrade();
-                        quest.End(
+                        _ = quest.ForgivePlayerFactionInOrbitalTrade();
+                        _ = quest.End(
                             QuestEndOutcome.Success,
                             signalListenMode: QuestPart.SignalListenMode.OngoingOnly
                         );
@@ -145,8 +141,5 @@ public class QuestNode_Root_TradeShipMakeAmends : QuestNode
         );
     }
 
-    protected override bool TestRunInt(Slate slate)
-    {
-        return true;
-    }
+    protected override bool TestRunInt(Slate slate) => true;
 }
