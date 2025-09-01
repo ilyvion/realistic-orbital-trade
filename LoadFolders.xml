@@ -2,21 +2,30 @@
     <v1.4>
         <li>Common</li>
         <li>1.4</li>
-        <li IfModActive="Mlie.WeHadATrader">1.4_WeHadATrader</li>
-        <li IfModActive="zeracronius.dynamictradeinterface">1.4_DynamicTradeInterface</li>
-        <li IfModActive="Supes.AutoSeller.Core">1.4_AutoSeller</li>
+        <li IfModActive="mlie.wehadatrader">Integrations/WeHadATrader/1.4</li>
+        <li IfModActive="zeracronius.dynamictradeinterface"
+            >Integrations/DynamicTradeInterface/1.4</li
+        >
+        <li IfModActive="supes.autoseller.core">Integrations/AutoSeller/1.4</li>
     </v1.4>
     <v1.5>
         <li>Common</li>
         <li>1.5</li>
-        <li IfModActive="Mlie.WeHadATrader">1.5_WeHadATrader</li>
-        <li IfModActive="Neronix17.TweaksGalore">1.5_TweaksGalore</li>
-        <li IfModActive="zeracronius.dynamictradeinterface">1.5_DynamicTradeInterface</li>
-        <li IfModActive="Supes.AutoSeller.Core">1.5_AutoSeller</li>
+        <li IfModActive="mlie.wehadatrader">Integrations/WeHadATrader/1.5</li>
+        <li IfModActive="neronix17.tweaksgalore">Integrations/TweaksGalore/1.5</li>
+        <li IfModActive="zeracronius.dynamictradeinterface"
+            >Integrations/DynamicTradeInterface/1.5</li
+        >
+        <li IfModActive="supes.autoseller.core">Integrations/AutoSeller/1.5</li>
     </v1.5>
     <v1.6>
         <li>Common</li>
         <li>1.6</li>
-        <li IfModActive="zeracronius.dynamictradeinterface">1.6_DynamicTradeInterface</li>
+        <li IfModActive="mlie.wehadatrader">Integrations/WeHadATrader/1.6</li>
+        <li IfModActive="neronix17.tweaksgalore">Integrations/TweaksGalore/1.6</li>
+        <li IfModActive="zeracronius.dynamictradeinterface"
+            >Integrations/DynamicTradeInterface/1.6</li
+        >
+        <li IfModActive="supes.autoseller.core">Integrations/AutoSeller/1.6</li>
     </v1.6>
 </loadFolders>

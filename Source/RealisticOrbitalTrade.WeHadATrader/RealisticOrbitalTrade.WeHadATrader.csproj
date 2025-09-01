@@ -1,60 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <OutputType>Library</OutputType>
-        <TargetFramework>net481</TargetFramework>
-        <PlatformTarget>x64</PlatformTarget>
-        <LangVersion>12.0</LangVersion>
-        <Nullable>enable</Nullable>
-
+        <UseLaboratory>true</UseLaboratory>
         <RootNamespace>RealisticOrbitalTrade.WeHadATrader</RootNamespace>
         <AssemblyName>RealisticOrbitalTrade.WeHadATrader</AssemblyName>
-
-        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-
-        <RimWorldSteamWorkshopFolderPath Condition="'$(RimWorldSteamWorkshopFolderPath)'==''">..\..\.deps\refs</RimWorldSteamWorkshopFolderPath>
+        <OutputPath>../../Integrations/WeHadATrader/$(RimWorldVersion)/Assemblies</OutputPath>
     </PropertyGroup>
-
-    <PropertyGroup>
-        <OutputPath>../../$(RimWorldVersion)_WeHadATrader/Assemblies</OutputPath>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-        <DebugType>none</DebugType>
-        <Optimize>true</Optimize>
-        <DebugSymbols>false</DebugSymbols>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-        <DebugType>portable</DebugType>
-        <Optimize>false</Optimize>
-        <DebugSymbols>true</DebugSymbols>
-    </PropertyGroup>
-
-    <Choose>
-        <When Condition="'$(RimWorldVersion)' == '1.6'">
-            <PropertyGroup>
-                <DefineConstants>$(DefineConstants);v1_6</DefineConstants>
-            </PropertyGroup>
-        </When>
-        <When Condition="'$(RimWorldVersion)' == '1.5'">
-            <PropertyGroup>
-                <DefineConstants>$(DefineConstants);v1_5</DefineConstants>
-            </PropertyGroup>
-        </When>
-        <When Condition="'$(RimWorldVersion)' == '1.4'">
-            <PropertyGroup>
-                <DefineConstants>$(DefineConstants);v1_4</DefineConstants>
-            </PropertyGroup>
-        </When>
-    </Choose>
-
     <ItemGroup>
-        <PackageReference Include="Lib.Harmony" Version="2.2.2">
-            <ExcludeAssets>runtime</ExcludeAssets>
-        </PackageReference>
-        <PackageReference Include="Krafs.Rimworld.Ref" Version="$(RimWorldVersion).*-*">
-            <ExcludeAssets>runtime</ExcludeAssets>
-        </PackageReference>
         <ProjectReference Include="..\RealisticOrbitalTrade\RealisticOrbitalTrade.csproj">
             <CopyLocal>False</CopyLocal>
             <Private>false</Private>
@@ -65,4 +16,5 @@
             <Private>false</Private>
         </Reference>
     </ItemGroup>
+    <ItemGroup></ItemGroup>
 </Project>

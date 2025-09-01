@@ -1,2 +1,3 @@
-*/Config
-*/Saves
+*
+!*/Config/ModsConfig.xml
+!*/Config/Prefs.xml
