@@ -1,6 +1,5 @@
 using RimWorld.Planet;
 using RimWorld.QuestGen;
-
 using RWShipJobDefOf = RimWorld.ShipJobDefOf;
 
 namespace RealisticOrbitalTrade.Quests;
@@ -15,7 +14,6 @@ internal class QuestPart_AddShipJob_Arrive_FindLandingSpot_JIT : QuestPart_AddSh
     }
 }
 
-
 internal static class QuestGen_AddShipJob_Arrive_FindLandingSpot_JIT
 {
     public static QuestPart_AddShipJob_Arrive_FindLandingSpot_JIT AddShipJob_Arrive_FindLandingSpot_JIT(
@@ -28,17 +26,18 @@ internal static class QuestGen_AddShipJob_Arrive_FindLandingSpot_JIT
         string? inSignal = null
     )
     {
-        QuestPart_AddShipJob_Arrive_FindLandingSpot_JIT questPart_AddShipJob_Arrive_FindLandingSpot_JIT = new()
-        {
-            inSignal = inSignal ?? QuestGen.slate.Get<string>("inSignal"),
-            shipJobStartMode = startMode,
-            transportShip = transportShip,
-            shipJobDef = RWShipJobDefOf.Arrive,
-            cell = IntVec3.Invalid,
-            mapParent = mapParent,
-            mapOfPawn = mapOfPawn,
-            factionForArrival = factionForArrival
-        };
+        QuestPart_AddShipJob_Arrive_FindLandingSpot_JIT questPart_AddShipJob_Arrive_FindLandingSpot_JIT =
+            new()
+            {
+                inSignal = inSignal ?? QuestGen.slate.Get<string>("inSignal"),
+                shipJobStartMode = startMode,
+                transportShip = transportShip,
+                shipJobDef = RWShipJobDefOf.Arrive,
+                cell = IntVec3.Invalid,
+                mapParent = mapParent,
+                mapOfPawn = mapOfPawn,
+                factionForArrival = factionForArrival,
+            };
         quest.AddPart(questPart_AddShipJob_Arrive_FindLandingSpot_JIT);
         return questPart_AddShipJob_Arrive_FindLandingSpot_JIT;
     }

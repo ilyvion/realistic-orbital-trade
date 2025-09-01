@@ -5,31 +5,31 @@
         <autoAccept>true</autoAccept>
         <questNameRules>
             <rulesStrings>
-                <li>questName->[traderName] trade agreement</li>
+                <li>questName-&gt;[traderName] trade agreement</li>
             </rulesStrings>
         </questNameRules>
         <questDescriptionRules>
             <rulesStrings>
-                <li>questDescription->You have entered into a trade agreement with the orbital trade ship [traderName]. They'll be sending two shuttles for you to complete the deal. The first one you will load your sold items into, and the second will unload your bought items upon arrival.</li>
+                <li>questDescription-&gt;You have entered into a trade agreement with the orbital trade ship [traderName]. They'll be sending two shuttles for you to complete the deal. The first one you will load your sold items into, and the second will unload your bought items upon arrival.</li>
             </rulesStrings>
         </questDescriptionRules>
         <questContentRules>
             <rulesStrings>
-                <li>tradeAcceptedLetterLabel->Trade accepted</li>
-                <li>tradeAcceptedLetterText->[traderName] appreciates your business!\n\nWe've sent a shuttle down for you to load the things you sold to us into. Once we've received our things, we will send another shuttle down with the things you bought.\n\nMake sure you don't take too long, the shuttle will leave when we do, and if you have not sent off the items owed to us by then, the trade agreement will be annulled.\n\nYou can betray the orbital trader by destroying their shuttles, but this will have consequences for your future ability to trade with orbital traders.</li>
-                <li>tradeShuttleKilledLetterLabel->Trade shuttle destroyed</li>
-                <li>tradeShuttleKilledLetterText->Due to your vandalism of our property, your faction has been blacklisted in the orbital traders' guild. Because we believe in giving second chances, you may at any future time contact an orbital trader in range of your comms and offer to pay compensation for the damages caused plus a nominal fee for the inconvenience you have caused us. Until such time, the trading services of orbital traders will be unavailable to you.</li>
-                <li>graceTimeLetterLabel->Trade grace period</li>
-                <li>graceTimeLetterText->We were originally going to be leaving comms range in only [graceTimeTimeLeft], but since that might be too little time for you to load up the shuttle, we're willing to wait around in orbit for up to an additional [graceTimeTimeExtra] — i.e. a total of [graceTimeTimeTotal] — to let you complete this trade.</li>
-                <li>expiredTradeLetterLabel->Trade expired</li>
-                <li>expiredTradeLetterText->Due to tardiness, you've unfortunately left us no choice but to leave without concluding the trade agreement. Try to be more prompt with your next trade!\n\n[partialLoadReturned]</li>
-                <li>tradeSuccessLetterLabel->Trade succeeded</li>
-                <li>tradeSuccessLetterText->[traderName] thanks you for your patronage!</li>
-                <li>cancelledTradeLetterLabel->Trade cancelled</li>
-                <li>cancelledTradeLetterText->Changed your mind, huh? That's okay, it happens.\n\n[partialLoadReturned]</li>
-                <li>partialLoadReturned->If you had partially loaded something onto our shuttle, it has been returned to you.</li>
-                <li>blacklistedLetterLabel->Faction blacklisted for trade</li>
-                <li>blacklistedLetterText->We've received word that you've done something to get yourself blacklisted in the orbital traders' guild, so we're immediately cancelling this trade.\n\n[partialLoadReturned]</li>
+                <li>tradeAcceptedLetterLabel-&gt;Trade accepted</li>
+                <li>tradeAcceptedLetterText-&gt;[traderName] appreciates your business!\n\nWe've sent a shuttle down for you to load the things you sold to us into. Once we've received our things, we will send another shuttle down with the things you bought.\n\nMake sure you don't take too long, the shuttle will leave when we do, and if you have not sent off the items owed to us by then, the trade agreement will be annulled.\n\nYou can betray the orbital trader by destroying their shuttles, but this will have consequences for your future ability to trade with orbital traders.</li>
+                <li>tradeShuttleKilledLetterLabel-&gt;Trade shuttle destroyed</li>
+                <li>tradeShuttleKilledLetterText-&gt;Due to your vandalism of our property, your faction has been blacklisted in the orbital traders' guild. Because we believe in giving second chances, you may at any future time contact an orbital trader in range of your comms and offer to pay compensation for the damages caused plus a nominal fee for the inconvenience you have caused us. Until such time, the trading services of orbital traders will be unavailable to you.</li>
+                <li>graceTimeLetterLabel-&gt;Trade grace period</li>
+                <li>graceTimeLetterText-&gt;We were originally going to be leaving comms range in only [graceTimeTimeLeft], but since that might be too little time for you to load up the shuttle, we're willing to wait around in orbit for up to an additional [graceTimeTimeExtra] — i.e. a total of [graceTimeTimeTotal] — to let you complete this trade.</li>
+                <li>expiredTradeLetterLabel-&gt;Trade expired</li>
+                <li>expiredTradeLetterText-&gt;Due to tardiness, you've unfortunately left us no choice but to leave without concluding the trade agreement. Try to be more prompt with your next trade!\n\n[partialLoadReturned]</li>
+                <li>tradeSuccessLetterLabel-&gt;Trade succeeded</li>
+                <li>tradeSuccessLetterText-&gt;[traderName] thanks you for your patronage!</li>
+                <li>cancelledTradeLetterLabel-&gt;Trade cancelled</li>
+                <li>cancelledTradeLetterText-&gt;Changed your mind, huh? That's okay, it happens.\n\n[partialLoadReturned]</li>
+                <li>partialLoadReturned-&gt;If you had partially loaded something onto our shuttle, it has been returned to you.</li>
+                <li>blacklistedLetterLabel-&gt;Faction blacklisted for trade</li>
+                <li>blacklistedLetterText-&gt;We've received word that you've done something to get yourself blacklisted in the orbital traders' guild, so we're immediately cancelling this trade.\n\n[partialLoadReturned]</li>
             </rulesStrings>
         </questContentRules>
         <root Class="RealisticOrbitalTrade.Quests.QuestNode_Root_TradeShipTransportShip" />

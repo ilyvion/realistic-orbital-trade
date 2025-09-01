@@ -29,7 +29,9 @@ internal class QuestPart_TradeShuttleLeaveDelay : QuestPart_ShuttleLeaveDelay
         {
             if (!tradePausesDepartureTimer)
             {
-                return "RealisticOrbitalTrade.QuestPartShuttleLeaveDelay".Translate(TicksLeft.ToStringTicksToPeriodVerbose());
+                return "RealisticOrbitalTrade.QuestPartShuttleLeaveDelay".Translate(
+                    TicksLeft.ToStringTicksToPeriodVerbose()
+                );
             }
             else
             {
@@ -46,13 +48,22 @@ internal class QuestPart_TradeShuttleLeaveDelay : QuestPart_ShuttleLeaveDelay
             {
                 if (quest.hidden)
                 {
-                    return "RealisticOrbitalTrade.QuestPartShuttleLeaveDelayDescHidden".Translate(TicksLeft.ToStringTicksToPeriodVerbose().Colorize(ColoredText.DateTimeColor));
+                    return "RealisticOrbitalTrade.QuestPartShuttleLeaveDelayDescHidden".Translate(
+                        TicksLeft.ToStringTicksToPeriodVerbose().Colorize(ColoredText.DateTimeColor)
+                    );
                 }
-                return "RealisticOrbitalTrade.QuestPartShuttleLeaveDelayDesc".Translate(quest.name, TicksLeft.ToStringTicksToPeriodVerbose().Colorize(ColoredText.DateTimeColor), shuttle.TryGetComp<CompShuttle>().RequiredThingsLabel);
+                return "RealisticOrbitalTrade.QuestPartShuttleLeaveDelayDesc".Translate(
+                    quest.name,
+                    TicksLeft.ToStringTicksToPeriodVerbose().Colorize(ColoredText.DateTimeColor),
+                    shuttle.TryGetComp<CompShuttle>().RequiredThingsLabel
+                );
             }
             else
             {
-                return "RealisticOrbitalTrade.TradeShuttleRequires".Translate(quest.name, shuttle.TryGetComp<CompShuttle>().RequiredThingsLabel);
+                return "RealisticOrbitalTrade.TradeShuttleRequires".Translate(
+                    quest.name,
+                    shuttle.TryGetComp<CompShuttle>().RequiredThingsLabel
+                );
             }
         }
     }
@@ -76,7 +87,9 @@ internal class QuestPart_TradeShuttleLeaveDelay : QuestPart_ShuttleLeaveDelay
     {
         if (target == shuttle)
         {
-            var text = "RealisticOrbitalTrade.InvolvedInTradeWithInspectString".Translate(traderName);
+            var text = "RealisticOrbitalTrade.InvolvedInTradeWithInspectString".Translate(
+                traderName
+            );
             if (!tradePausesDepartureTimer)
             {
                 var baseText = base.ExtraInspectString(target);
@@ -122,13 +135,15 @@ internal static class QuestGen_TradeShuttleLeaveDelay
     {
         QuestPart_TradeShuttleLeaveDelay questPart = new()
         {
-            inSignalEnable = QuestGenUtility.HardcodedSignalWithQuestID(inSignalEnable) ?? QuestGen.slate.Get<string>("inSignal"),
+            inSignalEnable =
+                QuestGenUtility.HardcodedSignalWithQuestID(inSignalEnable)
+                ?? QuestGen.slate.Get<string>("inSignal"),
             delayTicks = delayTicks,
             tradePausesDepartureTimer = tradePausesDepartureTimer,
             traderName = traderName,
             shuttle = shuttle,
             expiryInfoPart = "RealisticOrbitalTrade.TradeShuttleDepartsIn".Translate(),
-            expiryInfoPartTip = "RealisticOrbitalTrade.TradeShuttleDepartsOn".Translate(traderName)
+            expiryInfoPartTip = "RealisticOrbitalTrade.TradeShuttleDepartsOn".Translate(traderName),
         };
         if (inSignalsDisable != null)
         {

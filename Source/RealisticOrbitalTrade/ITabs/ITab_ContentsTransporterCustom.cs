@@ -14,8 +14,23 @@ internal class ITab_ContentsTransporterCustom : ITab_ContentsTransporter
         Rimworld_ITab_ContentsTransporter_DoItemsLists_Reverse.DoItemsLists(this, inRect, ref curY);
     }
 
-    internal new void DoThingRow(ThingDef thingDef, int count, List<Thing> things, float width, ref float curY, Action<int> discardAction)
+    internal new void DoThingRow(
+        ThingDef thingDef,
+        int count,
+        List<Thing> things,
+        float width,
+        ref float curY,
+        Action<int> discardAction
+    )
     {
-        Rimworld_ITab_ContentsBase_DoThingRow_Reverse.DoThingRow(this, thingDef, count, things, width, ref curY, discardAction);
+        Rimworld_ITab_ContentsBase_DoThingRow_Reverse.DoThingRow(
+            this,
+            thingDef,
+            count,
+            things,
+            width,
+            ref curY,
+            discardAction
+        );
     }
 }

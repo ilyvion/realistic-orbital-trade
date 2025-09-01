@@ -5,29 +5,29 @@
         <autoAccept>true</autoAccept>
         <questNameRules>
             <rulesStrings>
-                <li>questName->Making amends with the orbital trade guild</li>
+                <li>questName-&gt;Making amends with the orbital trade guild</li>
             </rulesStrings>
         </questNameRules>
         <questDescriptionRules>
             <rulesStrings>
-                <li>questDescription->After having destroyed the shuttle of an orbital trader, your faction was blacklisted from trading with the orbital traders. You've contacted one of them and promised to make amends. They'll be sending a shuttle for you to load the items and silver you have chosen to pay back into.</li>
+                <li>questDescription-&gt;After having destroyed the shuttle of an orbital trader, your faction was blacklisted from trading with the orbital traders. You've contacted one of them and promised to make amends. They'll be sending a shuttle for you to load the items and silver you have chosen to pay back into.</li>
             </rulesStrings>
         </questDescriptionRules>
         <questContentRules>
             <rulesStrings>
-                <li>introLetterLabel->Amends offer accepted</li>
-                <li>introLetterText->We've sent a shuttle for you to load the items and silver you have chosen to pay us back into. Once we've received our things, your blacklisted status will be lifted.\n\nMake sure you don't take too long, the shuttle will leave when we do, and if you have not sent off the items owed to us by then, the amendment offer will be annulled.\n\nBecause you have betrayed us in the past, we've taken steps to discourage you from doing this again by strapping explosives to the shuttle.</li>
-                <li>graceTimeLetterLabel->Amends offer grace period</li>
-                <li>graceTimeLetterText->We were originally going to be leaving comms range in only [graceTimeTimeLeft], but since that might be too little time for you to load up the shuttle, we're willing to wait around in orbit for up to an additional [graceTimeTimeExtra] — i.e. a total of [graceTimeTimeTotal] — to let you fulfill this amendment offer.</li>
-                <li>expiredOfferLetterLabel->Amends offer expired</li>
-                <li>expiredOfferLetterText->Due to tardiness, you've unfortunately left us no choice but to leave without concluding the amends offer. Try to be more prompt next time!\n\n[partialLoadReturned]</li>
-                <li>shuttleKilledLetterLabel->Amends shuttle destroyed</li>
-                <li>shuttleKilledLetterText->There's something extraordinarily depraved about destroying the very means by which you were intended to make amends. However, since we're used to dealing with unscrupulous blacklisted factions, we use our most dilapidated, barely functioning shuttles for this purpose, which only contain a few metal scraps of useful materials at best, so you gain very little by doing this.</li>
-                <li>successLetterLabel->Amends made</li>
-                <li>successLetterText->The orbital traders guild thanks you for reimbursing us the reparations requested. You are once again in good standing, and you'll find that our traders are willing to make trades with you again.\n\nWhile we may forgive, we do not forget, thus all future shuttles involved in orbital trades with you will come with explosives strapped to them.</li>
-                <li>cancelledLetterLabel->Amends offer cancelled</li>
-                <li>cancelledLetterText->Contact one of us again if you change your mind.\n\n[partialLoadReturned]</li>
-                <li>partialLoadReturned->If you had partially loaded something onto our shuttle, it has been returned to you.</li>
+                <li>introLetterLabel-&gt;Amends offer accepted</li>
+                <li>introLetterText-&gt;We've sent a shuttle for you to load the items and silver you have chosen to pay us back into. Once we've received our things, your blacklisted status will be lifted.\n\nMake sure you don't take too long, the shuttle will leave when we do, and if you have not sent off the items owed to us by then, the amendment offer will be annulled.\n\nBecause you have betrayed us in the past, we've taken steps to discourage you from doing this again by strapping explosives to the shuttle.</li>
+                <li>graceTimeLetterLabel-&gt;Amends offer grace period</li>
+                <li>graceTimeLetterText-&gt;We were originally going to be leaving comms range in only [graceTimeTimeLeft], but since that might be too little time for you to load up the shuttle, we're willing to wait around in orbit for up to an additional [graceTimeTimeExtra] — i.e. a total of [graceTimeTimeTotal] — to let you fulfill this amendment offer.</li>
+                <li>expiredOfferLetterLabel-&gt;Amends offer expired</li>
+                <li>expiredOfferLetterText-&gt;Due to tardiness, you've unfortunately left us no choice but to leave without concluding the amends offer. Try to be more prompt next time!\n\n[partialLoadReturned]</li>
+                <li>shuttleKilledLetterLabel-&gt;Amends shuttle destroyed</li>
+                <li>shuttleKilledLetterText-&gt;There's something extraordinarily depraved about destroying the very means by which you were intended to make amends. However, since we're used to dealing with unscrupulous blacklisted factions, we use our most dilapidated, barely functioning shuttles for this purpose, which only contain a few metal scraps of useful materials at best, so you gain very little by doing this.</li>
+                <li>successLetterLabel-&gt;Amends made</li>
+                <li>successLetterText-&gt;The orbital traders guild thanks you for reimbursing us the reparations requested. You are once again in good standing, and you'll find that our traders are willing to make trades with you again.\n\nWhile we may forgive, we do not forget, thus all future shuttles involved in orbital trades with you will come with explosives strapped to them.</li>
+                <li>cancelledLetterLabel-&gt;Amends offer cancelled</li>
+                <li>cancelledLetterText-&gt;Contact one of us again if you change your mind.\n\n[partialLoadReturned]</li>
+                <li>partialLoadReturned-&gt;If you had partially loaded something onto our shuttle, it has been returned to you.</li>
             </rulesStrings>
         </questContentRules>
         <root Class="RealisticOrbitalTrade.Quests.QuestNode_Root_TradeShipMakeAmends" />

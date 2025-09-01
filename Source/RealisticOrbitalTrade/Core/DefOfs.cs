@@ -25,6 +25,7 @@ internal static class ThingDefOf
         DefOfHelper.EnsureInitializedInCtor(typeof(ThingDefOf));
     }
 }
+
 [DefOf]
 internal static class ShipJobDefOf
 {
@@ -35,6 +36,7 @@ internal static class ShipJobDefOf
         DefOfHelper.EnsureInitializedInCtor(typeof(ShipJobDefOf));
     }
 }
+
 [DefOf]
 internal static class JobDefOf
 {

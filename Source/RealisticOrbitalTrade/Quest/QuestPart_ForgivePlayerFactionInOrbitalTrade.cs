@@ -6,9 +6,7 @@ internal class QuestPart_ForgivePlayerFactionInOrbitalTrade : QuestPart
 {
     public string? inSignal;
 
-    public QuestPart_ForgivePlayerFactionInOrbitalTrade()
-    {
-    }
+    public QuestPart_ForgivePlayerFactionInOrbitalTrade() { }
 
     public override void Notify_QuestSignalReceived(Signal signal)
     {
@@ -28,11 +26,14 @@ internal class QuestPart_ForgivePlayerFactionInOrbitalTrade : QuestPart
 
 internal static class QuestGen_ForgivePlayerFactionInOrbitalTrade
 {
-    public static QuestPart_ForgivePlayerFactionInOrbitalTrade ForgivePlayerFactionInOrbitalTrade(this Quest quest, string? inSignal = null)
+    public static QuestPart_ForgivePlayerFactionInOrbitalTrade ForgivePlayerFactionInOrbitalTrade(
+        this Quest quest,
+        string? inSignal = null
+    )
     {
         QuestPart_ForgivePlayerFactionInOrbitalTrade questPart = new()
         {
-            inSignal = inSignal ?? QuestGen.slate.Get<string>("inSignal")
+            inSignal = inSignal ?? QuestGen.slate.Get<string>("inSignal"),
         };
         quest.AddPart(questPart);
         return questPart;

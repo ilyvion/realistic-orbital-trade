@@ -1,5 +1,5 @@
-using RimWorld;
 using System.Reflection;
+using RimWorld;
 using Verse;
 
 namespace RealisticOrbitalTrade.AutoSeller.Patch;
@@ -31,13 +31,16 @@ internal static class AutoSeller_ASTrade_CreateTrade
         // It shouldn't be possible to get this far if we're blacklisted, but as an extra safety check
         if (RealisticOrbitalTradeGameComponent.Current.Standing == Standing.Blacklisted)
         {
-            RealisticOrbitalTradeMod.Error("Auto-seller got all the way to CreateTrade when blacklisted. This is a bug.");
+            RealisticOrbitalTradeMod.Error(
+                "Auto-seller got all the way to CreateTrade when blacklisted. This is a bug."
+            );
             __result = false;
             return false;
         }
 
         // Otherwise, go ahead
-        tradeShipData.activeTradeAgreement = TradeShipData.tradeAgreementForQuest = RealisticOrbitalTradeGameComponent.Current.StartTradeAgreement(tradeShip, pawn);
+        tradeShipData.activeTradeAgreement = TradeShipData.tradeAgreementForQuest =
+            RealisticOrbitalTradeGameComponent.Current.StartTradeAgreement(tradeShip, pawn);
         return true;
     }
 }

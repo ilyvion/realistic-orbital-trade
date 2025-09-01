@@ -42,12 +42,16 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         {
             if (toPlayerTransportShip == null)
             {
-                RealisticOrbitalTradeMod.Error("toPlayerTransportShip is null in TradeAgreement. This is a bug, can't calculate AllTradeables.");
+                RealisticOrbitalTradeMod.Error(
+                    "toPlayerTransportShip is null in TradeAgreement. This is a bug, can't calculate AllTradeables."
+                );
                 return [];
             }
             if (toTraderTransportShip == null)
             {
-                RealisticOrbitalTradeMod.Error("toTraderTransportShip is null in TradeAgreement. This is a bug, can't calculate AllTradeables.");
+                RealisticOrbitalTradeMod.Error(
+                    "toTraderTransportShip is null in TradeAgreement. This is a bug, can't calculate AllTradeables."
+                );
                 return [];
             }
 
@@ -57,9 +61,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                 Tradeable? tradeable = TransferableUtility.TradeableMatching(item, tradeables);
                 if (tradeable == null)
                 {
-                    tradeable = (item is not Pawn)
-                        ? new Tradeable()
-                        : new Tradeable_Pawn();
+                    tradeable = (item is not Pawn) ? new Tradeable() : new Tradeable_Pawn();
                     tradeables.Add(tradeable);
                 }
                 tradeable.AddThing(item, Transactor.Trader);
@@ -67,12 +69,16 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
             }
             foreach (var item in thingsSoldToTrader)
             {
-                Tradeable? tradeable = TransferableUtility.TradeableMatching(item.thing, tradeables);
+                Tradeable? tradeable = TransferableUtility.TradeableMatching(
+                    item.thing,
+                    tradeables
+                );
                 if (tradeable == null)
                 {
-                    tradeable = item.thing.def != RimWorld.ThingDefOf.Silver
-                        ? new Tradeable_Capped(item.Count)
-                        : new Tradeable();
+                    tradeable =
+                        item.thing.def != RimWorld.ThingDefOf.Silver
+                            ? new Tradeable_Capped(item.Count)
+                            : new Tradeable();
                     tradeables.Add(tradeable);
                 }
                 else if (tradeable is Tradeable_Capped capped)
@@ -105,8 +111,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
 #pragma warning disable CS8618 // Required by savegame logic
     public TradeAgreement()
 #pragma warning restore CS8618
-    {
-    }
+    { }
 
     public TradeAgreement(TradeShip tradeShip, Pawn negotiator, bool tradePausesDepartureTimer)
     {
@@ -129,12 +134,16 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         Scribe_Collections.Look(ref pawnsSoldToTrader, "pawnsSoldToTrader", LookMode.Reference);
         Scribe_References.Look(ref toPlayerTransportShip, "toPlayerTransportShip");
         Scribe_References.Look(ref toTraderTransportShip, "toTraderTransportShip");
-        if (Scribe.mode == LoadSaveMode.PostLoadInit &&
-            (toPlayerTransportShip == null || toTraderTransportShip == null))
+        if (
+            Scribe.mode == LoadSaveMode.PostLoadInit
+            && (toPlayerTransportShip == null || toTraderTransportShip == null)
+        )
         {
-            RealisticOrbitalTradeMod.WarningOnce("Detected an active trade agreement from before " +
-                "trade renegotiation was added; this trade cannot be renegotiated.",
-                Constants.OldTradeNonRenegotiableKey);
+            RealisticOrbitalTradeMod.WarningOnce(
+                "Detected an active trade agreement from before "
+                    + "trade renegotiation was added; this trade cannot be renegotiated.",
+                Constants.OldTradeNonRenegotiableKey
+            );
         }
     }
 

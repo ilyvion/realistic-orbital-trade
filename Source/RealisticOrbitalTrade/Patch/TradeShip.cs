@@ -15,12 +15,20 @@ internal static class Rimworld_TradeShip_ExposeData
 [HarmonyPatch(typeof(TradeShip), nameof(TradeShip.GiveSoldThingToPlayer))]
 internal static class Rimworld_TradeShip_GiveSoldThingToPlayer
 {
-    private static bool Prefix(TradeShip __instance, Thing toGive, int countToGive, Pawn playerNegotiator)
+    private static bool Prefix(
+        TradeShip __instance,
+        Thing toGive,
+        int countToGive,
+        Pawn playerNegotiator
+    )
     {
         var tradeAgreement = TradeShipData.tradeAgreementForQuest;
         if (tradeAgreement == null)
         {
-            RealisticOrbitalTradeMod.WarningOnce("Trade ship did not have a trade agreement arranged. Mod incompatibility?", Constants.MissingTradeAgreementKey);
+            RealisticOrbitalTradeMod.WarningOnce(
+                "Trade ship did not have a trade agreement arranged. Mod incompatibility?",
+                Constants.MissingTradeAgreementKey
+            );
             return true;
         }
 
@@ -29,7 +37,9 @@ internal static class Rimworld_TradeShip_GiveSoldThingToPlayer
         {
             Traverse.Create(__instance).Field("soldPrisoners").GetValue<List<Pawn>>().Remove(item);
         }
-        RealisticOrbitalTradeMod.Dev(() => $"Adding {thing.Label} to list of things to give to player on successful trade");
+        RealisticOrbitalTradeMod.Dev(() =>
+            $"Adding {thing.Label} to list of things to give to player on successful trade"
+        );
         tradeAgreement.thingsSoldToPlayer.TryAddOrTransfer(thing);
 
         return false;
@@ -44,11 +54,16 @@ internal static class Rimworld_TradeShip_GiveSoldThingToTrader
         var tradeAgreement = TradeShipData.tradeAgreementForQuest;
         if (tradeAgreement == null)
         {
-            RealisticOrbitalTradeMod.WarningOnce("Trade ship did not have a trade agreement arranged. Mod incompatibility?", Constants.MissingTradeAgreementKey);
+            RealisticOrbitalTradeMod.WarningOnce(
+                "Trade ship did not have a trade agreement arranged. Mod incompatibility?",
+                Constants.MissingTradeAgreementKey
+            );
             return true;
         }
 
-        RealisticOrbitalTradeMod.Dev(() => $"Adding {toGive.LabelCapNoCount} x{countToGive} to list of things player needs to load onto shuttle");
+        RealisticOrbitalTradeMod.Dev(() =>
+            $"Adding {toGive.LabelCapNoCount} x{countToGive} to list of things player needs to load onto shuttle"
+        );
         if (toGive is Pawn pawn)
         {
             tradeAgreement.pawnsSoldToTrader.Add(pawn);
@@ -74,7 +89,10 @@ internal static class Rimworld_TradeShip_PassingShipTick
     {
         var tradeShipExtra = __instance.GetData();
         var activeTradeAgreement = tradeShipExtra.activeTradeAgreement;
-        if ((activeTradeAgreement != null && activeTradeAgreement.tradePausesDepartureTimer) || Utils.IsMakingAmends)
+        if (
+            (activeTradeAgreement != null && activeTradeAgreement.tradePausesDepartureTimer)
+            || Utils.IsMakingAmends
+        )
         {
             __instance.ticksUntilDeparture = __state;
         }
@@ -84,7 +102,11 @@ internal static class Rimworld_TradeShip_PassingShipTick
             {
                 tradeShipExtra.ticksUntilCommsClosed--;
             }
-            else if (tradeShipExtra.ticksUntilCommsClosed == 0 && activeTradeAgreement == null && __instance.ticksUntilDeparture > Constants.AdditionalTicksAfterDeparture)
+            else if (
+                tradeShipExtra.ticksUntilCommsClosed == 0
+                && activeTradeAgreement == null
+                && __instance.ticksUntilDeparture > Constants.AdditionalTicksAfterDeparture
+            )
             {
                 __instance.ticksUntilDeparture = Constants.AdditionalTicksAfterDeparture;
             }
@@ -100,12 +122,22 @@ internal static class Rimworld_TradeShip_TryOpenComms
         TradeShipData tradeShipExtra = __instance.GetData();
         if (tradeShipExtra.ticksUntilCommsClosed == 0)
         {
-            Messages.Message("RealisticOrbitalTrade.NotAnsweringForGraceTime".Translate(__instance.TraderName), MessageTypeDefOf.NeutralEvent, historical: false);
+            Messages.Message(
+                "RealisticOrbitalTrade.NotAnsweringForGraceTime".Translate(__instance.TraderName),
+                MessageTypeDefOf.NeutralEvent,
+                historical: false
+            );
             return false;
         }
         else if (Utils.IsMakingAmends)
         {
-            Messages.Message("RealisticOrbitalTrade.NotAnsweringForActiveAmendment".Translate(__instance.TraderName), MessageTypeDefOf.NeutralEvent, historical: false);
+            Messages.Message(
+                "RealisticOrbitalTrade.NotAnsweringForActiveAmendment".Translate(
+                    __instance.TraderName
+                ),
+                MessageTypeDefOf.NeutralEvent,
+                historical: false
+            );
             return false;
         }
         else if (RealisticOrbitalTradeGameComponent.Current.Standing == Standing.Blacklisted)
@@ -116,7 +148,10 @@ internal static class Rimworld_TradeShip_TryOpenComms
             float level2 = negotiator.health.capacities.GetLevel(PawnCapacityDefOf.Hearing);
             if (level < 0.95f || level2 < 0.95f)
             {
-                TaggedString text = (!(level < 0.95f)) ? "NegotiatorHearingImpaired".Translate(negotiator.LabelShort, negotiator) : "NegotiatorTalkingImpaired".Translate(negotiator.LabelShort, negotiator);
+                TaggedString text =
+                    (!(level < 0.95f))
+                        ? "NegotiatorHearingImpaired".Translate(negotiator.LabelShort, negotiator)
+                        : "NegotiatorTalkingImpaired".Translate(negotiator.LabelShort, negotiator);
                 text += "\n\n" + "NegotiatorCapacityImpaired".Translate();
                 Find.WindowStack.Add(new Dialog_MessageBox(text));
             }
@@ -124,11 +159,16 @@ internal static class Rimworld_TradeShip_TryOpenComms
         }
         else if (tradeShipExtra.HasActiveTradeAgreement)
         {
-            Messages.Message("RealisticOrbitalTrade.NotAnsweringForActiveTrade".Translate(__instance.TraderName), MessageTypeDefOf.NeutralEvent, historical: false);
+            Messages.Message(
+                "RealisticOrbitalTrade.NotAnsweringForActiveTrade".Translate(__instance.TraderName),
+                MessageTypeDefOf.NeutralEvent,
+                historical: false
+            );
             return false;
         }
 
-        tradeShipExtra.activeTradeAgreement = TradeShipData.tradeAgreementForQuest = RealisticOrbitalTradeGameComponent.Current.StartTradeAgreement(__instance, negotiator);
+        tradeShipExtra.activeTradeAgreement = TradeShipData.tradeAgreementForQuest =
+            RealisticOrbitalTradeGameComponent.Current.StartTradeAgreement(__instance, negotiator);
         return true;
     }
 }

@@ -5,9 +5,11 @@ namespace RealisticOrbitalTrade.Quests;
 [StaticConstructorOnStartup]
 internal class QuestPart_CancelTrade : QuestPart_CancelShuttle
 {
-    protected override string DefaultLabel => "RealisticOrbitalTrade.CancelTradeAgreementLabel".Translate();
+    protected override string DefaultLabel =>
+        "RealisticOrbitalTrade.CancelTradeAgreementLabel".Translate();
 
-    protected override string DefaultDesc => "RealisticOrbitalTrade.CancelTradeAgreementDesc".Translate();
+    protected override string DefaultDesc =>
+        "RealisticOrbitalTrade.CancelTradeAgreementDesc".Translate();
 }
 
 internal static class QuestGen_CancelTrade
@@ -17,13 +19,16 @@ internal static class QuestGen_CancelTrade
         Thing shuttle,
         string? inSignalEnable = null,
         string? inSignalDisable = null,
-        string? outSignalCancelled = null)
+        string? outSignalCancelled = null
+    )
     {
         QuestPart_CancelTrade questPart = new()
         {
-            inSignalEnable = QuestGenUtility.HardcodedSignalWithQuestID(inSignalEnable) ?? QuestGen.slate.Get<string>("inSignal"),
+            inSignalEnable =
+                QuestGenUtility.HardcodedSignalWithQuestID(inSignalEnable)
+                ?? QuestGen.slate.Get<string>("inSignal"),
             inSignalDisable = QuestGenUtility.HardcodedSignalWithQuestID(inSignalDisable),
-            shuttle = shuttle
+            shuttle = shuttle,
         };
         if (outSignalCancelled != null)
         {

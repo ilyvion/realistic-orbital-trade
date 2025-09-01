@@ -8,9 +8,7 @@ internal class QuestPart_ExtendTradeShipDepartureIfVeryShort : QuestPart
 
     private TradeShip? tradeShip;
 
-    public QuestPart_ExtendTradeShipDepartureIfVeryShort()
-    {
-    }
+    public QuestPart_ExtendTradeShipDepartureIfVeryShort() { }
 
     public QuestPart_ExtendTradeShipDepartureIfVeryShort(string? inSignal, TradeShip tradeShip)
     {
@@ -47,9 +45,16 @@ internal class QuestPart_ExtendTradeShipDepartureIfVeryShort : QuestPart
 
 internal static class QuestGen_ExtendTradeShipDepartureIfVeryShort
 {
-    public static QuestPart_ExtendTradeShipDepartureIfVeryShort ExtendTradeShipDepartureIfVeryShort(this Quest quest, TradeShip tradeShip, string? inSignal = null)
+    public static QuestPart_ExtendTradeShipDepartureIfVeryShort ExtendTradeShipDepartureIfVeryShort(
+        this Quest quest,
+        TradeShip tradeShip,
+        string? inSignal = null
+    )
     {
-        QuestPart_ExtendTradeShipDepartureIfVeryShort questPart = new(inSignal ?? QuestGen.slate.Get<string>("inSignal"), tradeShip);
+        QuestPart_ExtendTradeShipDepartureIfVeryShort questPart = new(
+            inSignal ?? QuestGen.slate.Get<string>("inSignal"),
+            tradeShip
+        );
         quest.AddPart(questPart);
         return questPart;
     }

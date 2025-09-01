@@ -5,7 +5,9 @@ namespace RealisticOrbitalTrade.Quests;
 [StaticConstructorOnStartup]
 internal abstract class QuestPart_CancelShuttle : QuestPartActivable
 {
-    private static readonly Texture2D Cancel = ContentFinder<Texture2D>.Get("UI/Designators/Cancel");
+    private static readonly Texture2D Cancel = ContentFinder<Texture2D>.Get(
+        "UI/Designators/Cancel"
+    );
 
     public Thing? shuttle;
 

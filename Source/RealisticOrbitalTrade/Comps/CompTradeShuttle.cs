@@ -58,6 +58,7 @@ public class CompTradeShuttle : ThingComp
     }
 
     private static readonly List<string> tmpRequiredLabels = [];
+
     public override string? CompInspectStringExtra()
     {
         if (cancelled)
@@ -76,7 +77,11 @@ public class CompTradeShuttle : ThingComp
         }
         if (tmpRequiredLabels.Any())
         {
-            stringBuilder.AppendInNewLine("RealisticOrbitalTrade.RequiredThings".Translate() + ": " + tmpRequiredLabels.ToCommaList().CapitalizeFirst());
+            stringBuilder.AppendInNewLine(
+                "RealisticOrbitalTrade.RequiredThings".Translate()
+                    + ": "
+                    + tmpRequiredLabels.ToCommaList().CapitalizeFirst()
+            );
         }
         return stringBuilder.ToString();
     }
@@ -102,7 +107,8 @@ public class CompTradeShuttle : ThingComp
                     int additionalItemsNeeded = Mathf.Min(requiredSpecificItem.count, stackCount);
                     if (additionalItemsNeeded > 0)
                     {
-                        tmpRequiredSpecificItems[i] = tmpRequiredSpecificItems[i].WithCount(tmpRequiredSpecificItems[i].count - additionalItemsNeeded);
+                        tmpRequiredSpecificItems[i] = tmpRequiredSpecificItems[i]
+                            .WithCount(tmpRequiredSpecificItems[i].count - additionalItemsNeeded);
                         stackCount -= additionalItemsNeeded;
                     }
                 }
@@ -136,6 +142,7 @@ public class CompTradeShuttle : ThingComp
 
     private static readonly List<ThingDefCountWithRequirements> tmpRequiredSpecificItems = [];
     private static readonly List<Thing> tmpAllSendableItems = [];
+
     internal void CheckAutoload()
     {
         if (!isToTrader)
@@ -145,11 +152,18 @@ public class CompTradeShuttle : ThingComp
 
         if (tradeAgreement == null)
         {
-            RealisticOrbitalTradeMod.Error("tradeAgreement is null in CompTradeShuttle. This is a bug, autoloading impossible.");
+            RealisticOrbitalTradeMod.Error(
+                "tradeAgreement is null in CompTradeShuttle. This is a bug, autoloading impossible."
+            );
             return;
         }
 
-        if (!ShuttleAutoLoad || !Transporter.LoadingInProgressOrReadyToLaunch || !parent.Spawned || cancelled)
+        if (
+            !ShuttleAutoLoad
+            || !Transporter.LoadingInProgressOrReadyToLaunch
+            || !parent.Spawned
+            || cancelled
+        )
         {
             return;
         }
@@ -158,7 +172,9 @@ public class CompTradeShuttle : ThingComp
 
         tmpAllSendableItems.Clear();
         tmpAllSendableItems.AddRange(tradeAgreement.ColonyThingsTraderWillingToBuy());
-        tmpAllSendableItems.AddRange(TransporterUtility.ThingsBeingHauledTo(Shuttle.TransportersInGroup, parent.Map));
+        tmpAllSendableItems.AddRange(
+            TransporterUtility.ThingsBeingHauledTo(Shuttle.TransportersInGroup, parent.Map)
+        );
 
         foreach (var requiredItem in tmpRequiredSpecificItems)
         {
@@ -220,27 +236,43 @@ public class CompTradeShuttle : ThingComp
             yield break;
         }
 
-        yield return FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption(
-            "RealisticOrbitalTrade.RenegotiateTrade".Translate(),
-            () =>
-            {
-                Job job = JobMaker.MakeJob(JobDefOf.ROT_RenegotiateTrade, parent);
-                selPawn.jobs.TryTakeOrderedJob(job, JobTag.Misc);
-            },
-            MenuOptionPriority.InitiateSocial),
-            selPawn, parent);
-
+        yield return FloatMenuUtility.DecoratePrioritizedTask(
+            new FloatMenuOption(
+                "RealisticOrbitalTrade.RenegotiateTrade".Translate(),
+                () =>
+                {
+                    Job job = JobMaker.MakeJob(JobDefOf.ROT_RenegotiateTrade, parent);
+                    selPawn.jobs.TryTakeOrderedJob(job, JobTag.Misc);
+                },
+                MenuOptionPriority.InitiateSocial
+            ),
+            selPawn,
+            parent
+        );
 
         FloatMenuOption? GetFailureReason(Pawn selPawn)
         {
             if (tradeAgreement == null)
             {
-                RealisticOrbitalTradeMod.Error("tradeAgreement is null in CompTradeShuttle. This is a bug, renegotiation impossible.");
-                return new FloatMenuOption("tradeAgreement is null in CompTradeShuttle. This is a bug, renegotiation impossible.", null);
+                RealisticOrbitalTradeMod.Error(
+                    "tradeAgreement is null in CompTradeShuttle. This is a bug, renegotiation impossible."
+                );
+                return new FloatMenuOption(
+                    "tradeAgreement is null in CompTradeShuttle. This is a bug, renegotiation impossible.",
+                    null
+                );
             }
-            if (tradeAgreement.toPlayerTransportShip == null || tradeAgreement.toTraderTransportShip == null)
+            if (
+                tradeAgreement.toPlayerTransportShip == null
+                || tradeAgreement.toTraderTransportShip == null
+            )
             {
-                return new FloatMenuOption("RealisticOrbitalTrade.RenegotiateTrade".Translate() + " " + "RealisticOrbitalTrade.OldTradeNonRenegotiable".Translate(), null);
+                return new FloatMenuOption(
+                    "RealisticOrbitalTrade.RenegotiateTrade".Translate()
+                        + " "
+                        + "RealisticOrbitalTrade.OldTradeNonRenegotiable".Translate(),
+                    null
+                );
             }
             if (!selPawn.CanReach(parent, PathEndMode.Touch, Danger.Some))
             {
@@ -248,7 +280,15 @@ public class CompTradeShuttle : ThingComp
             }
             if (!selPawn.health.capacities.CapableOf(PawnCapacityDefOf.Talking))
             {
-                return new FloatMenuOption("CannotUseReason".Translate("IncapableOfCapacity".Translate(PawnCapacityDefOf.Talking.label, selPawn.Named("PAWN"))), null);
+                return new FloatMenuOption(
+                    "CannotUseReason".Translate(
+                        "IncapableOfCapacity".Translate(
+                            PawnCapacityDefOf.Talking.label,
+                            selPawn.Named("PAWN")
+                        )
+                    ),
+                    null
+                );
             }
             return null;
         }
@@ -269,10 +309,7 @@ internal struct ThingDefCountWithRequirements : IExposable
 
     public string Label
     {
-        get
-        {
-            return GenLabel.ThingLabel(def, stuffDef, count) + LabelExtras();
-        }
+        get { return GenLabel.ThingLabel(def, stuffDef, count) + LabelExtras(); }
     }
 
     private string LabelExtras()
@@ -326,7 +363,11 @@ internal struct ThingDefCountWithRequirements : IExposable
             }
         }
         QualityUtility.TryGetQuality(thing, out var thingQuality);
-        return def == thing.def && stuffDef == thing.Stuff && count != 0 && (!healthAffectsPrice || Math.Abs(thing.HitPoints - hitPoints) <= 5) && (!hasQuality || thingQuality == quality);
+        return def == thing.def
+            && stuffDef == thing.Stuff
+            && count != 0
+            && (!healthAffectsPrice || Math.Abs(thing.HitPoints - hitPoints) <= 5)
+            && (!hasQuality || thingQuality == quality);
     }
 
     internal ThingDefCountWithRequirements WithCount(int count)
@@ -338,7 +379,7 @@ internal struct ThingDefCountWithRequirements : IExposable
             healthAffectsPrice = healthAffectsPrice,
             hitPoints = hitPoints,
             hasQuality = hasQuality,
-            quality = quality
+            quality = quality,
         };
     }
 }

@@ -1,5 +1,5 @@
-using Verse;
 using System.Reflection;
+using Verse;
 
 namespace RealisticOrbitalTrade.DynamicTradeInterface;
 
@@ -10,6 +10,8 @@ public class DynamicTradeInterfaceMod : Mod
     {
         new Harmony(Constants.Id).PatchAll(Assembly.GetExecutingAssembly());
 
-        RealisticOrbitalTradeMod.Message("\"Dynamic Trade Interface\" interop loaded successfully!");
+        RealisticOrbitalTradeMod.Message(
+            "\"Dynamic Trade Interface\" interop loaded successfully!"
+        );
     }
 }

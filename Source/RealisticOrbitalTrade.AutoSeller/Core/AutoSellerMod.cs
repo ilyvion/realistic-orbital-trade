@@ -1,5 +1,5 @@
-using Verse;
 using System.Reflection;
+using Verse;
 
 namespace RealisticOrbitalTrade.AutoSeller;
 

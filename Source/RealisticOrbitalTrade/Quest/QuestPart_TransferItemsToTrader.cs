@@ -15,13 +15,23 @@ internal class QuestPart_TransferItemsToTrader : QuestPart
         base.Notify_QuestSignalReceived(signal);
         if (signal.tag == inSignal)
         {
-            var things = Traverse.Create(tradeAgreement!.tradeShip).Field<ThingOwner>("things").Value;
-            var soldPrisoners = Traverse.Create(tradeAgreement.tradeShip).Field("soldPrisoners").GetValue<List<Pawn>>();
+            var things = Traverse
+                .Create(tradeAgreement!.tradeShip)
+                .Field<ThingOwner>("things")
+                .Value;
+            var soldPrisoners = Traverse
+                .Create(tradeAgreement.tradeShip)
+                .Field("soldPrisoners")
+                .GetValue<List<Pawn>>();
 
             // Give the things the player sold to the trader
             foreach (var thing in toTraderTransportShip!.TransporterComp.innerContainer.ToList())
             {
-                thing.PreTraded(TradeAction.PlayerSells, tradeAgreement.negotiator, tradeAgreement.tradeShip);
+                thing.PreTraded(
+                    TradeAction.PlayerSells,
+                    tradeAgreement.negotiator,
+                    tradeAgreement.tradeShip
+                );
 
                 if (thing is Pawn pawn && pawn.RaceProps.Humanlike)
                 {
@@ -29,7 +39,9 @@ internal class QuestPart_TransferItemsToTrader : QuestPart
                 }
                 if (!things.TryAddOrTransfer(thing))
                 {
-                    RealisticOrbitalTradeMod.Warning($"Failed transferring {thing.Label} to orbital trader {tradeAgreement.tradeShip.TraderName} in QuestPart_TransferItemsToTrader");
+                    RealisticOrbitalTradeMod.Warning(
+                        $"Failed transferring {thing.Label} to orbital trader {tradeAgreement.tradeShip.TraderName} in QuestPart_TransferItemsToTrader"
+                    );
                     thing.Destroy();
                 }
             }
@@ -54,13 +66,18 @@ internal class QuestPart_TransferItemsToTrader : QuestPart
 
 internal static class QuestGen_TransferItemsToTrader
 {
-    public static QuestPart_TransferItemsToTrader TransferItemsToTrader(this Quest quest, TradeAgreement tradeAgreement, TransportShip toTraderTransportShip, string? inSignal = null)
+    public static QuestPart_TransferItemsToTrader TransferItemsToTrader(
+        this Quest quest,
+        TradeAgreement tradeAgreement,
+        TransportShip toTraderTransportShip,
+        string? inSignal = null
+    )
     {
         QuestPart_TransferItemsToTrader questPart = new()
         {
             inSignal = inSignal ?? QuestGen.slate.Get<string>("inSignal"),
             tradeAgreement = tradeAgreement,
-            toTraderTransportShip = toTraderTransportShip
+            toTraderTransportShip = toTraderTransportShip,
         };
         quest.AddPart(questPart);
         return questPart;

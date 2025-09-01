@@ -26,7 +26,10 @@ internal static class AutoSeller_ASTrade_Forcetrade
             slate.Set("tradeAgreement", tradeAgreementForQuest);
             slate.Set("traderName", tradeAgreementForQuest.tradeShip.TraderName);
 
-            QuestUtility.GenerateQuestAndMakeAvailable(QuestScriptDefOf.ROT_TradeShipTransportShip, slate);
+            QuestUtility.GenerateQuestAndMakeAvailable(
+                QuestScriptDefOf.ROT_TradeShipTransportShip,
+                slate
+            );
         }
         else
         {

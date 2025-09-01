@@ -11,7 +11,11 @@
             <li>RealisticOrbitalTrade.ITabs.ITab_ContentsTransporterCustom</li>
         </inspectorTabs>
     </ThingDef>
-    <ThingDef Name="ROT_ExplosiveRiggedTradeShuttleBase" ParentName="ROT_TradeShuttleBase" Abstract="True">
+    <ThingDef
+        Name="ROT_ExplosiveRiggedTradeShuttleBase"
+        ParentName="ROT_TradeShuttleBase"
+        Abstract="True"
+    >
         <comps>
             <li Class="CompProperties_Explosive">
                 <explodeOnKilled>true</explodeOnKilled>
@@ -25,7 +29,6 @@
             </li>
         </comps>
     </ThingDef>
-
     <!-- Concrete/actually used definitions -->
     <ThingDef ParentName="ROT_TradeShuttleBase">
         <defName>ROT_TradeShuttle</defName>

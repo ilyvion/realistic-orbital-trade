@@ -4,7 +4,10 @@ using RimWorld;
 using RimWorld.QuestGen;
 using Verse;
 
-[HarmonyPatch(typeof(QuestPart_SetupTransportShip), nameof(QuestPart_SetupTransportShip.Notify_QuestSignalReceived))]
+[HarmonyPatch(
+    typeof(QuestPart_SetupTransportShip),
+    nameof(QuestPart_SetupTransportShip.Notify_QuestSignalReceived)
+)]
 internal static class QuestPart_SetupTransportShip_Notify_QuestSignalReceived
 {
     private static void Postfix(QuestPart_SetupTransportShip __instance, Signal signal)

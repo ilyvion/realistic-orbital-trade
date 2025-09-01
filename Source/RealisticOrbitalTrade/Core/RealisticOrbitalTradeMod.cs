@@ -14,7 +14,8 @@ internal class RealisticOrbitalTradeMod : Mod
     internal static RealisticOrbitalTradeMod instance;
 #pragma warning restore CS8618
 
-    public RealisticOrbitalTradeMod(ModContentPack content) : base(content)
+    public RealisticOrbitalTradeMod(ModContentPack content)
+        : base(content)
     {
         instance = this;
 
@@ -91,6 +92,4 @@ internal class RealisticOrbitalTradeMod : Mod
 }
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-public sealed class HotSwappableAttribute : Attribute
-{
-}
+public sealed class HotSwappableAttribute : Attribute { }

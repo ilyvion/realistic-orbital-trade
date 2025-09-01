@@ -15,7 +15,9 @@ internal class QuestPart_EndActiveTradeShipTradeAgreement : QuestPart
         {
             if (tradeAgreement == null)
             {
-                RealisticOrbitalTradeMod.Error("tradeAgreement is null in QuestPart_EndActiveTradeShipTradeAgreement. This is a bug, can't end trade agreement.");
+                RealisticOrbitalTradeMod.Error(
+                    "tradeAgreement is null in QuestPart_EndActiveTradeShipTradeAgreement. This is a bug, can't end trade agreement."
+                );
                 return;
             }
             RealisticOrbitalTradeGameComponent.Current.EndTradeAgreement(tradeAgreement);
@@ -38,12 +40,16 @@ internal class QuestPart_EndActiveTradeShipTradeAgreement : QuestPart
 
 internal static class QuestGen_EndActiveTradeShipTradeAgreement
 {
-    public static QuestPart_EndActiveTradeShipTradeAgreement EndActiveTradeShipTradeAgreement(this Quest quest, TradeAgreement tradeAgreement, string? inSignal = null)
+    public static QuestPart_EndActiveTradeShipTradeAgreement EndActiveTradeShipTradeAgreement(
+        this Quest quest,
+        TradeAgreement tradeAgreement,
+        string? inSignal = null
+    )
     {
         QuestPart_EndActiveTradeShipTradeAgreement questPart = new()
         {
             inSignal = inSignal ?? QuestGen.slate.Get<string>("inSignal"),
-            tradeAgreement = tradeAgreement
+            tradeAgreement = tradeAgreement,
         };
         quest.AddPart(questPart);
         return questPart;

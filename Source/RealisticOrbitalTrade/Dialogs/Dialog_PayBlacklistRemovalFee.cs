@@ -1,5 +1,4 @@
 using RimWorld.QuestGen;
-
 using RwThingDefOf = RimWorld.ThingDefOf;
 
 namespace RealisticOrbitalTrade.Dialogs;
@@ -9,7 +8,7 @@ public class Dialog_PayBlacklistRemovalFee : Dialog_NodeTree
     private enum PayWith
     {
         Parts,
-        Silver
+        Silver,
     }
 
     private const float LaborCost = 350f;
@@ -19,13 +18,17 @@ public class Dialog_PayBlacklistRemovalFee : Dialog_NodeTree
     private readonly List<ThingDefCountClass> _thingDefCounts;
     private readonly Dictionary<ThingDef, PayWith> _payForPartsWith = [];
 
-    private ThingDefCountClass? CurrentThing => _thingDefCounts.Where(t => !_payForPartsWith.ContainsKey(t.thingDef)).FirstOrDefault();
+    private ThingDefCountClass? CurrentThing =>
+        _thingDefCounts.Where(t => !_payForPartsWith.ContainsKey(t.thingDef)).FirstOrDefault();
     private IEnumerable<(ThingDefCountClass thingDefCount, PayWith payWith)> ThingDefPayments =>
-        _thingDefCounts.Select(t =>
-        {
-            var contains = _payForPartsWith.TryGetValue(t.thingDef, out var payWith);
-            return (t, contains, payWith);
-        }).Where(c => c.contains).Select(c => (c.t, c.payWith));
+        _thingDefCounts
+            .Select(t =>
+            {
+                var contains = _payForPartsWith.TryGetValue(t.thingDef, out var payWith);
+                return (t, contains, payWith);
+            })
+            .Where(c => c.contains)
+            .Select(c => (c.t, c.payWith));
 
     public Dialog_PayBlacklistRemovalFee(TradeShip tradeShip, Pawn negotiator)
         : base(new(""))
@@ -33,17 +36,19 @@ public class Dialog_PayBlacklistRemovalFee : Dialog_NodeTree
         _tradeShip = tradeShip;
         _negotiator = negotiator;
 
-        _thingDefCounts = ThingDefOf.ROT_TradeShuttle.killedLeavings.Select(i =>
-        {
-            if (i.thingDef == RwThingDefOf.ChunkSlagSteel)
+        _thingDefCounts = ThingDefOf
+            .ROT_TradeShuttle.killedLeavings.Select(i =>
             {
-                return new ThingDefCountClass(RwThingDefOf.Steel, i.count * 15);
-            }
-            else
-            {
-                return i;
-            }
-        }).ToList();
+                if (i.thingDef == RwThingDefOf.ChunkSlagSteel)
+                {
+                    return new ThingDefCountClass(RwThingDefOf.Steel, i.count * 15);
+                }
+                else
+                {
+                    return i;
+                }
+            })
+            .ToList();
 
         SetupNextText();
         SetupNextOptions();
@@ -53,10 +58,17 @@ public class Dialog_PayBlacklistRemovalFee : Dialog_NodeTree
     {
         float marketValue = thingDefCount.thingDef.BaseMarketValue;
         float totalCountMarketValue = marketValue * thingDefCount.count;
-        PriceType priceType = _tradeShip.TraderKind.PriceTypeFor(thingDefCount.thingDef, TradeAction.PlayerBuys);
+        PriceType priceType = _tradeShip.TraderKind.PriceTypeFor(
+            thingDefCount.thingDef,
+            TradeAction.PlayerBuys
+        );
         float priceGainNegotiator = _negotiator.GetStatValue(StatDefOf.TradePriceImprovement);
 
-        var partsCost = totalCountMarketValue * 1.4f * priceType.PriceMultiplier() * (1f + Find.Storyteller.difficulty.tradePriceFactorLoss);
+        var partsCost =
+            totalCountMarketValue
+            * 1.4f
+            * priceType.PriceMultiplier()
+            * (1f + Find.Storyteller.difficulty.tradePriceFactorLoss);
         partsCost *= 1f - priceGainNegotiator;
         partsCost = Mathf.Max(partsCost, 0.5f);
         if (partsCost > 99.5f)
@@ -93,9 +105,14 @@ public class Dialog_PayBlacklistRemovalFee : Dialog_NodeTree
     {
         var nominalFee = WealthUtility.PlayerWealth * 0.01f;
 
-        var fixedCostsText = "RealisticOrbitalTrade.LaborCost".Translate(LaborCost.ToStringMoney()) + "\n" + "RealisticOrbitalTrade.NominalFeeCost".Translate(nominalFee.ToStringMoney());
+        var fixedCostsText =
+            "RealisticOrbitalTrade.LaborCost".Translate(LaborCost.ToStringMoney())
+            + "\n"
+            + "RealisticOrbitalTrade.NominalFeeCost".Translate(nominalFee.ToStringMoney());
 
-        curNode.text = new("RealisticOrbitalTrade.PayBlacklistRemovalFeeDialogText".Translate(fixedCostsText));
+        curNode.text = new(
+            "RealisticOrbitalTrade.PayBlacklistRemovalFeeDialogText".Translate(fixedCostsText)
+        );
 
         var payments = ThingDefPayments.ToList();
         if (payments.Count > 0)
@@ -103,18 +120,25 @@ public class Dialog_PayBlacklistRemovalFee : Dialog_NodeTree
             curNode.text += "\n\n" + "RealisticOrbitalTrade.CostOfParts".Translate();
             foreach (var (thingDefCount, payWith) in payments)
             {
-                curNode.text += "\n - " + "RealisticOrbitalTrade.PayForWith".Translate(
-                    thingDefCount.LabelCap,
-                    payWith == PayWith.Parts
-                        ? "RealisticOrbitalTrade.PayWith.Parts".Translate()
-                        : "RealisticOrbitalTrade.PayWith.Silver".Translate(CalculateCostOf(thingDefCount).ToStringMoney()));
+                curNode.text +=
+                    "\n - "
+                    + "RealisticOrbitalTrade.PayForWith".Translate(
+                        thingDefCount.LabelCap,
+                        payWith == PayWith.Parts
+                            ? "RealisticOrbitalTrade.PayWith.Parts".Translate()
+                            : "RealisticOrbitalTrade.PayWith.Silver".Translate(
+                                CalculateCostOf(thingDefCount).ToStringMoney()
+                            )
+                    );
             }
         }
 
         var currentThing = CurrentThing;
         if (currentThing != null)
         {
-            curNode.text += "\n\n" + "RealisticOrbitalTrade.HowPayForParts".Translate(currentThing.thingDef.label);
+            curNode.text +=
+                "\n\n"
+                + "RealisticOrbitalTrade.HowPayForParts".Translate(currentThing.thingDef.label);
         }
         else
         {
@@ -136,12 +160,18 @@ public class Dialog_PayBlacklistRemovalFee : Dialog_NodeTree
                         Slate slate = new();
                         slate.Set("thingsToReturn", GetThingsToReturn());
                         slate.Set("tradeShip", _tradeShip);
-                        slate.Set("tradePausesDepartureTimer", Settings._activeTradePausesDepartureTimer);
+                        slate.Set(
+                            "tradePausesDepartureTimer",
+                            Settings._activeTradePausesDepartureTimer
+                        );
 
-                        QuestUtility.GenerateQuestAndMakeAvailable(QuestScriptDefOf.ROT_TradeShipMakeAmends, slate);
+                        QuestUtility.GenerateQuestAndMakeAvailable(
+                            QuestScriptDefOf.ROT_TradeShipMakeAmends,
+                            slate
+                        );
                     },
                     resolveTree = true,
-                    dialog = this
+                    dialog = this,
                 }
             );
             curNode.options.Add(
@@ -152,7 +182,7 @@ public class Dialog_PayBlacklistRemovalFee : Dialog_NodeTree
                         _payForPartsWith.Clear();
                         SetupNextText();
                         SetupNextOptions();
-                    }
+                    },
                 }
             );
         }
@@ -166,31 +196,31 @@ public class Dialog_PayBlacklistRemovalFee : Dialog_NodeTree
                         _payForPartsWith.Add(currentThing.thingDef, PayWith.Parts);
                         SetupNextText();
                         SetupNextOptions();
-                    }
+                    },
                 }
             );
             curNode.options.Add(
-                new("RealisticOrbitalTrade.PayForPartsWithSilver".Translate(currentThing.Label, CalculateCostOf(currentThing).ToStringMoney()))
+                new(
+                    "RealisticOrbitalTrade.PayForPartsWithSilver".Translate(
+                        currentThing.Label,
+                        CalculateCostOf(currentThing).ToStringMoney()
+                    )
+                )
                 {
                     action = () =>
                     {
                         _payForPartsWith.Add(currentThing.thingDef, PayWith.Silver);
                         SetupNextText();
                         SetupNextOptions();
-                    }
+                    },
                 }
             );
         }
 
         curNode.options.Add(
-            new("(" + "Disconnect".Translate() + ")")
-            {
-                resolveTree = true,
-                dialog = this
-            });
+            new("(" + "Disconnect".Translate() + ")") { resolveTree = true, dialog = this }
+        );
     }
-
-
 
     public override void DoWindowContents(Rect inRect)
     {

@@ -29,16 +29,20 @@ internal static class Rimworld_TradeDeal_TryExecute
             combinedTradeValue += Math.Abs(item.CurTotalCurrencyCostForDestination);
         }
 
-        int minimumTradeThreshold = tradeAgreementForQuest.tradeShip.GetData().minimumTradeThreshold;
+        int minimumTradeThreshold = tradeAgreementForQuest
+            .tradeShip.GetData()
+            .minimumTradeThreshold;
         if (combinedTradeValue < minimumTradeThreshold)
         {
             Rimworld_Dialog_Trade_DoWindowContents.lastTradeValueFlashTime = Time.time;
             Messages.Message(
                 "RealisticOrbitalTrade.TradeLessThanMinimumTradeThreshold".Translate(
                     combinedTradeValue.ToStringMoney(),
-                    ((float)minimumTradeThreshold).ToStringMoney()),
+                    ((float)minimumTradeThreshold).ToStringMoney()
+                ),
                 MessageTypeDefOf.RejectInput,
-                historical: false);
+                historical: false
+            );
 
             actuallyTraded = false;
             __result = false;
@@ -47,16 +51,21 @@ internal static class Rimworld_TradeDeal_TryExecute
 
         return true;
     }
+
     private static void Postfix(bool __result, bool actuallyTraded)
     {
         var tradeAgreementForQuest = TradeShipData.tradeAgreementForQuest;
         if (tradeAgreementForQuest == null)
         {
-            RealisticOrbitalTradeMod.Dev("Trade agreement for quest is null in TradeDeal.TryExecute postfix.");
+            RealisticOrbitalTradeMod.Dev(
+                "Trade agreement for quest is null in TradeDeal.TryExecute postfix."
+            );
             return;
         }
 
-        RealisticOrbitalTradeMod.Dev($"TradeDeal.TryExecute postfix: __result={__result}, actuallyTraded={actuallyTraded}, tradeAgreementForQuest={tradeAgreementForQuest}");
+        RealisticOrbitalTradeMod.Dev(
+            $"TradeDeal.TryExecute postfix: __result={__result}, actuallyTraded={actuallyTraded}, tradeAgreementForQuest={tradeAgreementForQuest}"
+        );
         if (__result)
         {
             if (actuallyTraded)
@@ -65,11 +74,16 @@ internal static class Rimworld_TradeDeal_TryExecute
                 slate.Set("tradeAgreement", tradeAgreementForQuest);
                 slate.Set("traderName", tradeAgreementForQuest.tradeShip.TraderName);
 
-                QuestUtility.GenerateQuestAndMakeAvailable(QuestScriptDefOf.ROT_TradeShipTransportShip, slate);
+                QuestUtility.GenerateQuestAndMakeAvailable(
+                    QuestScriptDefOf.ROT_TradeShipTransportShip,
+                    slate
+                );
             }
             else
             {
-                RealisticOrbitalTradeGameComponent.Current.EndTradeAgreement(tradeAgreementForQuest);
+                RealisticOrbitalTradeGameComponent.Current.EndTradeAgreement(
+                    tradeAgreementForQuest
+                );
             }
             TradeShipData.tradeAgreementForQuest = null;
         }

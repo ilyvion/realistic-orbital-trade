@@ -7,7 +7,9 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Po
 {
     private static MethodInfo TargetMethod()
     {
-        return AccessTools.Method("DynamicTradeInterface.UserInterface.Window_DynamicTrade:PostClose");
+        return AccessTools.Method(
+            "DynamicTradeInterface.UserInterface.Window_DynamicTrade:PostClose"
+        );
     }
 
     private static void Postfix()

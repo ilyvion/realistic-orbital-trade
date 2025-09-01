@@ -15,12 +15,17 @@ internal class QuestPart_ReturnBoughtItemsToTradeShip : QuestPart
         if (signal.tag == inSignal)
         {
             // Give the things the player bought back to the trader
-            var things = Traverse.Create(tradeAgreement!.tradeShip).Field<ThingOwner>("things").Value;
+            var things = Traverse
+                .Create(tradeAgreement!.tradeShip)
+                .Field<ThingOwner>("things")
+                .Value;
             foreach (var thing in toPlayerTransportShip!.TransporterComp.innerContainer.ToList())
             {
                 if (!things.TryAddOrTransfer(thing))
                 {
-                    RealisticOrbitalTradeMod.Warning($"Failed returning {thing.Label} to orbital trader {tradeAgreement.tradeShip.TraderName} in QuestPart_ReturnBoughtItemsToTradeShip");
+                    RealisticOrbitalTradeMod.Warning(
+                        $"Failed returning {thing.Label} to orbital trader {tradeAgreement.tradeShip.TraderName} in QuestPart_ReturnBoughtItemsToTradeShip"
+                    );
                     thing.Destroy();
                 }
             }
@@ -45,13 +50,18 @@ internal class QuestPart_ReturnBoughtItemsToTradeShip : QuestPart
 
 internal static class QuestGen_ReturnBoughtItemsToTradeShip
 {
-    public static QuestPart_ReturnBoughtItemsToTradeShip ReturnBoughtItemsToTradeShip(this Quest quest, TradeAgreement tradeAgreement, TransportShip toPlayerTransportShip, string? inSignal = null)
+    public static QuestPart_ReturnBoughtItemsToTradeShip ReturnBoughtItemsToTradeShip(
+        this Quest quest,
+        TradeAgreement tradeAgreement,
+        TransportShip toPlayerTransportShip,
+        string? inSignal = null
+    )
     {
         QuestPart_ReturnBoughtItemsToTradeShip questPart = new()
         {
             inSignal = inSignal ?? QuestGen.slate.Get<string>("inSignal"),
             tradeAgreement = tradeAgreement,
-            toPlayerTransportShip = toPlayerTransportShip
+            toPlayerTransportShip = toPlayerTransportShip,
         };
         quest.AddPart(questPart);
         return questPart;

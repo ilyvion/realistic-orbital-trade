@@ -31,7 +31,8 @@ public class ShipJob_CancelLoad : ShipJob
         if (!done)
         {
             // Stop autoloading and remove any things from leftToLoad
-            CompTradeShuttle compTradeShuttle = transportShip.shipThing.TryGetComp<CompTradeShuttle>();
+            CompTradeShuttle compTradeShuttle =
+                transportShip.shipThing.TryGetComp<CompTradeShuttle>();
             compTradeShuttle.cancelled = true;
             compTradeShuttle.ShuttleAutoLoad = false;
             transportShip.TransporterComp.leftToLoad?.Clear();
@@ -39,7 +40,10 @@ public class ShipJob_CancelLoad : ShipJob
             // End any jobs currently involved in loading the transport ship
             foreach (var humanLike in transportShip.shipThing.Map.mapPawns.GetAllHumanLike())
             {
-                if (humanLike.CurJobDef == RimWorld.JobDefOf.HaulToTransporter && humanLike.CurJob.targetB == transportShip.shipThing)
+                if (
+                    humanLike.CurJobDef == RimWorld.JobDefOf.HaulToTransporter
+                    && humanLike.CurJob.targetB == transportShip.shipThing
+                )
                 {
                     humanLike.jobs.EndCurrentJob(JobCondition.Incompletable, true, true);
                 }
@@ -56,6 +60,7 @@ internal static class MapPawnsGetAllHumanLike
 #if v1_4
     private static List<Pawn> humanlikePawnsResult = new List<Pawn>();
 #endif
+
     public static List<Pawn> GetAllHumanLike(this MapPawns mapPawns)
     {
 #if v1_4

@@ -1,4 +1,3 @@
-
 namespace RealisticOrbitalTrade.Patch;
 
 [HarmonyPatch(typeof(Dialog_Trade), nameof(Dialog_Trade.Close))]

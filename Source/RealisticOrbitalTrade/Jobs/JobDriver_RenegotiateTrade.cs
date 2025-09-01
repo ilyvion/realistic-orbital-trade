@@ -25,7 +25,9 @@ public class JobDriver_RenegotiateTrade : JobDriver
             var tradeAgreement = TradeAgreement;
             if (tradeAgreement == null)
             {
-                RealisticOrbitalTradeMod.Error("TradeAgreement is null in JobDriver_RenegotiateTrade. This is a bug, can't open Dialog_RenegotiateTrade.");
+                RealisticOrbitalTradeMod.Error(
+                    "TradeAgreement is null in JobDriver_RenegotiateTrade. This is a bug, can't open Dialog_RenegotiateTrade."
+                );
                 return;
             }
             Dialog_RenegotiateTrade tradeDialog = new(tradeAgreement);

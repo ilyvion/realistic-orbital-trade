@@ -10,7 +10,8 @@ internal static class Utils
         IEnumerable<CodeInstruction> instructions,
         MethodInfo methodToCall,
         Func<CodeInstruction, bool> matchInstruction,
-        IEnumerable<CodeInstruction>? additionalInstructionsBeforeCall = null)
+        IEnumerable<CodeInstruction>? additionalInstructionsBeforeCall = null
+    )
     {
         var codeMatcher = new CodeMatcher(instructions);
         codeMatcher.End();
@@ -23,11 +24,15 @@ internal static class Utils
             codeMatcher.Advance(-1);
             if (matchInstruction(codeMatcher.Instruction))
             {
-                codeMatcher.Insert((additionalInstructionsBeforeCall ?? []).Concat([
-                    // new CodeInstruction(OpCodes.Ldarg_0),
-                    // new CodeInstruction(OpCodes.Ldloc_0),
-                    new CodeInstruction(OpCodes.Call, methodToCall)
-                ]));
+                codeMatcher.Insert(
+                    (additionalInstructionsBeforeCall ?? []).Concat(
+                        [
+                            // new CodeInstruction(OpCodes.Ldarg_0),
+                            // new CodeInstruction(OpCodes.Ldloc_0),
+                            new CodeInstruction(OpCodes.Call, methodToCall),
+                        ]
+                    )
+                );
 
                 return codeMatcher.Instructions();
             }
@@ -36,29 +41,46 @@ internal static class Utils
         throw new InjectCallBeforeReturnException(codeMatcher.Instructions());
     }
 
-    public static Quest? AmendsQuest => Find.QuestManager.QuestsListForReading.SingleOrDefault(q => q.root == QuestScriptDefOf.ROT_TradeShipMakeAmends && !q.Historical);
+    public static Quest? AmendsQuest =>
+        Find.QuestManager.QuestsListForReading.SingleOrDefault(q =>
+            q.root == QuestScriptDefOf.ROT_TradeShipMakeAmends && !q.Historical
+        );
     public static bool IsMakingAmends => AmendsQuest != null;
 
-    public static void AddThingToLoadToShuttle(ThingCountClass thingCount, CompTradeShuttle compTradeShuttle, CompShuttle compShuttle)
+    public static void AddThingToLoadToShuttle(
+        ThingCountClass thingCount,
+        CompTradeShuttle compTradeShuttle,
+        CompShuttle compShuttle
+    )
     {
-        if (thingCount.thing.HasRequirements(out var healthAffectsPrice, out var qualityCategory, out var hasInnerThing))
+        if (
+            thingCount.thing.HasRequirements(
+                out var healthAffectsPrice,
+                out var qualityCategory,
+                out var hasInnerThing
+            )
+        )
         {
             Thing thing = thingCount.thing.GetInnerIfMinified();
-            compTradeShuttle.requiredSpecificItems.Add(new ThingDefCountWithRequirements
-            {
-                def = thing.def,
-                stuffDef = thing.Stuff,
-                isInnerThing = hasInnerThing,
-                count = thingCount.Count,
-                healthAffectsPrice = healthAffectsPrice,
-                hitPoints = thing.HitPoints,
-                hasQuality = qualityCategory.HasValue,
-                quality = qualityCategory ?? QualityCategory.Normal
-            });
+            compTradeShuttle.requiredSpecificItems.Add(
+                new ThingDefCountWithRequirements
+                {
+                    def = thing.def,
+                    stuffDef = thing.Stuff,
+                    isInnerThing = hasInnerThing,
+                    count = thingCount.Count,
+                    healthAffectsPrice = healthAffectsPrice,
+                    hitPoints = thing.HitPoints,
+                    hasQuality = qualityCategory.HasValue,
+                    quality = qualityCategory ?? QualityCategory.Normal,
+                }
+            );
         }
         else
         {
-            compShuttle.requiredItems.Add(new ThingDefCount(thingCount.thing.def, thingCount.Count));
+            compShuttle.requiredItems.Add(
+                new ThingDefCount(thingCount.thing.def, thingCount.Count)
+            );
         }
     }
 }

@@ -14,7 +14,9 @@ internal class TradeShipData : IExposable
 
     public TradeShipData(TradeShip tradeShip, bool getting)
     {
-        RealisticOrbitalTradeMod.Dev(() => $"Instantiating new TradeShipData instance for {tradeShip} (getting? {getting})");
+        RealisticOrbitalTradeMod.Dev(() =>
+            $"Instantiating new TradeShipData instance for {tradeShip} (getting? {getting})"
+        );
 
         minimumTradeThreshold = Settings.GenerateDeviatingMinimumTradeThreshold();
 
@@ -24,7 +26,10 @@ internal class TradeShipData : IExposable
         }
     }
 
-    public bool HasActiveTradeAgreement { get => activeTradeAgreement != null; }
+    public bool HasActiveTradeAgreement
+    {
+        get => activeTradeAgreement != null;
+    }
 
     public static void EndTradeAgreementIfExists()
     {
@@ -56,7 +61,6 @@ internal class TradeShipData : IExposable
 
 internal static class TradeShipExtensions
 {
-
     internal static void SetData(this TradeShip tradeShip, TradeShipData tradeShipData)
     {
         if (_tradeShipExtra.TryGetValue(tradeShip, out _))
@@ -65,14 +69,20 @@ internal static class TradeShipExtensions
         }
         _tradeShipExtra.Add(tradeShip, tradeShipData);
     }
+
     private static ConditionalWeakTable<TradeShip, TradeShipData> _tradeShipExtra = new();
 
     public static TradeShipData GetData(this TradeShip tradeShip)
     {
-        return _tradeShipExtra.GetValue(tradeShip, (tradeShip) =>
-        {
-            RealisticOrbitalTradeMod.Dev(() => $"Generating new TradeShipData value for {tradeShip} ({tradeShip.GetHashCode()} -- {tradeShip.GetUniqueLoadID()})");
-            return new(tradeShip, true);
-        });
+        return _tradeShipExtra.GetValue(
+            tradeShip,
+            (tradeShip) =>
+            {
+                RealisticOrbitalTradeMod.Dev(() =>
+                    $"Generating new TradeShipData value for {tradeShip} ({tradeShip.GetHashCode()} -- {tradeShip.GetUniqueLoadID()})"
+                );
+                return new(tradeShip, true);
+            }
+        );
     }
 }

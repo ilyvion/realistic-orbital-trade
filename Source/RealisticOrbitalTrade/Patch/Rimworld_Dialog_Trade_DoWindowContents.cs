@@ -19,7 +19,8 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
             CountToTransfer = count;
         }
 
-        public override TransferablePositiveCountDirection PositiveCountDirection => TransferablePositiveCountDirection.Destination;
+        public override TransferablePositiveCountDirection PositiveCountDirection =>
+            TransferablePositiveCountDirection.Destination;
 
         public override bool IsThing => false;
         public override bool HasAnyThing => false;
@@ -38,16 +39,17 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
 
     private static readonly MethodInfo _methodDrawThresholdRow = AccessTools.Method(
         typeof(Rimworld_Dialog_Trade_DoWindowContents),
-        nameof(DrawThresholdRow));
+        nameof(DrawThresholdRow)
+    );
 
-    private static readonly FieldInfo _field_Dialog_Trade_cachedCurrencyTradeable = AccessTools.Field(
-        typeof(Dialog_Trade),
-        "cachedCurrencyTradeable");
+    private static readonly FieldInfo _field_Dialog_Trade_cachedCurrencyTradeable =
+        AccessTools.Field(typeof(Dialog_Trade), "cachedCurrencyTradeable");
 
     private static bool WillDrawThresholdRow()
     {
         return Settings._useMinimumTradeThreshold && TradeShipData.tradeAgreementForQuest != null;
     }
+
     private static float DrawThresholdRow(float rowWidth)
     {
         TradeAgreement? tradeAgreement = TradeShipData.tradeAgreementForQuest;
@@ -71,8 +73,14 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
         tradersMinimumTradeThresholdLabelRect.xMin += 5f;
         tradersMinimumTradeThresholdLabelRect.xMax -= 5f;
         int minimumTradeThreshold = tradeAgreement.tradeShip.GetData().minimumTradeThreshold;
-        Widgets.Label(tradersMinimumTradeThresholdLabelRect, minimumTradeThreshold.ToString(CultureInfo.CurrentCulture));
-        TooltipHandler.TipRegionByKey(tradersMinimumTradeThresholdRect, "RealisticOrbitalTrade.TradersMinimumTradeThreshold");
+        Widgets.Label(
+            tradersMinimumTradeThresholdLabelRect,
+            minimumTradeThreshold.ToString(CultureInfo.CurrentCulture)
+        );
+        TooltipHandler.TipRegionByKey(
+            tradersMinimumTradeThresholdRect,
+            "RealisticOrbitalTrade.TradersMinimumTradeThreshold"
+        );
         rowWidth -= 175f;
         float combinedTradeValue = CalculateCombinedTradeValue();
 
@@ -81,7 +89,12 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
 
         Rect rect5 = new(rowWidth - 240f, 0f, 240f, rowRect.height);
         var rect9 = rect5.Rounded();
-        Rect tradeValueDifferenceLabelRect = new Rect(rect9.center.x - 45f, rect9.center.y - 12.5f, 90f, 25f).Rounded();
+        Rect tradeValueDifferenceLabelRect = new Rect(
+            rect9.center.x - 45f,
+            rect9.center.y - 12.5f,
+            90f,
+            25f
+        ).Rounded();
 
         GUI.color = tradeValueDifference < 0 ? Color.yellow : Color.green;
         Text.Anchor = TextAnchor.MiddleCenter;
@@ -90,7 +103,10 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
             Widgets.DrawHighlight(tradeValueDifferenceLabelRect);
         }
         Widgets.Label(tradeValueDifferenceLabelRect, trad.CountToTransfer.ToStringCached());
-        TooltipHandler.TipRegionByKey(tradeValueDifferenceLabelRect, "RealisticOrbitalTrade.TradeValueDifference");
+        TooltipHandler.TipRegionByKey(
+            tradeValueDifferenceLabelRect,
+            "RealisticOrbitalTrade.TradeValueDifference"
+        );
         GUI.color = Color.white;
 
         bool flash = Time.time - lastTradeValueFlashTime < 1f;
@@ -114,7 +130,10 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
         rect8.xMin += 5f;
         rect8.xMax -= 5f;
         Widgets.Label(rect8, ((int)Math.Round(combinedTradeValue)).ToStringCached());
-        TooltipHandler.TipRegionByKey(currentTradeValueRect, "RealisticOrbitalTrade.CurrentTradeValue");
+        TooltipHandler.TipRegionByKey(
+            currentTradeValueRect,
+            "RealisticOrbitalTrade.CurrentTradeValue"
+        );
         rowWidth -= 175f;
 
         Rect idRect = new(0f, 0f, rowWidth, rowRect.height);
@@ -140,7 +159,10 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
         return combinedTradeValue;
     }
 
-    internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    internal static IEnumerable<CodeInstruction> Transpiler(
+        IEnumerable<CodeInstruction> instructions,
+        ILGenerator generator
+    )
     {
         var originalInstructionList = instructions.ToList();
 
@@ -150,16 +172,26 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
         //   if (this.cachedCurrencyTradeable != null)
         //   {
         //       float width = inRect.width - 16f;
-        codeMatcher.SearchForward(i => i.opcode == OpCodes.Ldfld && i.operand is FieldInfo f && f == _field_Dialog_Trade_cachedCurrencyTradeable);
+        codeMatcher.SearchForward(i =>
+            i.opcode == OpCodes.Ldfld
+            && i.operand is FieldInfo f
+            && f == _field_Dialog_Trade_cachedCurrencyTradeable
+        );
         if (!codeMatcher.IsValid)
         {
-            RealisticOrbitalTradeMod.Error($"Could not patch Dialog_Trade.DoWindowContents, IL does not match expectations ([ldfld Dialog_Trade.cachedCurrencyTradeable])");
+            RealisticOrbitalTradeMod.Error(
+                $"Could not patch Dialog_Trade.DoWindowContents, IL does not match expectations ([ldfld Dialog_Trade.cachedCurrencyTradeable])"
+            );
             return originalInstructionList;
         }
-        codeMatcher.SearchForward(i => i.opcode == OpCodes.Stloc_S && i.operand is LocalBuilder l && l.LocalIndex == 8);
+        codeMatcher.SearchForward(i =>
+            i.opcode == OpCodes.Stloc_S && i.operand is LocalBuilder l && l.LocalIndex == 8
+        );
         if (!codeMatcher.IsValid)
         {
-            RealisticOrbitalTradeMod.Error($"Could not patch Dialog_Trade.DoWindowContents, IL does not match expectations ([stloc.s 8])");
+            RealisticOrbitalTradeMod.Error(
+                $"Could not patch Dialog_Trade.DoWindowContents, IL does not match expectations ([stloc.s 8])"
+            );
             return originalInstructionList;
         }
         codeMatcher.Advance(1);
@@ -169,61 +201,66 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
         // Insert
         //   float shiftAmount = DrawThresholdRow(width);
         // directly after
-        codeMatcher.Insert([
-            new(OpCodes.Ldloc_S, 8),
-            new(OpCodes.Call, _methodDrawThresholdRow),
-            new(OpCodes.Stloc_S, shiftAmount.LocalIndex),
-        ]);
+        codeMatcher.Insert(
+            [
+                new(OpCodes.Ldloc_S, 8),
+                new(OpCodes.Call, _methodDrawThresholdRow),
+                new(OpCodes.Stloc_S, shiftAmount.LocalIndex),
+            ]
+        );
 
         // Look for `58f` in the context of
         //   TradeUI.DrawTradeableRow(new Rect(0f, 58f, width, 30f), this.cachedCurrencyTradeable, 1);
-        codeMatcher.SearchForward(i => i.opcode == OpCodes.Ldc_R4 && i.operand is float f && Math.Abs(f - 58f) < 0.1f);
+        codeMatcher.SearchForward(i =>
+            i.opcode == OpCodes.Ldc_R4 && i.operand is float f && Math.Abs(f - 58f) < 0.1f
+        );
         if (!codeMatcher.IsValid)
         {
-            RealisticOrbitalTradeMod.Error($"Could not patch Dialog_Trade.DoWindowContents, IL does not match expectations ([ldc.r4 87])");
+            RealisticOrbitalTradeMod.Error(
+                $"Could not patch Dialog_Trade.DoWindowContents, IL does not match expectations ([ldc.r4 87])"
+            );
             return originalInstructionList;
         }
         codeMatcher.Advance(1);
 
         // Change it to
         //   TradeUI.DrawTradeableRow(new Rect(0f, 58f + shiftAmount, width, 30f), this.cachedCurrencyTradeable, 1);
-        codeMatcher.Insert([
-            new(OpCodes.Ldloc_S, shiftAmount.LocalIndex),
-            new(OpCodes.Add)
-        ]);
+        codeMatcher.Insert([new(OpCodes.Ldloc_S, shiftAmount.LocalIndex), new(OpCodes.Add)]);
 
         // Look for `87f` in the context of
         //   Widgets.DrawLineHorizontal(0f, 87f, width);
-        codeMatcher.SearchForward(i => i.opcode == OpCodes.Ldc_R4 && i.operand is float f && Math.Abs(f - 87f) < 0.1f);
+        codeMatcher.SearchForward(i =>
+            i.opcode == OpCodes.Ldc_R4 && i.operand is float f && Math.Abs(f - 87f) < 0.1f
+        );
         if (!codeMatcher.IsValid)
         {
-            RealisticOrbitalTradeMod.Error($"Could not patch Dialog_Trade.DoWindowContents, IL does not match expectations ([ldc.r4 87])");
+            RealisticOrbitalTradeMod.Error(
+                $"Could not patch Dialog_Trade.DoWindowContents, IL does not match expectations ([ldc.r4 87])"
+            );
             return originalInstructionList;
         }
         codeMatcher.Advance(1);
 
         // Change it to
         //   Widgets.DrawLineHorizontal(0f, 87f + shiftAmount, width);
-        codeMatcher.Insert([
-            new(OpCodes.Ldloc_S, shiftAmount.LocalIndex),
-            new(OpCodes.Add)
-        ]);
+        codeMatcher.Insert([new(OpCodes.Ldloc_S, shiftAmount.LocalIndex), new(OpCodes.Add)]);
 
         // Look for `30f` in the context of
         //   currencyRowYShift = 30f;
-        codeMatcher.SearchForward(i => i.opcode == OpCodes.Stloc_S && i.operand is LocalBuilder l && l.LocalIndex == 4);
+        codeMatcher.SearchForward(i =>
+            i.opcode == OpCodes.Stloc_S && i.operand is LocalBuilder l && l.LocalIndex == 4
+        );
         if (!codeMatcher.IsValid)
         {
-            RealisticOrbitalTradeMod.Error($"Could not patch Dialog_Trade.DoWindowContents, IL does not match expectations ([stloc.s 4])");
+            RealisticOrbitalTradeMod.Error(
+                $"Could not patch Dialog_Trade.DoWindowContents, IL does not match expectations ([stloc.s 4])"
+            );
             return originalInstructionList;
         }
 
         // Change it to
         //   currencyRowYShift = 30f + shiftAmount;
-        codeMatcher.Insert([
-            new(OpCodes.Ldloc_S, shiftAmount.LocalIndex),
-            new(OpCodes.Add)
-        ]);
+        codeMatcher.Insert([new(OpCodes.Ldloc_S, shiftAmount.LocalIndex), new(OpCodes.Add)]);
 
         return codeMatcher.Instructions();
     }

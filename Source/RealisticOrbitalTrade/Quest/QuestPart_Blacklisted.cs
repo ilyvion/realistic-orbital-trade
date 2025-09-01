@@ -4,11 +4,13 @@ namespace RealisticOrbitalTrade.Quests;
 
 internal class QuestPart_Blacklisted : QuestPartActivable
 {
-
     public override void QuestPartTick()
     {
         base.QuestPartTick();
-        if (Find.TickManager.TicksGame % 60 == 0 && RealisticOrbitalTradeGameComponent.Current.Standing == Standing.Blacklisted)
+        if (
+            Find.TickManager.TicksGame % 60 == 0
+            && RealisticOrbitalTradeGameComponent.Current.Standing == Standing.Blacklisted
+        )
         {
             // Player has become blacklisted, trigger completion
             Complete();
@@ -28,7 +30,9 @@ internal static class QuestGen_Blacklisted
     {
         QuestPart_Blacklisted questPart = new()
         {
-            inSignalEnable = QuestGenUtility.HardcodedSignalWithQuestID(inSignalEnable) ?? QuestGen.slate.Get<string>("inSignal"),
+            inSignalEnable =
+                QuestGenUtility.HardcodedSignalWithQuestID(inSignalEnable)
+                ?? QuestGen.slate.Get<string>("inSignal"),
             inSignalDisable = inSignalDisable,
         };
         if (!outSignalBlacklisted.NullOrEmpty())
