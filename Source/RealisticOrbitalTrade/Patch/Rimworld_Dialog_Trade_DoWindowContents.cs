@@ -42,7 +42,7 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
     );
 
     private static readonly FieldInfo _field_Dialog_Trade_cachedCurrencyTradeable =
-        AccessTools.Field(typeof(Dialog_Trade), "cachedCurrencyTradeable");
+        AccessTools.Field(typeof(Dialog_Trade), nameof(Dialog_Trade.cachedCurrencyTradeable));
 
     private static bool WillDrawThresholdRow() =>
         Settings._useMinimumTradeThreshold && TradeShipData.tradeAgreementForQuest != null;

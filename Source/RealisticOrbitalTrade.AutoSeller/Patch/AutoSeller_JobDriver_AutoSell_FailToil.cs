@@ -1,10 +1,12 @@
+using RWAutoSell.AI;
+
 namespace RealisticOrbitalTrade.AutoSeller.Patch;
 
 [HarmonyPatch]
 internal static class AutoSeller_JobDriver_AutoSell_FailToil
 {
     internal static MethodInfo TargetMethod() =>
-        AccessTools.Method("RWAutoSell.AI.JobDriver_AutoSell:FailToil");
+        AccessTools.Method(typeof(JobDriver_AutoSell), nameof(JobDriver_AutoSell.FailToil));
 
     internal static void Postfix(ref bool __result)
     {

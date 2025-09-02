@@ -1,4 +1,5 @@
 using RimWorld.QuestGen;
+using RWAutoSell;
 
 namespace RealisticOrbitalTrade.AutoSeller.Patch;
 
@@ -6,7 +7,7 @@ namespace RealisticOrbitalTrade.AutoSeller.Patch;
 internal static class AutoSeller_ASTrade_Forcetrade
 {
     internal static MethodInfo TargetMethod() =>
-        AccessTools.Method("RWAutoSell.ASTrade:Forcetrade");
+        AccessTools.Method(typeof(ASTrade), nameof(ASTrade.Forcetrade));
 
     internal static void Postfix(bool actuallyTraded)
     {

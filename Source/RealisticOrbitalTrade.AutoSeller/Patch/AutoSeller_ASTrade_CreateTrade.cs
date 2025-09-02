@@ -1,10 +1,12 @@
+using RWAutoSell;
+
 namespace RealisticOrbitalTrade.AutoSeller.Patch;
 
 [HarmonyPatch]
 internal static class AutoSeller_ASTrade_CreateTrade
 {
     internal static MethodInfo TargetMethod() =>
-        AccessTools.Method("RWAutoSell.ASTrade:CreateTrade");
+        AccessTools.Method(typeof(ASTrade), nameof(ASTrade.CreateTrade));
 
     internal static bool Prefix(ITrader Ship, Pawn pawn, ref bool __result)
     {

@@ -6,5 +6,12 @@
         <!-- TODO: Remove and fix -->
         <NoWarn>CA1502;CA1506</NoWarn>
     </PropertyGroup>
-    <ItemGroup></ItemGroup>
+    <ItemGroup>
+        <Publicize Include="Assembly-CSharp:RimWorld.CompShuttle.autoload" />
+        <Publicize Include="Assembly-CSharp:RimWorld.CompShuttle.CheckAutoload" />
+        <Publicize Include="Assembly-CSharp:RimWorld.TradeShip.things" />
+        <Publicize Include="Assembly-CSharp:RimWorld.TradeShip.soldPrisoners" />
+        <Publicize Include="Assembly-CSharp:RimWorld.ITab_ContentsBase.DoThingRow" />
+        <Publicize Include="Assembly-CSharp:RimWorld.Dialog_Trade.cachedCurrencyTradeable" />
+    </ItemGroup>
 </Project>

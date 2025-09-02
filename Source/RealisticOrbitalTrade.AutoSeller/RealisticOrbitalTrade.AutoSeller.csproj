@@ -16,5 +16,9 @@
             <Private>false</Private>
         </Reference>
     </ItemGroup>
-    <ItemGroup></ItemGroup>
+    <ItemGroup>
+        <Publicize Include="RWAutoSell:RWAutoSell.ASTrade.CreateTrade" />
+        <Publicize Include="RWAutoSell:RWAutoSell.ASTrade.Forcetrade" />
+        <Publicize Include="RWAutoSell:RWAutoSell.AI.JobDriver_AutoSell.FailToil" />
+    </ItemGroup>
 </Project>

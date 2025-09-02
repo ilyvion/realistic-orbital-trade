@@ -40,11 +40,7 @@ internal static class Rimworld_TradeShip_GiveSoldThingToPlayer
         var thing = toGive.SplitOff(countToGive);
         if (thing is Pawn item)
         {
-            _ = Traverse
-                .Create(__instance)
-                .Field("soldPrisoners")
-                .GetValue<List<Pawn>>()
-                .Remove(item);
+            _ = __instance.soldPrisoners.Remove(item);
         }
         RealisticOrbitalTradeMod.Instance.LogDevMessage(() =>
             $"Adding {thing.Label} to list of things to give to player on successful trade"

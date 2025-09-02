@@ -1,4 +1,5 @@
 using System.Reflection.Emit;
+using DynamicTradeInterface.UserInterface;
 
 namespace RealisticOrbitalTrade.Patch;
 
@@ -13,7 +14,8 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
         Harmony harmony = new(Constants.Id);
         _ = harmony.Patch(
             AccessTools.Method(
-                "DynamicTradeInterface.UserInterface.Window_DynamicTrade:DoWindowContents"
+                typeof(Window_DynamicTrade),
+                nameof(Window_DynamicTrade.DoWindowContents)
             ),
             transpiler: new HarmonyMethod(
                 AccessTools.Method(
@@ -34,7 +36,8 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
     }
 
     private static readonly FieldInfo _field_Window_DynamicTrade_currencyFont = AccessTools.Field(
-        "DynamicTradeInterface.UserInterface.Window_DynamicTrade:_currencyFont"
+        typeof(Window_DynamicTrade),
+        nameof(Window_DynamicTrade._currencyFont)
     );
 
     private static readonly MethodInfo _method_Text_LineHeightOf = AccessTools.Method(
@@ -44,7 +47,8 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
 
     private static readonly MethodInfo _method_Window_DynamicTrade_DrawCurrencyRow =
         AccessTools.Method(
-            "DynamicTradeInterface.UserInterface.Window_DynamicTrade:DrawCurrencyRow"
+            typeof(Window_DynamicTrade),
+            nameof(Window_DynamicTrade.DrawCurrencyRow)
         );
 
     private static readonly MethodInfo _methodWillDrawThresholdRow = AccessTools.Method(

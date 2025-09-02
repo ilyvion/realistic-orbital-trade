@@ -15,10 +15,7 @@ internal class QuestPart_ReturnBoughtItemsToTradeShip : QuestPart
         if (signal.tag == inSignal)
         {
             // Give the things the player bought back to the trader
-            var things = Traverse
-                .Create(tradeAgreement!.tradeShip)
-                .Field<ThingOwner>("things")
-                .Value;
+            var things = tradeAgreement!.tradeShip.things;
             foreach (var thing in toPlayerTransportShip!.TransporterComp.innerContainer.ToList())
             {
                 if (!things.TryAddOrTransfer(thing))

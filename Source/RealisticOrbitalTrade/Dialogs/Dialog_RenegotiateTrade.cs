@@ -259,10 +259,7 @@ internal class Dialog_RenegotiateTrade : Window
         var toTraderCompShuttle = toTraderTransportShip.ShuttleComp;
         var toTraderCompTransporter = toTraderTransportShip.TransporterComp;
 
-        var tradeShipThings = Traverse
-            .Create(tradeAgreement.tradeShip)
-            .Field<ThingOwner>("things")
-            .Value;
+        var tradeShipThings = tradeAgreement.tradeShip.things;
         var toPlayerTransportShipContainer = tradeAgreement
             .toPlayerTransportShip!
             .TransporterComp
@@ -746,7 +743,7 @@ internal class Dialog_RenegotiateTrade : Window
         }
 
         // Immediately re-evaluate the auto-load list on the shuttle
-        _ = Traverse.Create(toTraderCompShuttle).Method("CheckAutoload").GetValue();
+        toTraderCompShuttle.CheckAutoload();
 
         SoundDefOf.ExecuteTrade.PlayOneShotOnCamera();
         Close(doCloseSound: false);

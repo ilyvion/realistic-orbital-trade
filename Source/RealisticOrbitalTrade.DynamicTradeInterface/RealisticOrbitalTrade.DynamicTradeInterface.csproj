@@ -16,5 +16,8 @@
             <Private>false</Private>
         </Reference>
     </ItemGroup>
-    <ItemGroup></ItemGroup>
+    <ItemGroup>
+        <Publicize Include="DynamicTradeInterface:DynamicTradeInterface.UserInterface.Window_DynamicTrade._currencyFont" />
+        <Publicize Include="DynamicTradeInterface:DynamicTradeInterface.UserInterface.Window_DynamicTrade.DrawCurrencyRow" />
+    </ItemGroup>
 </Project>

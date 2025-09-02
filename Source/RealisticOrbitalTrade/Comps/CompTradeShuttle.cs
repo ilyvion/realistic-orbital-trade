@@ -23,8 +23,8 @@ internal class CompTradeShuttle : ThingComp
     }
     internal bool ShuttleAutoLoad
     {
-        get => Traverse.Create(Shuttle).Field<bool>("autoload").Value;
-        set => Traverse.Create(Shuttle).Field<bool>("autoload").Value = value;
+        get => Shuttle.autoload;
+        set => Shuttle.autoload = value;
     }
 
     private CompTransporter? _cachedCompTransporter;

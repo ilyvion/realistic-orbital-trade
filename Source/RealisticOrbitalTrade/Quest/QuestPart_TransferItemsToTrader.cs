@@ -15,14 +15,8 @@ internal class QuestPart_TransferItemsToTrader : QuestPart
         base.Notify_QuestSignalReceived(signal);
         if (signal.tag == inSignal)
         {
-            var things = Traverse
-                .Create(tradeAgreement!.tradeShip)
-                .Field<ThingOwner>("things")
-                .Value;
-            var soldPrisoners = Traverse
-                .Create(tradeAgreement.tradeShip)
-                .Field("soldPrisoners")
-                .GetValue<List<Pawn>>();
+            var things = tradeAgreement!.tradeShip.things;
+            var soldPrisoners = tradeAgreement.tradeShip.soldPrisoners;
 
             // Give the things the player sold to the trader
             foreach (var thing in toTraderTransportShip!.TransporterComp.innerContainer.ToList())

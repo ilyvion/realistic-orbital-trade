@@ -10,7 +10,7 @@ internal static class Rimworld_ITab_ContentsTransporter_DoItemsLists_Reverse
 {
     private static readonly MethodInfo _method_ITab_ContentsBase_DoThingRow = AccessTools.Method(
         typeof(ITab_ContentsBase),
-        "DoThingRow"
+        nameof(ITab_ContentsBase.DoThingRow)
     );
 
     private static readonly MethodInfo _method_ITab_ContentsTransporterCustom_DoThingRow =
