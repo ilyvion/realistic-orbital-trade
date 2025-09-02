@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+-   Scribe value of "trade pauses departure timer" in TradeAgreement.
+
 ## [0.9.0] - 2025-07-04
 
 ### Added

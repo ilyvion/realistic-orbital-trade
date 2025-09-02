@@ -116,6 +116,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         Scribe_Values.Look(ref loadID, "loadID", 0);
         Scribe_References.Look(ref tradeShip, "tradeShip");
         Scribe_References.Look(ref negotiator, "negotiator");
+        Scribe_Values.Look(ref tradePausesDepartureTimer, "tradePausesDepartureTimer", false);
         Scribe_Deep.Look(ref thingsSoldToPlayer, "thingsSoldToPlayer", this);
         Scribe_Collections.Look(ref thingsSoldToTrader, "thingsSoldToTrader", LookMode.Deep);
         Scribe_Collections.Look(ref pawnsSoldToTrader, "pawnsSoldToTrader", LookMode.Reference);
