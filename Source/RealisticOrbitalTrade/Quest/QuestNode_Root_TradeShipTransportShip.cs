@@ -1,4 +1,5 @@
 using RealisticOrbitalTrade.Comps;
+using RealisticOrbitalTrade.Core;
 using RimWorld.Planet;
 using RimWorld.QuestGen;
 
@@ -30,17 +31,43 @@ internal class QuestNode_Root_TradeShipTransportShip : QuestNode
 
         tradeAgreement.toTraderTransportShip = toTraderTransportShip;
 
-        (var toPlayerShuttle, var toPlayerTransportShip) = SetupToPlayerTransportShip(
-            quest,
-            slate,
-            tradeAgreement,
-            questTag,
-            signalToTraderShuttleSentSatisfied,
-            out var signaltoPlayerShuttleSentSatisfied,
-            out var signalToPlayerShuttleKilled
-        );
+        string? signalToPlayerItemsDelivered = null;
+        string? signalToPlayerShuttleKilled = null;
+        if (!tradeAgreement.deliverItemsViaDropPod)
+        {
+            var (toPlayerShuttle, toPlayerTransportShip) = SetupToPlayerTransportShip(
+                quest,
+                slate,
+                tradeAgreement,
+                questTag,
+                signalToTraderShuttleSentSatisfied,
+                out signalToPlayerItemsDelivered,
+                out signalToPlayerShuttleKilled
+            );
+            tradeAgreement.tradeDeliveryMethod = new TradeDeliveryMethod_TransportShip(
+                toPlayerTransportShip
+            );
+        }
+        else
+        {
+            tradeAgreement.tradeDeliveryMethod = new TradeDeliveryMethod_DropPod(tradeAgreement);
 
-        tradeAgreement.toPlayerTransportShip = toPlayerTransportShip;
+            signalToPlayerItemsDelivered = QuestGenUtility.HardcodedSignalWithQuestID(
+                $"SentSatisfied"
+            );
+            PreTrade(tradeAgreement);
+            quest
+                .Delay(
+                    500,
+                    () =>
+                    {
+                        _ = quest.TradeDropPods(tradeAgreement);
+                        quest.SignalPass(null, null, signalToPlayerItemsDelivered);
+                    },
+                    signalToTraderShuttleSentSatisfied
+                )
+                .debugLabel = "toPlayerDropPods delay";
+        }
 
         _ = quest.CancelTrade(toTraderShuttle, outSignalCancelled: cancelTradeSignal);
         quest.Signal(
@@ -48,7 +75,7 @@ internal class QuestNode_Root_TradeShipTransportShip : QuestNode
             () =>
             {
                 quest.CancelTransportShip(toTraderTransportShip);
-                _ = quest.ReturnBoughtItemsToTradeShip(tradeAgreement, toPlayerTransportShip);
+                _ = quest.ReturnBoughtItemsToTradeShip(tradeAgreement);
                 _ = quest.Letter(
                     LetterDefOf.NeutralEvent,
                     text: "[cancelledTradeLetterText]",
@@ -75,7 +102,7 @@ internal class QuestNode_Root_TradeShipTransportShip : QuestNode
             complete: () =>
             {
                 quest.CancelTransportShip(toTraderTransportShip);
-                _ = quest.ReturnBoughtItemsToTradeShip(tradeAgreement, toPlayerTransportShip);
+                _ = quest.ReturnBoughtItemsToTradeShip(tradeAgreement);
                 _ = quest.Letter(
                     LetterDefOf.NeutralEvent,
                     text: "[expiredTradeLetterText]",
@@ -90,15 +117,13 @@ internal class QuestNode_Root_TradeShipTransportShip : QuestNode
         );
 
         // What to do if the player destroys the first shuttle
-        _ = quest.ReturnBoughtItemsToTradeShip(
-            tradeAgreement,
-            toPlayerTransportShip,
-            signalToTraderShuttleKilled
-        );
+        _ = quest.ReturnBoughtItemsToTradeShip(tradeAgreement, signalToTraderShuttleKilled);
 
         // What to do if the player destroys either shuttle
         quest.AnySignal(
-            [signalToTraderShuttleKilled, signalToPlayerShuttleKilled],
+            signalToPlayerShuttleKilled != null
+                ? [signalToTraderShuttleKilled, signalToPlayerShuttleKilled]
+                : [signalToTraderShuttleKilled],
             () =>
             {
                 _ = quest.Letter(
@@ -122,7 +147,7 @@ internal class QuestNode_Root_TradeShipTransportShip : QuestNode
             complete: () =>
             {
                 quest.CancelTransportShip(toTraderTransportShip);
-                _ = quest.ReturnBoughtItemsToTradeShip(tradeAgreement, toPlayerTransportShip);
+                _ = quest.ReturnBoughtItemsToTradeShip(tradeAgreement);
                 _ = quest.Letter(
                     LetterDefOf.NegativeEvent,
                     signalListenMode: QuestPart.SignalListenMode.OngoingOnly,
@@ -149,7 +174,7 @@ internal class QuestNode_Root_TradeShipTransportShip : QuestNode
 
         // What to do when the trader has dropped off the items to the player
         quest.Signal(
-            signaltoPlayerShuttleSentSatisfied,
+            signalToPlayerItemsDelivered,
             () =>
             {
                 // Put in a small delay so the quest finishes slightly later than immediately after the
@@ -171,7 +196,7 @@ internal class QuestNode_Root_TradeShipTransportShip : QuestNode
                             );
                         }
                     )
-                    .debugLabel = "toPlayerTransportShip departure delay";
+                    .debugLabel = "toPlayerItemsDelivered delay";
             }
         );
     }
@@ -246,22 +271,7 @@ internal class QuestNode_Root_TradeShipTransportShip : QuestNode
             out signalToPlayerShuttleKilled
         );
 
-        foreach (var thing in tradeAgreement.thingsSoldToPlayer)
-        {
-            if (thing is Pawn pawn)
-            {
-                if (!pawn.IsWorldPawn())
-                {
-                    Find.WorldPawns.PassToWorld(pawn);
-                }
-                pawn.PreTraded(
-                    TradeAction.PlayerBuys,
-                    tradeAgreement.negotiator,
-                    tradeAgreement.tradeShip
-                );
-                pawn.psychicEntropy?.SetInitialPsyfocusLevel();
-            }
-        }
+        PreTrade(tradeAgreement);
 
         var transportShip = quest
             .GenerateTransportShip(
@@ -295,6 +305,26 @@ internal class QuestNode_Root_TradeShipTransportShip : QuestNode
             .debugLabel = "toPlayerTransportShip arrival delay";
 
         return (shuttle, transportShip);
+    }
+
+    private static void PreTrade(TradeAgreement tradeAgreement)
+    {
+        foreach (var thing in tradeAgreement.thingsSoldToPlayer)
+        {
+            if (thing is Pawn pawn)
+            {
+                if (!pawn.IsWorldPawn())
+                {
+                    Find.WorldPawns.PassToWorld(pawn);
+                }
+                pawn.PreTraded(
+                    TradeAction.PlayerBuys,
+                    tradeAgreement.negotiator,
+                    tradeAgreement.tradeShip
+                );
+                pawn.psychicEntropy?.SetInitialPsyfocusLevel();
+            }
+        }
     }
 
     /// <inheritdoc/>

@@ -266,15 +266,7 @@ internal class CompTradeShuttle : ThingComp
                     null
                 );
             }
-            return tradeAgreement.toPlayerTransportShip == null
-                || tradeAgreement.toTraderTransportShip == null
-                    ? new FloatMenuOption(
-                        "RealisticOrbitalTrade.RenegotiateTrade".Translate()
-                            + " "
-                            + "RealisticOrbitalTrade.OldTradeNonRenegotiable".Translate(),
-                        null
-                    )
-                : !selPawn.CanReach(parent, PathEndMode.Touch, Danger.Some)
+            return !selPawn.CanReach(parent, PathEndMode.Touch, Danger.Some)
                     ? new FloatMenuOption("CannotUseNoPath".Translate(), null)
                 : !selPawn.health.capacities.CapableOf(PawnCapacityDefOf.Talking)
                     ? new FloatMenuOption(

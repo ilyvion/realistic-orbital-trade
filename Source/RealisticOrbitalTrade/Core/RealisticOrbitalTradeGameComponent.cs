@@ -63,7 +63,8 @@ internal class RealisticOrbitalTradeGameComponent(Game _game) : GameComponent
         var tradeAgreement = new TradeAgreement(
             tradeShip,
             negotiator,
-            Settings._activeTradePausesDepartureTimer
+            Settings._activeTradePausesDepartureTimer,
+            Settings._deliverItemsViaDropPod
         );
         _tradeAgreements.Add(tradeAgreement);
         return tradeAgreement;

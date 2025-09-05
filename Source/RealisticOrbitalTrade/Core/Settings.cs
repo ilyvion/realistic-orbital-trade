@@ -11,6 +11,7 @@ internal class Settings : ModSettings
     internal static int _minimumTradeThreshold = 600;
     internal static bool _useMinimumTradeThreshold;
     internal static int _minimumTradeDeviation = 15;
+    internal static bool _deliverItemsViaDropPod;
 
     private static string _minimumTradeThresholdBuffer = string.Empty;
 
@@ -37,6 +38,7 @@ internal class Settings : ModSettings
         Scribe_Values.Look(ref _minimumTradeThreshold, "minimumTradeThreshold", 600);
         Scribe_Values.Look(ref _useMinimumTradeThreshold, "useMinimumTradeThreshold", false);
         Scribe_Values.Look(ref _minimumTradeDeviation, "minimumTradeDeviation", 15);
+        Scribe_Values.Look(ref _deliverItemsViaDropPod, "deliverItemsViaDropPod", false);
 
         if (Scribe.mode == LoadSaveMode.PostLoadInit)
         {
@@ -59,6 +61,12 @@ internal class Settings : ModSettings
             );
             listingStandard.Gap(4);
         }
+
+        listingStandard.CheckboxLabeled(
+            "RealisticOrbitalTrade.DeliverItemsViaDropPodLabel".Translate(),
+            ref _deliverItemsViaDropPod,
+            "RealisticOrbitalTrade.DeliverItemsViaDropPodTooltip".Translate()
+        );
 
         listingStandard.CheckboxLabeled(
             "RealisticOrbitalTrade.UseMinimumTradeThresholdLabel".Translate(),

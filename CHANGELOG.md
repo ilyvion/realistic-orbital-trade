@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+-   Added a setting for receiving trade goods by drop pod instead of shuttle for that slightly more vanilla feel.
+
 ### Fixed
 
 -   Scribe value of "trade pauses departure timer" in TradeAgreement.
@@ -20,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
--    Attempted to make the transpiler for the Dynamic Trade Interface integration more robust
+-   Attempted to make the transpiler for the Dynamic Trade Interface integration more robust
 
 ## [0.8.1] - 2024-07-06
 

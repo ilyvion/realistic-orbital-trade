@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
+    <RealisticOrbitalTrade.DeliverItemsViaDropPodLabel>Deliver items via drop pod</RealisticOrbitalTrade.DeliverItemsViaDropPodLabel>
+    <RealisticOrbitalTrade.DeliverItemsViaDropPodTooltip>Enabling this option allows the orbital trader to deliver items to your colony via drop pod like in vanilla, rather than sending a shuttle that drops them off.\n\nNOTE: The setting's value is applied to a trade agreement upon initiation. Therefore, altering this value won't impact ongoing trades; it will take effect only when you initiate your next trade.</RealisticOrbitalTrade.DeliverItemsViaDropPodTooltip>
     <RealisticOrbitalTrade.UseMinimumTradeThresholdLabel>Enforce minimum trade value threshold</RealisticOrbitalTrade.UseMinimumTradeThresholdLabel>
     <RealisticOrbitalTrade.UseMinimumTradeThresholdTooltip>Does it really make sense for an orbital trader and their crew to spend the time, fuel and energy it takes to send down two shuttles all for the sake of a single, cheap trade item? Enabling this and setting a threshold value below makes it so the traders won't accept trades that involves an exchange worth less than the threshold.</RealisticOrbitalTrade.UseMinimumTradeThresholdTooltip>
     <RealisticOrbitalTrade.MinimumTradeThresholdLabel>Minimum trade value threshold baseline</RealisticOrbitalTrade.MinimumTradeThresholdLabel>

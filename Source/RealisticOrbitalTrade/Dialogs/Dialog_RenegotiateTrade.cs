@@ -253,17 +253,14 @@ internal class Dialog_RenegotiateTrade : Window
     private void ResolveRenegotiation()
     {
         this.cachedCurrencyTradeable = null;
-        this.cachedTradeables = null;
+        cachedTradeables = null;
 
         var toTraderTransportShip = tradeAgreement.toTraderTransportShip!;
         var toTraderCompShuttle = toTraderTransportShip.ShuttleComp;
         var toTraderCompTransporter = toTraderTransportShip.TransporterComp;
 
         var tradeShipThings = tradeAgreement.tradeShip.things;
-        var toPlayerTransportShipContainer = tradeAgreement
-            .toPlayerTransportShip!
-            .TransporterComp
-            .innerContainer;
+        var toPlayerThingOwner = tradeAgreement.tradeDeliveryMethod!.Things;
         var toTraderTransportShipContainer = toTraderCompTransporter.innerContainer;
 
         var toTraderShipThing = toTraderTransportShip.shipThing;
@@ -421,28 +418,23 @@ internal class Dialog_RenegotiateTrade : Window
                             continue;
                         }
 
-                        // Move things out of the trade ship and to the transport ship meant for the player
+                        // Move things out of the trade ship and to the items meant for the player
                         TransferableUtility.TransferNoSplit(
                             cachedCurrencyTradeable.thingsTrader,
                             amount,
                             (toGive, countToGive) =>
                             {
-                                _ = toPlayerTransportShipContainer.TryAddOrTransfer(
-                                    toGive,
-                                    countToGive
-                                );
+                                _ = toPlayerThingOwner.TryAddOrTransfer(toGive, countToGive);
                             }
                         );
                     }
                     else
                     {
-                        // Move things out of the transport ship meant for the player and back to the trade ship
+                        // Move things out of the items meant for the player and back to the trade ship
                         var things = tradeable.thingsTrader;
                         var leftToTransfer = -amount;
                         foreach (
-                            var thing in things.Where(t =>
-                                t.holdingOwner == toPlayerTransportShipContainer
-                            )
+                            var thing in things.Where(t => t.holdingOwner == toPlayerThingOwner)
                         )
                         {
                             var originalStackCount = thing.stackCount;
@@ -819,10 +811,7 @@ internal class Dialog_RenegotiateTrade : Window
     [MemberNotNull(nameof(cachedTradeables), nameof(cachedCurrencyTradeable))]
     private void CacheTradeables()
     {
-        var toPlayerTransportShipContainer = tradeAgreement
-            .toPlayerTransportShip!
-            .TransporterComp
-            .innerContainer;
+        var toPlayerThings = tradeAgreement.tradeDeliveryMethod!.Things;
         var toTraderTransportShipContainer = tradeAgreement
             .toTraderTransportShip!
             .TransporterComp
@@ -851,7 +840,7 @@ internal class Dialog_RenegotiateTrade : Window
         }
         foreach (
             var item in tradeAgreement
-                .tradeShip.Goods.Concat(toPlayerTransportShipContainer)
+                .tradeShip.Goods.Concat(toPlayerThings)
                 .Where(t => t.def == RimWorld.ThingDefOf.Silver)
         )
         {
