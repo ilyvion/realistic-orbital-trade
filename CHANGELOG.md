@@ -7,13 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0] - 2025-09-10
+
 ### Added
 
 -   Added a setting for receiving trade goods by drop pod instead of shuttle for that slightly more vanilla feel.
 
 ### Fixed
 
--   Scribe value of "trade pauses departure timer" in TradeAgreement.
+-   Scribe value of 'trade pauses departure timer' in TradeAgreement.
 
 ## [0.9.0] - 2025-07-04
 
@@ -136,7 +138,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.9.0..v0.10.0
 [0.9.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.8.1...v0.9.0
 [0.8.1]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.7.1...v0.8.0
