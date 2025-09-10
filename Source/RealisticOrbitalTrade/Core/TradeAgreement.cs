@@ -142,9 +142,18 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
 
 #pragma warning disable CS0612 // We still load it for backwards compatibility
         Scribe_References.Look(ref toPlayerTransportShip, "toPlayerTransportShip");
-        if (Scribe.mode == LoadSaveMode.PostLoadInit && (toPlayerTransportShip != null))
+        if (Scribe.mode == LoadSaveMode.PostLoadInit)
         {
-            tradeDeliveryMethod = new TradeDeliveryMethod_TransportShip(toPlayerTransportShip);
+            if (toPlayerTransportShip != null)
+            {
+                tradeDeliveryMethod = new TradeDeliveryMethod_TransportShip(toPlayerTransportShip);
+            }
+            if (toTraderTransportShip == null)
+            {
+                RealisticOrbitalTradeMod.Instance.LogError(
+                    "A trade agreement was loaded with a null toTraderTransportShip. This is a bug, please report it with a full log."
+                );
+            }
         }
 #pragma warning restore CS0612
 
