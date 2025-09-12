@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+    <ilyvion.Laboratory.VersionCheckDef>
+        <defName>RealisticOrbitalTrade_VersionCheck</defName>
+        <modName>Realistic Orbital Trade</modName>
+        <majorVersion>0</majorVersion>
+        <minorVersion>20</minorVersion>
+    </ilyvion.Laboratory.VersionCheckDef>
+</Defs>
