@@ -30,5 +30,4 @@ jobs:
                 1.6
             extra_files: |-
                 Integrations
-            project_dependencies_base_path: ..\..
             steam_workshop_folder_path: ..\..\.deps\refs
