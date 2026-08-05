@@ -365,4 +365,40 @@ internal struct ThingDefCountWithRequirements : IExposable
             hasQuality = hasQuality,
             quality = quality,
         };
+
+    /// <summary>
+    /// Finds the first entry in <paramref name="requiredSpecificItems"/> matching
+    /// <paramref name="thingDef"/> and reduces its count by <paramref name="leftToTakeOff"/>,
+    /// removing the entry entirely if its count would be fully consumed. Writes the reduced
+    /// count back into the list by index, since list elements of a struct type are copies.
+    /// </summary>
+    /// <returns><see langword="false"/> if no matching entry was found.</returns>
+    internal static bool TryReduceRequiredCount(
+        List<ThingDefCountWithRequirements> requiredSpecificItems,
+        ThingDef thingDef,
+        ref int leftToTakeOff
+    )
+    {
+        var thingDefCountMaybeNull = requiredSpecificItems
+            .Cast<ThingDefCountWithRequirements?>()
+            .FirstOrDefault(t => thingDef == t!.Value.def);
+        if (!thingDefCountMaybeNull.HasValue)
+        {
+            return false;
+        }
+        var thingDefCount = thingDefCountMaybeNull.Value;
+        if (thingDefCount.count > leftToTakeOff)
+        {
+            var thingDefCountIndex = requiredSpecificItems.IndexOf(thingDefCount);
+            thingDefCount.count -= leftToTakeOff;
+            requiredSpecificItems[thingDefCountIndex] = thingDefCount;
+            leftToTakeOff = 0;
+        }
+        else
+        {
+            leftToTakeOff -= thingDefCount.count;
+            _ = requiredSpecificItems.Remove(thingDefCount);
+        }
+        return true;
+    }
 }

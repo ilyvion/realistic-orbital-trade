@@ -564,28 +564,18 @@ internal class Dialog_RenegotiateTrade : Window
                                 // with just reducing that, we won't need to unload anything.
                                 if (tradeable.AnyThing.HasRequirements())
                                 {
-                                    var thingDefCountMaybeNull = toTraderCompTradeShuttle
-                                        .requiredSpecificItems.Cast<ThingDefCountWithRequirements?>()
-                                        .FirstOrDefault(t => tradeable.ThingDef == t!.Value.def);
-                                    if (!thingDefCountMaybeNull.HasValue)
+                                    if (
+                                        !ThingDefCountWithRequirements.TryReduceRequiredCount(
+                                            toTraderCompTradeShuttle.requiredSpecificItems,
+                                            tradeable.ThingDef,
+                                            ref leftToTakeOff
+                                        )
+                                    )
                                     {
                                         RealisticOrbitalTradeMod.Instance.LogError(
                                             $"Needed to take {-amount} off the 'requiredItems' list, but could only remove {-amount - leftToTakeOff}"
                                         );
                                         break;
-                                    }
-                                    var thingDefCount = thingDefCountMaybeNull.Value;
-                                    if (thingDefCount.count > leftToTakeOff)
-                                    {
-                                        thingDefCount.count -= leftToTakeOff;
-                                        leftToTakeOff = 0;
-                                    }
-                                    else
-                                    {
-                                        leftToTakeOff -= thingDefCount.count;
-                                        _ = toTraderCompTradeShuttle.requiredSpecificItems.Remove(
-                                            thingDefCount
-                                        );
                                     }
                                 }
                                 else

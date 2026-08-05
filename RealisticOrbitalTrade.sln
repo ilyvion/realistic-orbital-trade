@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RealisticOrbitalTrade.Dynam
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RealisticOrbitalTrade.AutoSeller", "Source\RealisticOrbitalTrade.AutoSeller\RealisticOrbitalTrade.AutoSeller.csproj", "{C613E639-A503-4D00-B719-87678E23DA48}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RealisticOrbitalTrade.Tests", "Source\RealisticOrbitalTrade.Tests\RealisticOrbitalTrade.Tests.csproj", "{00AEA678-5147-4D7B-9EF1-7F2272FDECE3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,9 @@ Global
 		{C613E639-A503-4D00-B719-87678E23DA48}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C613E639-A503-4D00-B719-87678E23DA48}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C613E639-A503-4D00-B719-87678E23DA48}.Release|Any CPU.Build.0 = Release|Any CPU
+		{00AEA678-5147-4D7B-9EF1-7F2272FDECE3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00AEA678-5147-4D7B-9EF1-7F2272FDECE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00AEA678-5147-4D7B-9EF1-7F2272FDECE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

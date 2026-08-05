@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+-   Fixed a bug during trade renegotiation where reducing the amount of a required item that had quality, health, or 'minified' requirements wouldn't actually reduce the required amount, causing the shuttle to keep demanding the original amount and never be able to depart.
+
 ## [0.10.2] - 2025-09-12
 
 ### Fixed
