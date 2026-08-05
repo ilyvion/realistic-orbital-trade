@@ -129,16 +129,14 @@ internal static class Rimworld_CompTransporter_SubtractFromToLoadList
         var endLabel = codeMatcher.Operand;
         _ = codeMatcher.Advance(1);
 
-        _ = codeMatcher.Insert(
-            [
-                // == this
-                new(OpCodes.Ldarg_0),
-                // call patch method (HideFinishedMessageForTradeShuttle)
-                new(OpCodes.Call, _methodHideFinishedMessageForTradeShuttle),
-                // if HideFinishedMessageForTradeShuttle returns true, skip showing message
-                new(OpCodes.Brtrue_S, endLabel),
-            ]
-        );
+        _ = codeMatcher.Insert([
+            // == this
+            new(OpCodes.Ldarg_0),
+            // call patch method (HideFinishedMessageForTradeShuttle)
+            new(OpCodes.Call, _methodHideFinishedMessageForTradeShuttle),
+            // if HideFinishedMessageForTradeShuttle returns true, skip showing message
+            new(OpCodes.Brtrue_S, endLabel),
+        ]);
 
         return codeMatcher.Instructions();
     }

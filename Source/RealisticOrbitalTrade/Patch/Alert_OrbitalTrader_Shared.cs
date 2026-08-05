@@ -74,13 +74,11 @@ internal static class Alert_OrbitalTrader_Shared
 
         // We should be in the right spot now. Transpiler, go go go!
 
-        _ = codeMatcher.Insert(
-            [
-                new(OpCodes.Ldloc_3),
-                new(OpCodes.Ldloc_0),
-                new(OpCodes.Call, _methodAddCommsClosedForTradeExplanation),
-            ]
-        );
+        _ = codeMatcher.Insert([
+            new(OpCodes.Ldloc_3),
+            new(OpCodes.Ldloc_0),
+            new(OpCodes.Call, _methodAddCommsClosedForTradeExplanation),
+        ]);
 
         return codeMatcher.Instructions();
     }

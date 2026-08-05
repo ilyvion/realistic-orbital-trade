@@ -221,14 +221,12 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
 
         _ = codeMatcher.CreateLabel(out var skipDupLabel);
 
-        _ = codeMatcher.Insert(
-            [
-                new(OpCodes.Call, _methodWillDrawThresholdRow),
-                new(OpCodes.Brfalse_S, skipDupLabel),
-                new(OpCodes.Dup),
-                new(OpCodes.Add),
-            ]
-        );
+        _ = codeMatcher.Insert([
+            new(OpCodes.Call, _methodWillDrawThresholdRow),
+            new(OpCodes.Brfalse_S, skipDupLabel),
+            new(OpCodes.Dup),
+            new(OpCodes.Add),
+        ]);
 
         return codeMatcher.Instructions();
     }

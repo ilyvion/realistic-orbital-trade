@@ -48,9 +48,9 @@ internal static class Rimworld_ITab_ContentsTransporter_DoItemsLists_Reverse
             }
 
             _ = codeMatcher.RemoveInstruction();
-            _ = codeMatcher.Insert(
-                [new(OpCodes.Callvirt, _method_ITab_ContentsTransporterCustom_DoThingRow)]
-            );
+            _ = codeMatcher.Insert([
+                new(OpCodes.Callvirt, _method_ITab_ContentsTransporterCustom_DoThingRow),
+            ]);
 
             return codeMatcher.Instructions();
         }
@@ -196,15 +196,13 @@ internal static class Rimworld_ITab_ContentsBase_DoThingRow_Reverse
             }
 
             _ = codeMatcher.RemoveInstruction();
-            _ = codeMatcher.Insert(
-                [
-                    new(OpCodes.Ldarg_0),
-                    new(OpCodes.Ldarg_3),
-                    new(OpCodes.Ldc_I4_0),
-                    new(OpCodes.Callvirt, _methodListOfThingItem_get),
-                    new(OpCodes.Call, _methodFixInfoCardButton),
-                ]
-            );
+            _ = codeMatcher.Insert([
+                new(OpCodes.Ldarg_0),
+                new(OpCodes.Ldarg_3),
+                new(OpCodes.Ldc_I4_0),
+                new(OpCodes.Callvirt, _methodListOfThingItem_get),
+                new(OpCodes.Call, _methodFixInfoCardButton),
+            ]);
 
             // --- Override call to Widgets::ThingIcon(Def)
 
@@ -222,18 +220,16 @@ internal static class Rimworld_ITab_ContentsBase_DoThingRow_Reverse
             }
 
             _ = codeMatcher.RemoveInstruction();
-            _ = codeMatcher.Insert(
-                [
-                    // == this
-                    new(OpCodes.Ldarg_0),
-                    // == things[0]
-                    new(OpCodes.Ldarg_3),
-                    new(OpCodes.Ldc_I4_0),
-                    new(OpCodes.Callvirt, _methodListOfThingItem_get),
-                    // call patch method (FixThingIcon)
-                    new(OpCodes.Call, _methodFixThingIcon),
-                ]
-            );
+            _ = codeMatcher.Insert([
+                // == this
+                new(OpCodes.Ldarg_0),
+                // == things[0]
+                new(OpCodes.Ldarg_3),
+                new(OpCodes.Ldc_I4_0),
+                new(OpCodes.Callvirt, _methodListOfThingItem_get),
+                // call patch method (FixThingIcon)
+                new(OpCodes.Call, _methodFixThingIcon),
+            ]);
 
             // --- Replace value of label text
 
@@ -255,24 +251,22 @@ internal static class Rimworld_ITab_ContentsBase_DoThingRow_Reverse
             var labels = codeMatcher.Labels.ToList();
             codeMatcher.Labels.Clear();
 
-            _ = codeMatcher.Insert(
-                [
-                    // Original value (used in pass-through)
-                    new(OpCodes.Ldloc_3) { labels = labels },
-                    // == this
-                    new(OpCodes.Ldarg_0),
-                    // == [int count] argument
-                    new(OpCodes.Ldarg_2),
-                    // == things
-                    new(OpCodes.Ldarg_3),
-                    // new(OpCodes.Ldc_I4_0),
-                    // new(OpCodes.Callvirt, _methodListOfThingItem_get),
-                    // call patch method (FixLabel)
-                    new(OpCodes.Call, _methodFixLabel),
-                    // Overwrite original value with patch method return value
-                    new(OpCodes.Stloc_3),
-                ]
-            );
+            _ = codeMatcher.Insert([
+                // Original value (used in pass-through)
+                new(OpCodes.Ldloc_3) { labels = labels },
+                // == this
+                new(OpCodes.Ldarg_0),
+                // == [int count] argument
+                new(OpCodes.Ldarg_2),
+                // == things
+                new(OpCodes.Ldarg_3),
+                // new(OpCodes.Ldc_I4_0),
+                // new(OpCodes.Callvirt, _methodListOfThingItem_get),
+                // call patch method (FixLabel)
+                new(OpCodes.Call, _methodFixLabel),
+                // Overwrite original value with patch method return value
+                new(OpCodes.Stloc_3),
+            ]);
 
             return codeMatcher.Instructions();
         }

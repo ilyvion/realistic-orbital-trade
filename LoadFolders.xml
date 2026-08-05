@@ -4,8 +4,7 @@
         <li>1.4</li>
         <li IfModActive="mlie.wehadatrader">Integrations/WeHadATrader/1.4</li>
         <li IfModActive="zeracronius.dynamictradeinterface"
-            >Integrations/DynamicTradeInterface/1.4</li
-        >
+            >Integrations/DynamicTradeInterface/1.4</li>
         <li IfModActive="supes.autoseller.core">Integrations/AutoSeller/1.4</li>
     </v1.4>
     <v1.5>
@@ -14,8 +13,7 @@
         <li IfModActive="mlie.wehadatrader">Integrations/WeHadATrader/1.5</li>
         <li IfModActive="neronix17.tweaksgalore">Integrations/TweaksGalore/1.5</li>
         <li IfModActive="zeracronius.dynamictradeinterface"
-            >Integrations/DynamicTradeInterface/1.5</li
-        >
+            >Integrations/DynamicTradeInterface/1.5</li>
         <li IfModActive="supes.autoseller.core">Integrations/AutoSeller/1.5</li>
     </v1.5>
     <v1.6>
@@ -24,8 +22,7 @@
         <li IfModActive="mlie.wehadatrader">Integrations/WeHadATrader/1.6</li>
         <li IfModActive="neronix17.tweaksgalore">Integrations/TweaksGalore/1.6</li>
         <li IfModActive="zeracronius.dynamictradeinterface"
-            >Integrations/DynamicTradeInterface/1.6</li
-        >
+            >Integrations/DynamicTradeInterface/1.6</li>
         <li IfModActive="supes.autoseller.core">Integrations/AutoSeller/1.6</li>
     </v1.6>
 </loadFolders>

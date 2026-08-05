@@ -198,13 +198,11 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
         // Insert
         //   float shiftAmount = DrawThresholdRow(width);
         // directly after
-        _ = codeMatcher.Insert(
-            [
-                new(OpCodes.Ldloc_S, 8),
-                new(OpCodes.Call, _methodDrawThresholdRow),
-                new(OpCodes.Stloc_S, shiftAmount.LocalIndex),
-            ]
-        );
+        _ = codeMatcher.Insert([
+            new(OpCodes.Ldloc_S, 8),
+            new(OpCodes.Call, _methodDrawThresholdRow),
+            new(OpCodes.Stloc_S, shiftAmount.LocalIndex),
+        ]);
 
         // Look for `58f` in the context of
         //   TradeUI.DrawTradeableRow(new Rect(0f, 58f, width, 30f), this.cachedCurrencyTradeable, 1);
