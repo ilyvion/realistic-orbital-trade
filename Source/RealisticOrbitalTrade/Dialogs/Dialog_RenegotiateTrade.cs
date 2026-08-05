@@ -267,7 +267,6 @@ internal class Dialog_RenegotiateTrade : Window
         var toTraderCompTradeShuttle = toTraderShipThing.TryGetComp<CompTradeShuttle>();
 
         var allOriginalTradeables = tradeAgreement.AllTradeables;
-        var allNewTradeables = allTradeables.ToDictionary(k => k.ThingDef);
         var cachedCurrencyTradeable = CachedCurrencyTradeable;
 
         var sumTradedCount = CachedTradeables.Sum(t => Math.Abs(t.CountToTransfer));
@@ -303,8 +302,18 @@ internal class Dialog_RenegotiateTrade : Window
             var tradedThingDef = originalTradeable.ThingDef;
             var newTradeable =
                 tradedThingDef != RimWorld.ThingDefOf.Silver
-                    ? allNewTradeables[tradedThingDef]
+                    ? TransferableUtility.TradeableMatching(
+                        originalTradeable.AnyThing,
+                        allTradeables
+                    )
                     : cachedCurrencyTradeable;
+            if (newTradeable == null)
+            {
+                RealisticOrbitalTradeMod.Instance.LogError(
+                    $"Could not find a matching tradeable for {originalTradeable.AnyThing?.LabelCap} during renegotiation; skipping."
+                );
+                continue;
+            }
 
             if (originalTradeable.CountToTransfer == newTradeable.CountToTransfer)
             {

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 -   Fixed a bug during trade renegotiation where reducing the amount of a required item that had quality, health, or 'minified' requirements wouldn't actually reduce the required amount, causing the shuttle to keep demanding the original amount and never be able to depart.
+-   Fixed a crash clicking Accept in the renegotiation dialog when the trade included multiple stacks of the same item with different quality or health (e.g. two swords of different quality).
 
 ## [0.10.2] - 2025-09-12
 
