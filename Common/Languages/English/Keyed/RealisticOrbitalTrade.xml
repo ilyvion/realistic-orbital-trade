@@ -14,6 +14,12 @@
     <RealisticOrbitalTrade.MinTimeUntilDepartureBeforeGraceTimeTooltip>If a trade is made when there is less time left before an orbital trader leaves than this setting, the orbital trader will extend their stay with an additional amount of time configurable below. For the sake of balance, the orbital trader will still stop accepting new trades once the original departure time is reached.</RealisticOrbitalTrade.MinTimeUntilDepartureBeforeGraceTimeTooltip>
     <RealisticOrbitalTrade.DepartureGraceTimeLabel>Grace time added if below minimum time: {0} hours</RealisticOrbitalTrade.DepartureGraceTimeLabel>
     <RealisticOrbitalTrade.DepartureGraceTimeTooltip>If a trade is made when there is less time left before an orbital trader leaves than the amount of time configurable above, the orbital trader will extend their stay with this additional amount of time. For the sake of balance, the orbital trader will still stop accepting new trades once the original departure time is reached.</RealisticOrbitalTrade.DepartureGraceTimeTooltip>
+    <RealisticOrbitalTrade.BuyMoreTimeHoursLabel>Time added per "Buy more time" purchase: {0} hours</RealisticOrbitalTrade.BuyMoreTimeHoursLabel>
+    <RealisticOrbitalTrade.BuyMoreTimeHoursTooltip>How much extra time is added to a trade shuttle's departure timer each time you pay to buy more time.</RealisticOrbitalTrade.BuyMoreTimeHoursTooltip>
+    <RealisticOrbitalTrade.BuyMoreTimeBaseCostLabel>"Buy more time" base silver cost</RealisticOrbitalTrade.BuyMoreTimeBaseCostLabel>
+    <RealisticOrbitalTrade.BuyMoreTimeBaseCostTooltip>The silver cost of the first "Buy more time" purchase for a given trade shuttle.</RealisticOrbitalTrade.BuyMoreTimeBaseCostTooltip>
+    <RealisticOrbitalTrade.BuyMoreTimeCostGrowthLabel>"Buy more time" cost growth per purchase: x{0}</RealisticOrbitalTrade.BuyMoreTimeCostGrowthLabel>
+    <RealisticOrbitalTrade.BuyMoreTimeCostGrowthTooltip>Each additional "Buy more time" purchase for the same trade shuttle multiplies the silver cost by this amount, so stalling a shuttle indefinitely gets increasingly expensive.</RealisticOrbitalTrade.BuyMoreTimeCostGrowthTooltip>
     <RealisticOrbitalTrade.TradersMinimumTradeThreshold>The minimum amount of trade item value this trader is willing to trade for</RealisticOrbitalTrade.TradersMinimumTradeThreshold>
     <RealisticOrbitalTrade.CurrentTradeValue>The current value of the items you have chosen to trade</RealisticOrbitalTrade.CurrentTradeValue>
     <RealisticOrbitalTrade.TradeValueDifference>The difference between the current value of the items you have chosen to trade and the minimum value required by the trader. The value is negative and yellow when it's lower than required, and positive and green otherwise.</RealisticOrbitalTrade.TradeValueDifference>
@@ -64,4 +70,7 @@
     <RealisticOrbitalTrade.RenegotiationRequiredInspectString>An item, colonist or other creature already sold to the trader was lost before delivery. The trade is unbalanced and its shuttle won't launch until you renegotiate.</RealisticOrbitalTrade.RenegotiationRequiredInspectString>
     <RealisticOrbitalTrade.SoldItemLostLetterLabel>Sold trade goods lost</RealisticOrbitalTrade.SoldItemLostLetterLabel>
     <RealisticOrbitalTrade.SoldItemLostLetterText>An item, colonist or other creature already sold to {0} was lost before it could be delivered. The trade is now unbalanced and its shuttle won't launch until you renegotiate it.</RealisticOrbitalTrade.SoldItemLostLetterText>
+    <RealisticOrbitalTrade.BuyMoreTime>Buy more time ({0}, {1})</RealisticOrbitalTrade.BuyMoreTime>
+    <RealisticOrbitalTrade.ConfirmBuyMoreTime>Pay {1} to extend this trade shuttle's departure timer by {0}?</RealisticOrbitalTrade.ConfirmBuyMoreTime>
+    <RealisticOrbitalTrade.BoughtMoreTime>Paid {1} to extend the trade shuttle's departure timer by {0}.</RealisticOrbitalTrade.BoughtMoreTime>
 </LanguageData>

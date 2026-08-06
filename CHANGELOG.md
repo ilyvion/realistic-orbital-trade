@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   You can now right-click a trade shuttle with another colonist and choose 'Take over as trade negotiator' if the original negotiator has died or otherwise become unavailable while the trade is still ongoing. This lets autoloading and renegotiation resume normally instead of staying stuck. You'll receive a letter as soon as an active trade's negotiator becomes unavailable, so you don't have to discover it yourself.
 -   A trade shuttle that needs renegotiating now shows a pulsing icon over it, so you can spot at a glance when a trading shuttle needs your attention.
 -   Genepacks stored in a genebank now get hauled to the shuttle. This also applies to modded genebanks, as long as they use the vanilla genepack-container building logic.
+-   You can now right-click a trade shuttle and choose 'Buy more time' to pay silver to extend its departure timer, in case a large trade needs longer to load than the shuttle would normally wait around for. Each purchase on the same shuttle costs more silver than the last, so it can't be used to stall indefinitely without becoming not worth it. The time added per purchase, the base silver cost, and how quickly the cost grows are all configurable in the mod settings.
 
 ### Fixed
 

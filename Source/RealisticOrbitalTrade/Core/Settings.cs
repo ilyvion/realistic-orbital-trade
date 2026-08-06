@@ -12,8 +12,12 @@ internal class Settings : ModSettings
     internal static bool _useMinimumTradeThreshold;
     internal static int _minimumTradeDeviation = 15;
     internal static bool _deliverItemsViaDropPod;
+    internal static int _buyMoreTimeTicksPerPurchase = 7500;
+    internal static int _buyMoreTimeBaseSilverCost = 200;
+    internal static float _buyMoreTimeCostGrowthFactor = 1.5f;
 
     private static string _minimumTradeThresholdBuffer = string.Empty;
+    private static string _buyMoreTimeBaseSilverCostBuffer = string.Empty;
 
     public override void ExposeData()
     {
@@ -39,10 +43,16 @@ internal class Settings : ModSettings
         Scribe_Values.Look(ref _useMinimumTradeThreshold, "useMinimumTradeThreshold", false);
         Scribe_Values.Look(ref _minimumTradeDeviation, "minimumTradeDeviation", 15);
         Scribe_Values.Look(ref _deliverItemsViaDropPod, "deliverItemsViaDropPod", false);
+        Scribe_Values.Look(ref _buyMoreTimeTicksPerPurchase, "buyMoreTimeTicksPerPurchase", 7500);
+        Scribe_Values.Look(ref _buyMoreTimeBaseSilverCost, "buyMoreTimeBaseSilverCost", 200);
+        Scribe_Values.Look(ref _buyMoreTimeCostGrowthFactor, "buyMoreTimeCostGrowthFactor", 1.5f);
 
         if (Scribe.mode == LoadSaveMode.PostLoadInit)
         {
             _minimumTradeThresholdBuffer = _minimumTradeThreshold.ToString(
+                CultureInfo.CurrentCulture
+            );
+            _buyMoreTimeBaseSilverCostBuffer = _buyMoreTimeBaseSilverCost.ToString(
                 CultureInfo.CurrentCulture
             );
         }
@@ -145,6 +155,58 @@ internal class Settings : ModSettings
         );
         departureGraceTime = listingStandard.Slider(departureGraceTime, 4, 24);
         _departureGraceTimeTicks = (int)(departureGraceTime * 2500f);
+
+        listingStandard.Gap(10);
+
+        var buyMoreTimeHours = _buyMoreTimeTicksPerPurchase / 2500f;
+        listingStandard.Label(
+            string.Format(
+                CultureInfo.CurrentCulture,
+                "RealisticOrbitalTrade.BuyMoreTimeHoursLabel".Translate(),
+                buyMoreTimeHours
+            ),
+            -1f,
+#if v1_6
+            (TipSignal?)
+#endif
+                "RealisticOrbitalTrade.BuyMoreTimeHoursTooltip".Translate()
+        );
+        buyMoreTimeHours =
+            Mathf.Round(listingStandard.Slider(buyMoreTimeHours, 1, 12) / 0.05f) * 0.05f;
+        _buyMoreTimeTicksPerPurchase = (int)(buyMoreTimeHours * 2500f);
+
+        listingStandard.Gap(4);
+
+        listingStandard.Label(
+            "RealisticOrbitalTrade.BuyMoreTimeBaseCostLabel".Translate(),
+            -1f,
+#if v1_6
+            (TipSignal?)
+#endif
+                "RealisticOrbitalTrade.BuyMoreTimeBaseCostTooltip".Translate()
+        );
+        listingStandard.TextFieldNumeric(
+            ref _buyMoreTimeBaseSilverCost,
+            ref _buyMoreTimeBaseSilverCostBuffer
+        );
+
+        listingStandard.Gap(4);
+
+        listingStandard.Label(
+            string.Format(
+                CultureInfo.CurrentCulture,
+                "RealisticOrbitalTrade.BuyMoreTimeCostGrowthLabel".Translate(),
+                _buyMoreTimeCostGrowthFactor
+            ),
+            -1f,
+#if v1_6
+            (TipSignal?)
+#endif
+                "RealisticOrbitalTrade.BuyMoreTimeCostGrowthTooltip".Translate()
+        );
+        _buyMoreTimeCostGrowthFactor =
+            Mathf.Round(listingStandard.Slider(_buyMoreTimeCostGrowthFactor, 1f, 3f) / 0.05f)
+            * 0.05f;
 
         listingStandard.End();
     }

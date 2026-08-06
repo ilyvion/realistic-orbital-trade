@@ -18,6 +18,15 @@ internal class CompTradeShuttle : ThingComp
     internal TradeAgreement? tradeAgreement;
     internal List<ThingDefCountWithRequirements> requiredSpecificItems = [];
 
+    internal Action<int>? extendDepartureTimeAction;
+    internal int timesBoughtMoreTime;
+
+    internal int NextBuyMoreTimeCost =>
+        Mathf.RoundToInt(
+            Settings._buyMoreTimeBaseSilverCost
+                * Mathf.Pow(Settings._buyMoreTimeCostGrowthFactor, timesBoughtMoreTime)
+        );
+
     private CompShuttle Shuttle
     {
         get
@@ -204,6 +213,7 @@ internal class CompTradeShuttle : ThingComp
         Scribe_Values.Look(ref cancelled, "cancelled");
         Scribe_References.Look(ref tradeAgreement, "tradeAgreement");
         Scribe_Collections.Look(ref requiredSpecificItems, "requiredSpecificItems", LookMode.Deep);
+        Scribe_Values.Look(ref timesBoughtMoreTime, "timesBoughtMoreTime");
     }
 
     internal bool IsRequired(Thing thing)
@@ -349,6 +359,27 @@ internal class CompTradeShuttle : ThingComp
                 selPawn,
                 parent
             );
+
+        if (extendDepartureTimeAction != null)
+        {
+            var cost = NextBuyMoreTimeCost;
+            yield return FloatMenuUtility.DecoratePrioritizedTask(
+                new FloatMenuOption(
+                    "RealisticOrbitalTrade.BuyMoreTime".Translate(
+                        Settings._buyMoreTimeTicksPerPurchase.ToStringTicksToPeriod(),
+                        ((float)cost).ToStringMoney()
+                    ),
+                    () =>
+                    {
+                        var job = JobMaker.MakeJob(JobDefOf.ROT_BuyMoreTime, parent);
+                        _ = selPawn.jobs.TryTakeOrderedJob(job, JobTag.Misc);
+                    },
+                    MenuOptionPriority.InitiateSocial
+                ),
+                selPawn,
+                parent
+            );
+        }
 
         FloatMenuOption? GetFailureReason(Pawn selPawn)
         {

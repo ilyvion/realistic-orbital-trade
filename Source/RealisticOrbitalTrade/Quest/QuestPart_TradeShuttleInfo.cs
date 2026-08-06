@@ -1,3 +1,4 @@
+using RealisticOrbitalTrade.Comps;
 using RimWorld.QuestGen;
 
 namespace RealisticOrbitalTrade.Quests;
@@ -70,11 +71,35 @@ internal class QuestPart_TradeShuttleLeaveDelay : QuestPart_ShuttleLeaveDelay
         }
     }
 
+    public override void PostQuestAdded()
+    {
+        base.PostQuestAdded();
+        WireUpBuyMoreTimeAction();
+    }
+
     public override void ExposeData()
     {
         base.ExposeData();
         Scribe_Values.Look(ref tradePausesDepartureTimer, "tradePausesDepartureTimer");
         Scribe_Values.Look(ref traderName, "traderName");
+
+        if (Scribe.mode == LoadSaveMode.PostLoadInit)
+        {
+            WireUpBuyMoreTimeAction();
+        }
+    }
+
+    // If the departure timer is paused, there's nothing for "buy more time" to extend.
+    private void WireUpBuyMoreTimeAction()
+    {
+        if (tradePausesDepartureTimer)
+        {
+            return;
+        }
+        if (shuttle?.TryGetComp<CompTradeShuttle>(out var compTradeShuttle) ?? false)
+        {
+            compTradeShuttle.extendDepartureTimeAction = ticks => delayTicks += ticks;
+        }
     }
 }
 
