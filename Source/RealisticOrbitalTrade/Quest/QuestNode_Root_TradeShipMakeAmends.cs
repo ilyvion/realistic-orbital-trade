@@ -9,7 +9,9 @@ internal class QuestNode_Root_TradeShipMakeAmends : QuestNode
         var quest = QuestGen.quest;
         var slate = QuestGen.slate;
 
-        var tradeShip = slate.Get<TradeShip>("tradeShip")!;
+        RealisticOrbitalTradeGameComponent.Current.AmendsQuest = quest;
+
+        var tradeShip = slate.Get<TradeShip>("tradeShip");
         var thingsToReturn = slate.Get<List<ThingDefCount>>("thingsToReturn");
         var tradePausesDepartureTimer = slate.Get<bool>("tradePausesDepartureTimer");
 

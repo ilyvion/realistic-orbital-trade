@@ -28,6 +28,19 @@ internal class RealisticOrbitalTradeGameComponent(Game _game) : GameComponent
         set => _standing = (int)value;
     }
 
+    private Quest? _amendsQuest;
+
+    /// <summary>
+    /// The active "make amends" quest, if any. Set directly by
+    /// <see cref="Quests.QuestNode_Root_TradeShipMakeAmends"/> when the quest is generated.
+    /// Cleared lazily once the quest goes historical.
+    /// </summary>
+    public Quest? AmendsQuest
+    {
+        get => Utils.GetLiveOrClear(ref _amendsQuest, q => q.Historical);
+        set => _amendsQuest = value;
+    }
+
     public int GetNextTradeId()
     {
         if (Scribe.mode == LoadSaveMode.LoadingVars && !_wasLoaded)
@@ -86,6 +99,7 @@ internal class RealisticOrbitalTradeGameComponent(Game _game) : GameComponent
         Scribe_Values.Look(ref _nextTradeID, "nextTradeID", 0);
         Scribe_Collections.Look(ref _tradeAgreements, "tradeAgreements", LookMode.Deep);
         Scribe_Values.Look(ref _standing, "standing");
+        Scribe_References.Look(ref _amendsQuest, "amendsQuest");
 
         if (Scribe.mode == LoadSaveMode.LoadingVars)
         {

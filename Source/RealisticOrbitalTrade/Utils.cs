@@ -38,11 +38,25 @@ internal static class Utils
         throw new InjectCallBeforeReturnException(codeMatcher.Instructions());
     }
 
-    public static Quest? AmendsQuest =>
-        Find.QuestManager.QuestsListForReading.SingleOrDefault(q =>
-            q.root == QuestScriptDefOf.ROT_TradeShipMakeAmends && !q.Historical
-        );
+    public static Quest? AmendsQuest => RealisticOrbitalTradeGameComponent.Current.AmendsQuest;
+
     public static bool IsMakingAmends => AmendsQuest != null;
+
+    /// <summary>
+    /// Returns <paramref name="cache"/> unless <paramref name="isDone"/> says it's done, in which
+    /// case the cache is cleared (set to <see langword="null"/>) first. Used to lazily invalidate
+    /// a cached reference to something that starts "live" and eventually finishes, without
+    /// re-deriving it on every read.
+    /// </summary>
+    internal static T? GetLiveOrClear<T>(ref T? cache, Func<T, bool> isDone)
+        where T : class
+    {
+        if (cache != null && isDone(cache))
+        {
+            cache = null;
+        }
+        return cache;
+    }
 
     public static void AddThingToLoadToShuttle(
         ThingCountClass thingCount,
