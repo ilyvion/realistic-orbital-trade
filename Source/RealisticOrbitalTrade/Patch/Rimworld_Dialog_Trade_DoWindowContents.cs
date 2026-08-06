@@ -44,9 +44,6 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
     private static readonly FieldInfo _field_Dialog_Trade_cachedCurrencyTradeable =
         AccessTools.Field(typeof(Dialog_Trade), nameof(Dialog_Trade.cachedCurrencyTradeable));
 
-    private static bool WillDrawThresholdRow() =>
-        Settings._useMinimumTradeThreshold && TradeShipData.tradeAgreementForQuest != null;
-
     private static float DrawThresholdRow(float rowWidth)
     {
         var tradeAgreement = TradeShipData.tradeAgreementForQuest;
@@ -212,7 +209,7 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
         if (!codeMatcher.IsValid)
         {
             RealisticOrbitalTradeMod.Instance.LogError(
-                $"Could not patch Dialog_Trade.DoWindowContents, IL does not match expectations ([ldc.r4 87])"
+                $"Could not patch Dialog_Trade.DoWindowContents, IL does not match expectations ([ldc.r4 58])"
             );
             return originalInstructionList;
         }
