@@ -1,7 +1,8 @@
 using System.Reflection.Emit;
 using DynamicTradeInterface.UserInterface;
+using RealisticOrbitalTrade.Patch;
 
-namespace RealisticOrbitalTrade.Patch;
+namespace RealisticOrbitalTrade.DynamicTradeInterface.Patch;
 
 // We can't use Harmony's attributes here because the patching happens too early then. So instead we
 // use StaticConstructorOnStartup to trigger the patching later.
