@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Fixed shuttle requirement labels sometimes missing the material name or health percentage for a partially-loaded required item (e.g. a stuffed item like a steel longsword, or a damaged item).
 -   Fixed shuttle requirement labels never showing the health percentage for a damaged required item.
 -   Fixed the renegotiation dialog leaving stale trader/negotiator data behind after closing, which could interfere with other trade-related code that checks whether a trade is active.
+-   Fixed a potential error when a shuttle checked what colony goods it could autoload if the negotiator who struck the deal had died or otherwise left the map while the trade was still active.
 
 ## [0.10.2] - 2025-09-12
 

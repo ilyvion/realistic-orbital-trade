@@ -99,7 +99,9 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
     }
 
     public IEnumerable<Thing> ColonyThingsTraderWillingToBuy() =>
-        new Pawn_TraderTracker(negotiator).ColonyThingsWillingToBuy(negotiator);
+        negotiator.Spawned
+            ? new Pawn_TraderTracker(negotiator).ColonyThingsWillingToBuy(negotiator)
+            : [];
 
 #pragma warning disable CS8618 // Required by savegame logic
     public TradeAgreement()
