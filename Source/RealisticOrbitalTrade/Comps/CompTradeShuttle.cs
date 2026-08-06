@@ -358,9 +358,12 @@ internal struct ThingDefCountWithRequirements : IExposable
         new()
         {
             def = def,
+            stuffDef = stuffDef,
+            isInnerThing = isInnerThing,
             count = count,
             healthAffectsPrice = healthAffectsPrice,
             hitPoints = hitPoints,
+            maxHitPoints = maxHitPoints,
             hasQuality = hasQuality,
             quality = quality,
         };
