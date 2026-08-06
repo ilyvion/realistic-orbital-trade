@@ -5,12 +5,18 @@ namespace RealisticOrbitalTrade.ShipJobs;
 
 internal class ShipJob_CancelLoad : ShipJob
 {
-    private bool done;
+    internal bool done;
 
     protected override bool ShouldEnd => done;
     public override bool Interruptible => false;
 
     public override bool TryStart() => transportShip.ShipExistsAndIsSpawned && base.TryStart();
+
+    public override void ExposeData()
+    {
+        base.ExposeData();
+        Scribe_Values.Look(ref done, "done");
+    }
 
 #if v1_6
     public override void TickInterval(int delta)

@@ -124,6 +124,7 @@ internal class CompTradeShuttle : ThingComp
     {
         base.PostExposeData();
         Scribe_Values.Look(ref isToTrader, "isToTrader");
+        Scribe_Values.Look(ref cancelled, "cancelled");
         Scribe_References.Look(ref tradeAgreement, "tradeAgreement");
         Scribe_Collections.Look(ref requiredSpecificItems, "requiredSpecificItems", LookMode.Deep);
     }
