@@ -1,7 +1,7 @@
 using RealisticOrbitalTrade.Patch;
 using WeHadATrader;
 
-namespace RealisticOrbitalTrade.TweaksGalore.Patch;
+namespace RealisticOrbitalTrade.WeHadATrader.Patch;
 
 [HarmonyPatch(typeof(Alert_OrbitalTrader), nameof(Alert_OrbitalTrader.GetExplanation))]
 internal static class Alert_OrbitalTrader_GetExplanation
