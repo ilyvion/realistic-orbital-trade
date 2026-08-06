@@ -36,6 +36,7 @@
         </li>
     </modDependencies>
     <loadAfter>
+        <li>aoba.deadmanswitch.core</li>
         <li>brrainz.harmony</li>
         <li>Ludeon.RimWorld.Royalty</li>
         <li>Mlie.WeHadATrader</li>

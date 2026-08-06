@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Fixed the renegotiation dialog leaving stale trader/negotiator data behind after closing, which could interfere with other trade-related code that checks whether a trade is active.
 -   Fixed a potential error when a shuttle checked what colony goods it could autoload if the negotiator who struck the deal had died or otherwise left the map while the trade was still active. The shuttle now simply pauses autoloading (and shows a note about it) until you assign a replacement negotiator; see below.
 -   Fixed a pawn sold to a trader, or bought from one and later handed back (trade cancelled, shuttle destroyed or expired, or the player got blacklisted), sometimes ending up registered both as a world pawn and inside the trader's cargo, which caused a 'load ID already used' error and a corrupted duplicate of the pawn when reloading the save.
+-   Added a load-after entry for The Dead Man's Switch so this mod loads correctly alongside it.
 
 ### Added
 
