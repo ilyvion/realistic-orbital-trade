@@ -12,13 +12,12 @@ internal class CompTradeShuttle : ThingComp
     internal TradeAgreement? tradeAgreement;
     internal List<ThingDefCountWithRequirements> requiredSpecificItems = [];
 
-    private CompShuttle? _cachedCompShuttle;
     private CompShuttle Shuttle
     {
         get
         {
-            _cachedCompShuttle ??= parent.GetComp<CompShuttle>();
-            return _cachedCompShuttle;
+            field ??= parent.GetComp<CompShuttle>();
+            return field;
         }
     }
     internal bool ShuttleAutoLoad
@@ -27,15 +26,14 @@ internal class CompTradeShuttle : ThingComp
         set => Shuttle.autoload = value;
     }
 
-    private CompTransporter? _cachedCompTransporter;
     internal Action? cancelTradeAction;
 
     private CompTransporter Transporter
     {
         get
         {
-            _cachedCompTransporter ??= parent.GetComp<CompTransporter>();
-            return _cachedCompTransporter;
+            field ??= parent.GetComp<CompTransporter>();
+            return field;
         }
     }
 
