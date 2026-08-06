@@ -47,12 +47,33 @@ internal class CompTradeShuttle : ThingComp
                 return;
             }
 
+            NotifyIfNegotiatorUnavailable();
+
             ShuttleAutoLoad = true;
             if (!Transporter.LoadingInProgressOrReadyToLaunch)
             {
                 _ = TransporterUtility.InitiateLoading(Gen.YieldSingle(Transporter));
             }
         }
+    }
+
+    private void NotifyIfNegotiatorUnavailable()
+    {
+        if (tradeAgreement is not { ShouldSendNegotiatorUnavailableLetter: true })
+        {
+            return;
+        }
+
+        tradeAgreement.NegotiatorUnavailableLetterSent = true;
+        Find.LetterStack.ReceiveLetter(
+            "RealisticOrbitalTrade.NegotiatorUnavailableLetterLabel".Translate(),
+            "RealisticOrbitalTrade.NegotiatorUnavailableLetterText".Translate(
+                tradeAgreement.negotiator.Named("NEGOTIATOR"),
+                tradeAgreement.tradeShip.TraderName
+            ),
+            LetterDefOf.NegativeEvent,
+            parent
+        );
     }
 
     private static readonly List<string> tmpRequiredLabels = [];
@@ -65,6 +86,16 @@ internal class CompTradeShuttle : ThingComp
         }
 
         StringBuilder stringBuilder = new();
+
+        if (tradeAgreement is { NegotiatorAvailable: false })
+        {
+#if v1_6_OR_GREATER
+            _ =
+#endif
+            stringBuilder.AppendInNewLine(
+                "RealisticOrbitalTrade.NegotiatorUnavailableInspectString".Translate()
+            );
+        }
 
         CalculateRemainingRequiredItems();
 
@@ -239,19 +270,33 @@ internal class CompTradeShuttle : ThingComp
             yield break;
         }
 
-        yield return FloatMenuUtility.DecoratePrioritizedTask(
-            new FloatMenuOption(
-                "RealisticOrbitalTrade.RenegotiateTrade".Translate(),
-                () =>
-                {
-                    var job = JobMaker.MakeJob(JobDefOf.ROT_RenegotiateTrade, parent);
-                    _ = selPawn.jobs.TryTakeOrderedJob(job, JobTag.Misc);
-                },
-                MenuOptionPriority.InitiateSocial
-            ),
-            selPawn,
-            parent
-        );
+        yield return tradeAgreement!.NegotiatorAvailable
+            ? FloatMenuUtility.DecoratePrioritizedTask(
+                new FloatMenuOption(
+                    "RealisticOrbitalTrade.RenegotiateTrade".Translate(),
+                    () =>
+                    {
+                        var job = JobMaker.MakeJob(JobDefOf.ROT_RenegotiateTrade, parent);
+                        _ = selPawn.jobs.TryTakeOrderedJob(job, JobTag.Misc);
+                    },
+                    MenuOptionPriority.InitiateSocial
+                ),
+                selPawn,
+                parent
+            )
+            : FloatMenuUtility.DecoratePrioritizedTask(
+                new FloatMenuOption(
+                    "RealisticOrbitalTrade.RegisterAsNegotiator".Translate(),
+                    () =>
+                    {
+                        var job = JobMaker.MakeJob(JobDefOf.ROT_RegisterAsNegotiator, parent);
+                        _ = selPawn.jobs.TryTakeOrderedJob(job, JobTag.Misc);
+                    },
+                    MenuOptionPriority.InitiateSocial
+                ),
+                selPawn,
+                parent
+            );
 
         FloatMenuOption? GetFailureReason(Pawn selPawn)
         {

@@ -98,8 +98,23 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         }
     }
 
+    // Pawn_TraderTracker.ColonyThingsWillingToBuy() dereferences negotiator.Map, so it can't run
+    // once the negotiator has died or otherwise left the map. The player has to register a
+    // replacement negotiator with the shuttle (see JobDriver_RegisterAsNegotiator) before
+    // autoload/renegotiation can resume, rather than one being picked automatically, since who
+    // negotiates affects trade prices.
+    public bool NegotiatorAvailable => negotiator.Spawned;
+
+    // Set once the player has been notified their negotiator is unavailable, so the letter is
+    // only sent once per trade even though availability is checked repeatedly. Cleared when a
+    // new negotiator registers, so a later death during the same trade sends a fresh letter.
+    public bool NegotiatorUnavailableLetterSent;
+
+    public bool ShouldSendNegotiatorUnavailableLetter =>
+        !NegotiatorAvailable && !NegotiatorUnavailableLetterSent;
+
     public IEnumerable<Thing> ColonyThingsTraderWillingToBuy() =>
-        negotiator.Spawned
+        NegotiatorAvailable
             ? new Pawn_TraderTracker(negotiator).ColonyThingsWillingToBuy(negotiator)
             : [];
 
@@ -132,6 +147,11 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         Scribe_Values.Look(ref loadID, "loadID", 0);
         Scribe_References.Look(ref tradeShip, "tradeShip");
         Scribe_References.Look(ref negotiator, "negotiator");
+        Scribe_Values.Look(
+            ref NegotiatorUnavailableLetterSent,
+            "negotiatorUnavailableLetterSent",
+            false
+        );
         Scribe_Values.Look(ref tradePausesDepartureTimer, "tradePausesDepartureTimer", false);
         Scribe_Deep.Look(ref thingsSoldToPlayer, "thingsSoldToPlayer", this);
         Scribe_Collections.Look(ref tmpSavedPawns, "tmpSavedPawns", LookMode.Reference);

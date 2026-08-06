@@ -41,6 +41,7 @@ internal static class ShipJobDefOf
 internal static class JobDefOf
 {
     public static JobDef ROT_RenegotiateTrade;
+    public static JobDef ROT_RegisterAsNegotiator;
 
     static JobDefOf()
     {

@@ -15,7 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Fixed shuttle requirement labels sometimes missing the material name or health percentage for a partially-loaded required item (e.g. a stuffed item like a steel longsword, or a damaged item).
 -   Fixed shuttle requirement labels never showing the health percentage for a damaged required item.
 -   Fixed the renegotiation dialog leaving stale trader/negotiator data behind after closing, which could interfere with other trade-related code that checks whether a trade is active.
--   Fixed a potential error when a shuttle checked what colony goods it could autoload if the negotiator who struck the deal had died or otherwise left the map while the trade was still active.
+-   Fixed a potential error when a shuttle checked what colony goods it could autoload if the negotiator who struck the deal had died or otherwise left the map while the trade was still active. The shuttle now simply pauses autoloading (and shows a note about it) until you assign a replacement negotiator; see below.
+
+### Added
+
+-   You can now right-click a trade shuttle with another colonist and choose "Take over as trade negotiator" if the original negotiator has died or otherwise become unavailable while the trade is still ongoing. This lets autoloading and renegotiation resume normally instead of staying stuck. You'll receive a letter as soon as an active trade's negotiator becomes unavailable, so you don't have to discover it yourself.
 
 ## [0.10.2] - 2025-09-12
 

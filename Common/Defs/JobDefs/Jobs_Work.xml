@@ -6,4 +6,10 @@
         <reportString>renegotiating trade agreement.</reportString>
         <allowOpportunisticPrefix>true</allowOpportunisticPrefix>
     </JobDef>
+    <JobDef>
+        <defName>ROT_RegisterAsNegotiator</defName>
+        <driverClass>RealisticOrbitalTrade.JobDriver_RegisterAsNegotiator</driverClass>
+        <reportString>registering as trade negotiator.</reportString>
+        <allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+    </JobDef>
 </Defs>
