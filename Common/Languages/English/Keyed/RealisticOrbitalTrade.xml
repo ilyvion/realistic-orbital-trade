@@ -39,8 +39,7 @@
     <RealisticOrbitalTrade.AreYouReadyToPay>You've made your choices, are you ready to pay us back?</RealisticOrbitalTrade.AreYouReadyToPay>
     <RealisticOrbitalTrade.IAmReadyToPay>I'm ready</RealisticOrbitalTrade.IAmReadyToPay>
     <RealisticOrbitalTrade.ResetPaymentChoices>I'd like to choose differently</RealisticOrbitalTrade.ResetPaymentChoices>
-    <RealisticOrbitalTrade.CancelAmendmentLabel>Cancel amendment offer
-    </RealisticOrbitalTrade.CancelAmendmentLabel>
+    <RealisticOrbitalTrade.CancelAmendmentLabel>Cancel amendment offer</RealisticOrbitalTrade.CancelAmendmentLabel>
     <RealisticOrbitalTrade.CancelAmendmentDesc>Cancels the amendment offer associated with this shuttle. Any partially loaded items will be unloaded first, then the shuttle will leave.</RealisticOrbitalTrade.CancelAmendmentDesc>
     <RealisticOrbitalTrade.UntilCommsCloseForTrade>({0} until comms close for trade)</RealisticOrbitalTrade.UntilCommsCloseForTrade>
     <RealisticOrbitalTrade.CommsClosedForTrade>(comms closed for trade)</RealisticOrbitalTrade.CommsClosedForTrade>
@@ -50,7 +49,8 @@
     <RealisticOrbitalTrade.TradeShuttleDepartsOn>Trade shuttle involved in orbital trade with {0} departs on {{0}}</RealisticOrbitalTrade.TradeShuttleDepartsOn>
     <RealisticOrbitalTrade.TradeShuttleRequires>The quest {0} requires you to load the following people or items onto the shuttle:\n{1}</RealisticOrbitalTrade.TradeShuttleRequires>
     <RealisticOrbitalTrade.QuestPartShuttleLeaveDelay>Trade shuttle leaving in {0}</RealisticOrbitalTrade.QuestPartShuttleLeaveDelay>
-    <RealisticOrbitalTrade.QuestPartShuttleLeaveDelayDesc>The trade shuttle will leave in {1}. The quest {0} requires you to load the following people or items onto the shuttle before it leaves:\n{2}</RealisticOrbitalTrade.QuestPartShuttleLeaveDelayDesc> 146: <RealisticOrbitalTrade.QuestPartShuttleLeaveDelayDescHidden>The trade shuttle will leave in {0}.</RealisticOrbitalTrade.QuestPartShuttleLeaveDelayDescHidden>
+    <RealisticOrbitalTrade.QuestPartShuttleLeaveDelayDesc>The trade shuttle will leave in {1}. The quest {0} requires you to load the following people or items onto the shuttle before it leaves:\n{2}</RealisticOrbitalTrade.QuestPartShuttleLeaveDelayDesc>
+    <RealisticOrbitalTrade.QuestPartShuttleLeaveDelayDescHidden>The trade shuttle will leave in {0}.</RealisticOrbitalTrade.QuestPartShuttleLeaveDelayDescHidden>
     <RealisticOrbitalTrade.RenegotiateTrade>Renegotiate trade agreement</RealisticOrbitalTrade.RenegotiateTrade>
     <RealisticOrbitalTrade.OldTradeNonRenegotiable>(only trades made after renegotiation was added to the mod can be renegotiated)</RealisticOrbitalTrade.OldTradeNonRenegotiable>
     <RealisticOrbitalTrade.DidYouMeanToCancel>You've set all exchange of goods to zero. Did you intend to cancel the trade rather than renegotiate?</RealisticOrbitalTrade.DidYouMeanToCancel>
