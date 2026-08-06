@@ -1,3 +1,4 @@
+using RimWorld.Planet;
 using RimWorld.QuestGen;
 
 namespace RealisticOrbitalTrade.Quests;
@@ -27,7 +28,8 @@ internal class QuestPart_TransferItemsToTrader : QuestPart
                     tradeAgreement.tradeShip
                 );
 
-                if (thing is Pawn pawn && pawn.RaceProps.Humanlike)
+                var pawn = thing as Pawn;
+                if (pawn != null && pawn.RaceProps.Humanlike)
                 {
                     soldPrisoners.Add(pawn);
                 }
@@ -37,6 +39,16 @@ internal class QuestPart_TransferItemsToTrader : QuestPart
                         $"Failed transferring {thing.Label} to orbital trader {tradeAgreement.tradeShip.TraderName} in QuestPart_TransferItemsToTrader"
                     );
                     thing.Destroy();
+                }
+                else if (pawn != null && pawn.IsWorldPawn())
+                {
+                    // ShipJob_FlyAway.TryStart fires this quest signal synchronously via
+                    // SendLaunchedSignals, then immediately sweeps any thing still left in the
+                    // shuttle's transporter into a leaving skyfaller that passes stray pawns to
+                    // World Pawns. If this pawn was concurrently swept there before this transfer
+                    // ran, it's now deep-owned by tradeShip.things as well, so it must be dropped
+                    // from World Pawns to avoid a duplicate loadID registration on save/load.
+                    Find.WorldPawns.RemovePawn(pawn);
                 }
             }
         }

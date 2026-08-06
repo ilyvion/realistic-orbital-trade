@@ -1,3 +1,4 @@
+using RimWorld.Planet;
 using RimWorld.QuestGen;
 
 namespace RealisticOrbitalTrade.Quests;
@@ -23,6 +24,14 @@ internal class QuestPart_ReturnBoughtItemsToTradeShip : QuestPart
                         $"Failed returning {thing.Label} to orbital trader {tradeAgreement.tradeShip.TraderName} in QuestPart_ReturnBoughtItemsToTradeShip"
                     );
                     thing.Destroy();
+                }
+                else if (thing is Pawn pawn && pawn.IsWorldPawn())
+                {
+                    // PreTrade already passed this pawn to World Pawns before it was ever handed
+                    // to the player (see QuestNode_Root_TradeShipTransportShip.PreTrade), so
+                    // undo that here now that it's deep-owned by tradeShip.things again, to avoid
+                    // a duplicate loadID registration on save/load.
+                    Find.WorldPawns.RemovePawn(pawn);
                 }
             }
         }
