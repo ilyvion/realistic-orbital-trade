@@ -5,8 +5,14 @@ using Verse.AI;
 namespace RealisticOrbitalTrade.Comps;
 
 [HotSwappable]
+[StaticConstructorOnStartup]
 internal class CompTradeShuttle : ThingComp
 {
+    private static readonly Material RenegotiationRequiredOverlayMat = MaterialPool.MatFrom(
+        "UI/Overlays/ROT_TradeIssue",
+        ShaderDatabase.MetaOverlay
+    );
+
     internal bool cancelled;
     internal bool isToTrader;
     internal TradeAgreement? tradeAgreement;
@@ -57,6 +63,38 @@ internal class CompTradeShuttle : ThingComp
         }
     }
 
+    public override void PostDraw()
+    {
+        base.PostDraw();
+        if (parent.Spawned && !cancelled && tradeAgreement is { RenegotiationRequired: true })
+        {
+            DrawRenegotiationRequiredOverlay();
+        }
+    }
+
+    private const float RenegotiationRequiredOverlaySizeFraction = 3f / 5f;
+
+    private void DrawRenegotiationRequiredOverlay()
+    {
+        var drawPos = parent.DrawPos;
+        drawPos.y = AltitudeLayer.MetaOverlays.AltitudeFor() + 0.21951221f;
+
+        var iconSize = parent.Graphic.drawSize.y * RenegotiationRequiredOverlaySizeFraction;
+        var mesh = MeshPool.GridPlane(new Vector2(iconSize, iconSize));
+
+        var pulsePhase = (Time.realtimeSinceStartup + (397f * (parent.thingIDNumber % 571))) * 4f;
+        var pulse = ((float)Math.Sin(pulsePhase) + 1f) * 0.5f;
+        pulse = 0.3f + (pulse * 0.7f);
+
+        var material = FadedMaterialPool.FadedVersionOf(RenegotiationRequiredOverlayMat, pulse);
+        Graphics.DrawMesh(
+            mesh,
+            Matrix4x4.TRS(drawPos, Quaternion.identity, Vector3.one),
+            material,
+            0
+        );
+    }
+
     private void NotifyIfNegotiatorUnavailable()
     {
         if (tradeAgreement is not { ShouldSendNegotiatorUnavailableLetter: true })
@@ -94,6 +132,16 @@ internal class CompTradeShuttle : ThingComp
 #endif
             stringBuilder.AppendInNewLine(
                 "RealisticOrbitalTrade.NegotiatorUnavailableInspectString".Translate()
+            );
+        }
+
+        if (tradeAgreement is { RenegotiationRequired: true })
+        {
+#if v1_6_OR_GREATER
+            _ =
+#endif
+            stringBuilder.AppendInNewLine(
+                "RealisticOrbitalTrade.RenegotiationRequiredInspectString".Translate()
             );
         }
 
@@ -246,6 +294,10 @@ internal class CompTradeShuttle : ThingComp
     {
         get
         {
+            if (tradeAgreement is { RenegotiationRequired: true })
+            {
+                return false;
+            }
             CalculateRemainingRequiredItems();
             return tmpRequiredSpecificItems.Sum(t => t.count) == 0;
         }

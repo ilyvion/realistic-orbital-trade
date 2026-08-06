@@ -95,6 +95,79 @@ internal static class Utils
             );
         }
     }
+
+    /// <summary>
+    /// Symmetric inverse of the plain (non-requirements) branch of
+    /// <see cref="AddThingToLoadToShuttle"/>: reduces the entry matching <paramref name="def"/> by
+    /// <paramref name="leftToTakeOff"/>, removing it entirely if fully consumed. Mirrors
+    /// <see cref="ThingDefCountWithRequirements.TryReduceRequiredCount"/>, which covers the
+    /// requirements-based list.
+    /// </summary>
+    public static bool TryReduceRequiredItemsCount(
+        List<ThingDefCount> requiredItems,
+        ThingDef def,
+        ref int leftToTakeOff
+    )
+    {
+        var thingDefCount = requiredItems.FirstOrDefault(t => t.ThingDef == def);
+        if (thingDefCount == null)
+        {
+            return false;
+        }
+        if (thingDefCount.Count > leftToTakeOff)
+        {
+            var index = requiredItems.IndexOf(thingDefCount);
+            requiredItems[index] = thingDefCount.WithCount(thingDefCount.Count - leftToTakeOff);
+            leftToTakeOff = 0;
+        }
+        else
+        {
+            leftToTakeOff -= thingDefCount.Count;
+            _ = requiredItems.Remove(thingDefCount);
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Fully rebuilds the shuttle's required-cargo lists (<c>requiredSpecificItems</c>/
+    /// <c>requiredItems</c>) from <paramref name="tradeAgreement"/>'s current
+    /// <c>thingsSoldToTrader</c>, discarding whatever was there before. Used after
+    /// <c>thingsSoldToTrader</c> was pruned of entries whose thing no longer resolves (e.g. a
+    /// sold item destroyed and saved before that pruning existed), since at that point there's no
+    /// way to identify which specific required-cargo entry to reduce.
+    /// </summary>
+    internal static void RebuildRequiredCargo(
+        TradeAgreement tradeAgreement,
+        CompTradeShuttle compTradeShuttle,
+        CompShuttle compShuttle
+    )
+    {
+        compTradeShuttle.requiredSpecificItems.Clear();
+        compShuttle.requiredItems.Clear();
+        foreach (var thingCount in tradeAgreement.thingsSoldToTrader)
+        {
+            AddThingToLoadToShuttle(thingCount, compTradeShuttle, compShuttle);
+        }
+    }
+
+    public static IEnumerable<Pawn> PawnsWithHaulToTransporterJob(
+        CompTransporter compTransporter,
+        Map map
+    )
+    {
+        var pawns = map.mapPawns.AllPawnsSpawned;
+        foreach (var pawn in pawns)
+        {
+            if (
+                pawn.CurJobDef == RimWorld.JobDefOf.HaulToTransporter
+                && pawn.jobs.curDriver is JobDriver_HaulToTransporter jobDriver
+                && compTransporter == jobDriver.Transporter
+            )
+            {
+                yield return pawn;
+            }
+        }
+    }
 }
 
 #pragma warning disable CA1032 // Implement standard exception constructors

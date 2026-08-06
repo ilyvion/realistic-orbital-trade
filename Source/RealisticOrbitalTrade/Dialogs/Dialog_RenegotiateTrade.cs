@@ -530,7 +530,8 @@ internal class Dialog_RenegotiateTrade : Window
                             }
 
                             // Also cancel any hauling jobs featuring the pawn
-                            var p = PawnsWithHaulToTransporterJob(
+                            var p = Utils
+                                .PawnsWithHaulToTransporterJob(
                                     toTraderCompTransporter,
                                     toTraderShipThing.Map
                                 )
@@ -591,34 +592,18 @@ internal class Dialog_RenegotiateTrade : Window
                                         break;
                                     }
                                 }
-                                else
+                                else if (
+                                    !Utils.TryReduceRequiredItemsCount(
+                                        toTraderCompShuttle.requiredItems,
+                                        tradeable.ThingDef,
+                                        ref leftToTakeOff
+                                    )
+                                )
                                 {
-                                    var thingDefCount =
-                                        toTraderCompShuttle.requiredItems.FirstOrDefault(t =>
-                                            tradeable.ThingDef == t.ThingDef
-                                        );
-                                    if (thingDefCount == null)
-                                    {
-                                        RealisticOrbitalTradeMod.Instance.LogError(
-                                            $"Needed to take {-amount} off the 'requiredItems' list, but could only remove {-amount - leftToTakeOff}"
-                                        );
-                                        break;
-                                    }
-                                    var thingDefCountIndex =
-                                        toTraderCompShuttle.requiredItems.IndexOf(thingDefCount);
-                                    if (thingDefCount.Count > leftToTakeOff)
-                                    {
-                                        toTraderCompShuttle.requiredItems[thingDefCountIndex] =
-                                            thingDefCount.WithCount(
-                                                thingDefCount.Count - leftToTakeOff
-                                            );
-                                        leftToTakeOff = 0;
-                                    }
-                                    else
-                                    {
-                                        leftToTakeOff -= thingDefCount.Count;
-                                        _ = toTraderCompShuttle.requiredItems.Remove(thingDefCount);
-                                    }
+                                    RealisticOrbitalTradeMod.Instance.LogError(
+                                        $"Needed to take {-amount} off the 'requiredItems' list, but could only remove {-amount - leftToTakeOff}"
+                                    );
+                                    break;
                                 }
                             } while (leftToTakeOff > 0);
 
@@ -690,7 +675,8 @@ internal class Dialog_RenegotiateTrade : Window
                             if (tradeable.AnyThing.HasRequirements())
                             {
                                 foreach (
-                                    var p in PawnsWithHaulToTransporterJob(
+                                    var p in Utils
+                                        .PawnsWithHaulToTransporterJob(
                                             toTraderCompTransporter,
                                             toTraderShipThing.Map
                                         )
@@ -710,7 +696,8 @@ internal class Dialog_RenegotiateTrade : Window
                             else
                             {
                                 foreach (
-                                    var p in PawnsWithHaulToTransporterJob(
+                                    var p in Utils
+                                        .PawnsWithHaulToTransporterJob(
                                             toTraderCompTransporter,
                                             toTraderShipThing.Map
                                         )
@@ -736,6 +723,10 @@ internal class Dialog_RenegotiateTrade : Window
                     break;
             }
         }
+
+        // A completed renegotiation rebuilds the deal from what's currently physically available,
+        // so it inherently re-balances a trade that a destroyed sold item put into discrepancy.
+        tradeAgreement.RenegotiationRequired = false;
 
         // Immediately re-evaluate the auto-load list on the shuttle
         toTraderCompShuttle.CheckAutoload();
@@ -765,25 +756,6 @@ internal class Dialog_RenegotiateTrade : Window
             num4++;
         }
         Widgets.EndScrollView();
-    }
-
-    private static IEnumerable<Pawn> PawnsWithHaulToTransporterJob(
-        CompTransporter compTransporter,
-        Map map
-    )
-    {
-        var pawns = map.mapPawns.AllPawnsSpawned;
-        foreach (var pawn in pawns)
-        {
-            if (
-                pawn.CurJobDef == RimWorld.JobDefOf.HaulToTransporter
-                && pawn.jobs.curDriver is JobDriver_HaulToTransporter jobDriver
-                && compTransporter == jobDriver.Transporter
-            ) // && pawn.carryTracker.CarriedThing != null)
-            {
-                yield return pawn;
-            }
-        }
     }
 
     public static void FlashSilver() =>

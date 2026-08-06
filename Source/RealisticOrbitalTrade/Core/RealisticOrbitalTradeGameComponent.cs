@@ -21,6 +21,8 @@ internal class RealisticOrbitalTradeGameComponent(Game _game) : GameComponent
 
     private List<TradeAgreement> _tradeAgreements = [];
 
+    public IReadOnlyList<TradeAgreement> ActiveTradeAgreements => _tradeAgreements;
+
     private int _standing;
     public Standing Standing
     {
