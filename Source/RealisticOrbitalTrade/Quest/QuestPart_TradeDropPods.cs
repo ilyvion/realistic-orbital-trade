@@ -89,6 +89,7 @@ internal class QuestPart_TradeDropPods : QuestPart
         base.ExposeData();
         Scribe_Values.Look(ref inSignal, "inSignal");
         Scribe_Values.Look(ref dropSpot, "dropSpot");
+        Scribe_Values.Look(ref dropAllInSamePod, "dropAllInSamePod");
         Scribe_References.Look(ref tradeAgreement, "tradeAgreement");
     }
 }
