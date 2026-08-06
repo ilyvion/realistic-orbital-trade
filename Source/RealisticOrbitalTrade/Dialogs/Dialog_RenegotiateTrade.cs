@@ -450,9 +450,11 @@ internal class Dialog_RenegotiateTrade : Window
                             RealisticOrbitalTradeMod.Instance.LogDevMessage(() =>
                                 $"-- Stack count: {originalStackCount}; asking to transfer {leftToTransfer}"
                             );
-                            _ = tradeShipThings.TryAddOrTransfer(thing, leftToTransfer);
-                            leftToTransfer -= originalStackCount;
-                            if (leftToTransfer == 0)
+                            var (countToTransfer, remainingToTransfer, done) =
+                                ComputeStackTransferAmount(leftToTransfer, originalStackCount);
+                            _ = tradeShipThings.TryAddOrTransfer(thing, countToTransfer);
+                            leftToTransfer = remainingToTransfer;
+                            if (done)
                             {
                                 break;
                             }
@@ -868,5 +870,18 @@ internal class Dialog_RenegotiateTrade : Window
                 .ThenBy(tr => tr.AnyThing.HitPoints),
         ];
         quickSearchWidget.noResultsMatched = !cachedTradeables.Any();
+    }
+
+    // Computes how much of a stack to pull back onto the trade ship when returning silver: at
+    // most the amount still owed, and never the full stack count when it exceeds that amount.
+    internal static (
+        int countToTransfer,
+        int remainingToTransfer,
+        bool done
+    ) ComputeStackTransferAmount(int leftToTransfer, int stackCount)
+    {
+        var countToTransfer = Math.Min(leftToTransfer, stackCount);
+        var remainingToTransfer = leftToTransfer - countToTransfer;
+        return (countToTransfer, remainingToTransfer, remainingToTransfer <= 0);
     }
 }
