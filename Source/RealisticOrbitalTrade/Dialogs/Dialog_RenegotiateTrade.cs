@@ -97,6 +97,8 @@ internal class Dialog_RenegotiateTrade : Window
         base.PostClose();
         cachedTradeables = null;
         cachedCurrencyTradeable = null;
+        TradeSession.Close();
+        TradeSession.playerNegotiator = null;
     }
 
     public override void DoWindowContents(Rect inRect)
