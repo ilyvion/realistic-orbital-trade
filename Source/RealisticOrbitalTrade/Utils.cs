@@ -90,9 +90,27 @@ internal static class Utils
         }
         else
         {
-            compShuttle.requiredItems.Add(
-                new ThingDefCount(thingCount.thing.def, thingCount.Count)
+            // Vanilla's CompShuttle.CompInspectStringExtra treats each requiredItems entry as
+            // the sole/total requirement for its ThingDef (comparing innerContainer's total
+            // stack count of that def against the entry's Count), so multiple entries sharing a
+            // def must be merged into one - otherwise loading enough to satisfy just one entry
+            // makes it (and every other entry for that same def) vanish from "Required" even
+            // though the combined requirement isn't met yet.
+            var existingIndex = compShuttle.requiredItems.FindIndex(t =>
+                t.ThingDef == thingCount.thing.def
             );
+            if (existingIndex >= 0)
+            {
+                compShuttle.requiredItems[existingIndex] = compShuttle
+                    .requiredItems[existingIndex]
+                    .WithCount(compShuttle.requiredItems[existingIndex].Count + thingCount.Count);
+            }
+            else
+            {
+                compShuttle.requiredItems.Add(
+                    new ThingDefCount(thingCount.thing.def, thingCount.Count)
+                );
+            }
         }
     }
 

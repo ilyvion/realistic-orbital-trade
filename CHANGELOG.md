@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+-   You can now right-click a trade shuttle with another colonist and choose 'Take over as trade negotiator' if the original negotiator has died or otherwise become unavailable while the trade is still ongoing. This lets autoloading and renegotiation resume normally instead of staying stuck. You'll receive a letter as soon as an active trade's negotiator becomes unavailable, so you don't have to discover it yourself.
+-   A trade shuttle that needs renegotiating now shows a pulsing icon over it, so you can spot at a glance when a trading shuttle needs your attention.
+-   Genepacks stored in a genebank now get hauled to the shuttle. This also applies to modded genebanks, as long as they use the vanilla genepack-container building logic.
+
 ### Fixed
 
 -   Fixed a bug during trade renegotiation where reducing the amount of a required item that had quality, health, or 'minified' requirements wouldn't actually reduce the required amount, causing the shuttle to keep demanding the original amount and never be able to depart.
@@ -19,11 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Fixed a pawn sold to a trader, or bought from one and later handed back (trade cancelled, shuttle destroyed or expired, or the player got blacklisted), sometimes ending up registered both as a world pawn and inside the trader's cargo, which caused a 'load ID already used' error and a corrupted duplicate of the pawn when reloading the save.
 -   Added a load-after entry for The Dead Man's Switch so this mod loads correctly alongside it.
 -   Fixed a crash opening the renegotiation dialog after an item already sold to the trader was destroyed, and a separate crash starting renegotiation after such a destroyed item's trade was saved and reloaded. Destroying a sold item or colonist now removes it from the deal, adjusts the trade shuttle's required cargo, and blocks the shuttle(s) from departing until you renegotiate to rebalance the trade (you'll get a letter about it). Loading an older save affected by this issue now also rebuilds the shuttle's required cargo so it no longer keeps demanding an item that no longer exists.
-
-### Added
-
--   You can now right-click a trade shuttle with another colonist and choose "Take over as trade negotiator" if the original negotiator has died or otherwise become unavailable while the trade is still ongoing. This lets autoloading and renegotiation resume normally instead of staying stuck. You'll receive a letter as soon as an active trade's negotiator becomes unavailable, so you don't have to discover it yourself.
--   A trade shuttle that needs renegotiating now shows a pulsing icon over it, so you can spot at a glance when a trading shuttle needs your attention.
+-   Fixed the shuttle's 'Required' summary sometimes dropping an item entirely (instead of just reducing the amount) as soon as any of it was loaded, even though more was still needed. This could happen whenever a required item was sold to the trader as more than one separate stack or object (e.g. multiple genepacks, or steel/wood picked up from more than one stockpile).
 
 ## [0.10.2] - 2025-09-12
 
