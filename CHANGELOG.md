@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Added a load-after entry for The Dead Man's Switch so this mod loads correctly alongside it.
 -   Fixed a crash opening the renegotiation dialog after an item already sold to the trader was destroyed, and a separate crash starting renegotiation after such a destroyed item's trade was saved and reloaded. Destroying a sold item or colonist now removes it from the deal, adjusts the trade shuttle's required cargo, and blocks the shuttle(s) from departing until you renegotiate to rebalance the trade (you'll get a letter about it). Loading an older save affected by this issue now also rebuilds the shuttle's required cargo so it no longer keeps demanding an item that no longer exists.
 -   Fixed the shuttle's 'Required' summary sometimes dropping an item entirely (instead of just reducing the amount) as soon as any of it was loaded, even though more was still needed. This could happen whenever a required item was sold to the trader as more than one separate stack or object (e.g. multiple genepacks, or steel/wood picked up from more than one stockpile).
+-   Fixed a crash when a colonist tried to open the renegotiation dialog or register as negotiator on a trade shuttle whose trade component had gone missing.
 
 ## [0.10.2] - 2025-09-12
 

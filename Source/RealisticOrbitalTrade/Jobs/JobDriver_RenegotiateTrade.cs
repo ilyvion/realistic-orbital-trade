@@ -7,7 +7,7 @@ namespace RealisticOrbitalTrade;
 internal class JobDriver_RenegotiateTrade : JobDriver
 {
     private ThingWithComps Shuttle => (ThingWithComps)job.GetTarget(TargetIndex.A).Thing;
-    private TradeAgreement? TradeAgreement => Shuttle.GetComp<CompTradeShuttle>().tradeAgreement;
+    private TradeAgreement? TradeAgreement => Shuttle.GetComp<CompTradeShuttle>()?.tradeAgreement;
 
     public override bool TryMakePreToilReservations(bool errorOnFailed) =>
         pawn.Reserve(job.targetA, job, errorOnFailed: errorOnFailed);
