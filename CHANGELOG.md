@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Fixed a crash clicking Accept in the renegotiation dialog when the trade included multiple stacks of the same item with different quality or health (e.g. two swords of different quality).
 -   Fixed a bug where cancelling a shuttle's loading and then saving and reloading the game would undo the cancellation, causing the shuttle to resume loading and the renegotiation window to reappear for a trade that had already been cancelled.
 -   Fixed shuttle requirement labels sometimes missing the material name or health percentage for a partially-loaded required item (e.g. a stuffed item like a steel longsword, or a damaged item).
+-   Fixed shuttle requirement labels never showing the health percentage for a damaged required item.
 
 ## [0.10.2] - 2025-09-12
 

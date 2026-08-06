@@ -68,6 +68,7 @@ internal static class Utils
                     count = thingCount.Count,
                     healthAffectsPrice = healthAffectsPrice,
                     hitPoints = thing.HitPoints,
+                    maxHitPoints = thing.MaxHitPoints,
                     hasQuality = qualityCategory.HasValue,
                     quality = qualityCategory ?? QualityCategory.Normal,
                 }
