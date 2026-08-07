@@ -26,6 +26,13 @@
     <RealisticOrbitalTrade.TradeValue>trade value</RealisticOrbitalTrade.TradeValue>
     <RealisticOrbitalTrade.TradeValueTip>This row shows the status of the trader's minimum trade threshold compared to your current trade value. See the other tips on the numeric values for more information.</RealisticOrbitalTrade.TradeValueTip>
     <RealisticOrbitalTrade.TradeLessThanMinimumTradeThreshold>The trader is rejecting this trade because the total value of the traded items ({0}) is less than the enforced minimum trade value threshold ({1})</RealisticOrbitalTrade.TradeLessThanMinimumTradeThreshold>
+    <RealisticOrbitalTrade.CargoMassLabel>outgoing cargo mass</RealisticOrbitalTrade.CargoMassLabel>
+    <RealisticOrbitalTrade.CargoMassTip>The combined mass of the items and creatures you're selling to the trader, which colonists will need to haul onto the trade shuttle. Shown in red once it exceeds the shuttle's cargo capacity.\n\n{0} / {1} kg</RealisticOrbitalTrade.CargoMassTip>
+    <RealisticOrbitalTrade.TradeExceedsShuttleMassCapacity>The trader is rejecting this trade because the items and creatures you're selling ({0} kg) exceed the trade shuttle's cargo capacity ({1} kg). Split the sale across multiple trades if you need to trade more.</RealisticOrbitalTrade.TradeExceedsShuttleMassCapacity>
+    <RealisticOrbitalTrade.IncomingCargoMassLabel>incoming cargo mass</RealisticOrbitalTrade.IncomingCargoMassLabel>
+    <RealisticOrbitalTrade.IncomingCargoMassTip>The combined mass of the items and creatures you're buying from the trader, which will arrive by shuttle. Shown in red once it exceeds the shuttle's cargo capacity.\n\n{0} / {1} kg</RealisticOrbitalTrade.IncomingCargoMassTip>
+    <RealisticOrbitalTrade.ItemMassTip>The mass of a single one of this item, shown in red once adding one more would exceed the relevant shuttle's remaining cargo capacity.</RealisticOrbitalTrade.ItemMassTip>
+    <RealisticOrbitalTrade.TradeExceedsIncomingShuttleMassCapacity>The trader is rejecting this trade because the items and creatures you're buying ({0} kg) exceed the trade shuttle's cargo capacity ({1} kg). Split the purchase across multiple trades if you need to trade more.</RealisticOrbitalTrade.TradeExceedsIncomingShuttleMassCapacity>
     <RealisticOrbitalTrade.NotAnsweringForGraceTime>{0} is only waiting around to finish an already started agreement and is not interesting in initiating any new trades.</RealisticOrbitalTrade.NotAnsweringForGraceTime>
     <RealisticOrbitalTrade.NotAnsweringForActiveTrade>{0} reminds you to finish up your current trade agreement before starting another.</RealisticOrbitalTrade.NotAnsweringForActiveTrade>
     <RealisticOrbitalTrade.RequiredThings>Required specific items</RealisticOrbitalTrade.RequiredThings>

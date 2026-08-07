@@ -52,18 +52,39 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
             nameof(Window_DynamicTrade.DrawCurrencyRow)
         );
 
-    private static readonly MethodInfo _methodWillDrawThresholdRow = AccessTools.Method(
+    private static readonly MethodInfo _methodExtraRowsCount = AccessTools.Method(
         typeof(DynamicTradeInterface_UserInterface_Window_DynamicTrade_DoWindowContents),
-        nameof(WillDrawThresholdRow)
+        nameof(ExtraRowsCount)
     );
 
-    private static bool WillDrawThresholdRow() =>
-        Settings._useMinimumTradeThreshold && TradeShipData.tradeAgreementForQuest != null;
+    // Number of extra rows to draw below the currency row: the trade-value threshold row (only
+    // when that setting is enabled), the outgoing cargo mass row (always, since it's a hard
+    // shuttle capacity limit rather than a balance preference), and the incoming cargo mass row
+    // (only when bought items actually arrive by shuttle rather than drop pod).
+    private static int ExtraRowsCount()
+    {
+        var tradeAgreement = TradeShipData.tradeAgreementForQuest;
+        if (tradeAgreement == null)
+        {
+            return 0;
+        }
+
+        var count = 1;
+        if (Settings._useMinimumTradeThreshold)
+        {
+            count++;
+        }
+        if (!tradeAgreement.deliverItemsViaDropPod)
+        {
+            count++;
+        }
+        return count;
+    }
 
     private static void DrawThresholdRow(Rect currencyRowRect, GameFont ____currencyFont)
     {
         var tradeAgreement = TradeShipData.tradeAgreementForQuest;
-        if (!Settings._useMinimumTradeThreshold || tradeAgreement == null)
+        if (tradeAgreement == null)
         {
             return;
         }
@@ -71,9 +92,32 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
         var currentFont = Text.Font;
         Text.Font = ____currencyFont;
 
-        var thresholdRowRect = new Rect(currencyRowRect);
-        thresholdRowRect.y += currencyRowRect.height;
+        var rowRect = new Rect(currencyRowRect);
 
+        if (Settings._useMinimumTradeThreshold)
+        {
+            rowRect.y += currencyRowRect.height;
+            DrawTradeValueThresholdRow(rowRect, tradeAgreement);
+        }
+
+        rowRect.y += currencyRowRect.height;
+        DrawCargoMassRow(rowRect, outgoing: true);
+
+        if (!tradeAgreement.deliverItemsViaDropPod)
+        {
+            rowRect.y += currencyRowRect.height;
+            DrawCargoMassRow(rowRect, outgoing: false);
+        }
+
+        Text.Font = currentFont;
+        Text.Anchor = TextAnchor.UpperLeft;
+    }
+
+    private static void DrawTradeValueThresholdRow(
+        Rect thresholdRowRect,
+        TradeAgreement tradeAgreement
+    )
+    {
         var flash = Time.time - Rimworld_Dialog_Trade_DoWindowContents.lastTradeValueFlashTime < 1f;
         if (flash)
         {
@@ -132,9 +176,79 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
 
         Widgets.Label(right, minimumTradeThreshold.ToString(CultureInfo.InvariantCulture));
         TooltipHandler.TipRegionByKey(right, "RealisticOrbitalTrade.TradersMinimumTradeThreshold");
+    }
+
+    // Mirrors the equivalent row in the vanilla trade dialog (Rimworld_Dialog_Trade_DoWindowContents
+    // .DrawCargoMassRow) but laid out to match this window's currency-row style: label on the left,
+    // value/capacity on the right, red once over capacity.
+    private static void DrawCargoMassRow(Rect rowRect, bool outgoing)
+    {
+        var massCapacity = Rimworld_Dialog_Trade_DoWindowContents.ShuttleMassCapacity;
+        var mass = outgoing
+            ? Rimworld_Dialog_Trade_DoWindowContents.CalculateOutgoingMass(TradeSession.deal)
+            : Rimworld_Dialog_Trade_DoWindowContents.CalculateIncomingMass(TradeSession.deal);
+        var overCapacity = mass > massCapacity;
+        var labelKey = outgoing
+            ? "RealisticOrbitalTrade.CargoMassLabel"
+            : "RealisticOrbitalTrade.IncomingCargoMassLabel";
+        var tipKey = outgoing
+            ? "RealisticOrbitalTrade.CargoMassTip"
+            : "RealisticOrbitalTrade.IncomingCargoMassTip";
+        var flashTime = outgoing
+            ? Rimworld_Dialog_Trade_DoWindowContents.lastMassFlashTime
+            : Rimworld_Dialog_Trade_DoWindowContents.lastIncomingMassFlashTime;
+
+        var flash = Time.time - flashTime < 1f;
+        if (flash)
+        {
+            GUI.DrawTexture(rowRect, TransferableUIUtility.FlashTex);
+        }
+
+        // The currency row's own font (____currencyFont) is sized for a handful of digits, not
+        // a multi-word label like "outgoing cargo mass" - use GameFont.Small here instead so the
+        // label reliably fits on one line, and size its rect to fill exactly the space between the
+        // indent and the value column rather than a fixed width that may not fit every label.
+        var currentFont = Text.Font;
+        Text.Font = GameFont.Small;
+
+        Rect valueRect = new(rowRect.xMax - 260f, rowRect.y, 200f, rowRect.height);
+
+        var curX = rowRect.x + 60f;
+        Rect labelRect = new(curX, rowRect.y, valueRect.x - curX - 10f, rowRect.height);
+        Text.Anchor = TextAnchor.MiddleLeft;
+        Widgets.Label(labelRect, labelKey.Translate().CapitalizeFirst());
+        if (Mouse.IsOver(labelRect))
+        {
+            TooltipHandler.TipRegionByKey(
+                labelRect,
+                tipKey,
+                mass.ToStringEnsureThreshold(massCapacity, 2),
+                massCapacity.ToString("F2", CultureInfo.CurrentCulture)
+            );
+        }
+
+        GUI.color = overCapacity ? Color.red : Color.white;
+        Text.Anchor = TextAnchor.MiddleRight;
+        Widgets.Label(
+            valueRect,
+            mass.ToStringEnsureThreshold(massCapacity, 1)
+                + " / "
+                + massCapacity.ToString("F0", CultureInfo.CurrentCulture)
+                + " "
+                + "kg".Translate()
+        );
+        GUI.color = Color.white;
+        if (Mouse.IsOver(valueRect))
+        {
+            TooltipHandler.TipRegionByKey(
+                valueRect,
+                tipKey,
+                mass.ToStringEnsureThreshold(massCapacity, 2),
+                massCapacity.ToString("F2", CultureInfo.CurrentCulture)
+            );
+        }
 
         Text.Font = currentFont;
-        Text.Anchor = TextAnchor.UpperLeft;
     }
 
     internal static IEnumerable<CodeInstruction> Transpiler(
@@ -220,12 +334,14 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
         }
         _ = codeMatcher.Advance(1);
 
-        _ = codeMatcher.CreateLabel(out var skipDupLabel);
-
+        // Change (row height x) into x * (1 + ExtraRowsCount()), i.e. x + x * n, so the space
+        // reserved below the currency row scales with however many of our rows actually get
+        // drawn (0-3: threshold, outgoing mass, incoming mass).
         _ = codeMatcher.Insert([
-            new(OpCodes.Call, _methodWillDrawThresholdRow),
-            new(OpCodes.Brfalse_S, skipDupLabel),
             new(OpCodes.Dup),
+            new(OpCodes.Call, _methodExtraRowsCount),
+            new(OpCodes.Conv_R4),
+            new(OpCodes.Mul),
             new(OpCodes.Add),
         ]);
 

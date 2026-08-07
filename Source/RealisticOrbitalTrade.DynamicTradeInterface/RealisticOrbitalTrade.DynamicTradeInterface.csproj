@@ -19,5 +19,13 @@
     <ItemGroup>
         <Publicize Include="DynamicTradeInterface:DynamicTradeInterface.UserInterface.Window_DynamicTrade._currencyFont" />
         <Publicize Include="DynamicTradeInterface:DynamicTradeInterface.UserInterface.Window_DynamicTrade.DrawCurrencyRow" />
+        <Publicize Include="DynamicTradeInterface:DynamicTradeInterface.UserInterface.Columns.ColumnCounter" />
+        <Publicize Include="DynamicTradeInterface:DynamicTradeInterface.UserInterface.Columns.ColumnCounter.PostOpen" />
+        <Publicize Include="DynamicTradeInterface:DynamicTradeInterface.UserInterface.Columns.ColumnCounter._editableCache" />
+        <Publicize Include="DynamicTradeInterface:DynamicTradeInterface.UserInterface.Columns.ColumnCounter+Cache" />
+        <Publicize Include="DynamicTradeInterface:DynamicTradeInterface.UserInterface.Columns.ColumnCounter+Cache.MinimumQuantity" />
+        <Publicize Include="DynamicTradeInterface:DynamicTradeInterface.UserInterface.Columns.ColumnCounter+Cache.MaximumQuantity" />
+        <Publicize Include="DynamicTradeInterface:DynamicTradeInterface.UserInterface.Columns.ColumnButtons" />
+        <Publicize Include="DynamicTradeInterface:DynamicTradeInterface.UserInterface.Columns.ColumnButtons.MaxAmount" />
     </ItemGroup>
 </Project>
