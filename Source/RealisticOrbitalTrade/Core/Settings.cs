@@ -15,6 +15,9 @@ internal class Settings : ModSettings
     internal static int _buyMoreTimeTicksPerPurchase = 7500;
     internal static int _buyMoreTimeBaseSilverCost = 200;
     internal static float _buyMoreTimeCostGrowthFactor = 1.5f;
+    internal static bool _multiItemShuttleLoading = true;
+
+    internal const string PickUpAndHaulPackageId = "Mehni.PickUpAndHaul";
 
     private static string _minimumTradeThresholdBuffer = string.Empty;
     private static string _buyMoreTimeBaseSilverCostBuffer = string.Empty;
@@ -46,6 +49,7 @@ internal class Settings : ModSettings
         Scribe_Values.Look(ref _buyMoreTimeTicksPerPurchase, "buyMoreTimeTicksPerPurchase", 7500);
         Scribe_Values.Look(ref _buyMoreTimeBaseSilverCost, "buyMoreTimeBaseSilverCost", 200);
         Scribe_Values.Look(ref _buyMoreTimeCostGrowthFactor, "buyMoreTimeCostGrowthFactor", 1.5f);
+        Scribe_Values.Look(ref _multiItemShuttleLoading, "multiItemShuttleLoading", true);
 
         if (Scribe.mode == LoadSaveMode.PostLoadInit)
         {
@@ -82,6 +86,12 @@ internal class Settings : ModSettings
             "RealisticOrbitalTrade.UseMinimumTradeThresholdLabel".Translate(),
             ref _useMinimumTradeThreshold,
             "RealisticOrbitalTrade.UseMinimumTradeThresholdTooltip".Translate()
+        );
+
+        listingStandard.CheckboxLabeled(
+            "RealisticOrbitalTrade.MultiItemShuttleLoadingLabel".Translate(),
+            ref _multiItemShuttleLoading,
+            "RealisticOrbitalTrade.MultiItemShuttleLoadingTooltip".Translate()
         );
 
         listingStandard.Label("RealisticOrbitalTrade.MinimumTradeThresholdLabel".Translate());

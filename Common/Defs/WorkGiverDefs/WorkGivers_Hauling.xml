@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+    <WorkGiverDef>
+        <defName>ROT_HaulMultipleToTransporter</defName>
+        <label>load trade shuttle (multiple items)</label>
+        <giverClass>RealisticOrbitalTrade.WorkGiver_HaulMultipleToTransporter</giverClass>
+        <workType>Hauling</workType>
+        <verb>load</verb>
+        <gerund>loading</gerund>
+        <priorityInType>115</priorityInType>
+        <requiredCapacities>
+            <li>Manipulation</li>
+        </requiredCapacities>
+    </WorkGiverDef>
+</Defs>
