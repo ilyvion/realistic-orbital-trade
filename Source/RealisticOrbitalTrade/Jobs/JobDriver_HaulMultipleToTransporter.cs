@@ -61,6 +61,13 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
         return false;
     }
 
+    // Thing.SplitOff doesn't clamp: asking it to split off more than a thing's actual stackCount
+    // logs an error and despawns/detaches the *original* thing instead of returning a valid
+    // partial split, so the queued pickup amount must never exceed what's really left in the
+    // stack - mirrors the equivalent clamp already applied in carryGatheredThing above.
+    internal static int ComputeCountToPickUp(int jobCount, int massCappedCount, int stackCount) =>
+        Math.Min(Math.Min(jobCount, massCappedCount), stackCount);
+
     // Verbose per-decision tracing of the pickup/hauling logic below, gated on the
     // dev-messages toggle so it's opt-in and doesn't spam normal play.
     private void DebugLog(string message)
@@ -718,6 +725,17 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
 
         var nextTarget = Toils_JobTransforms.ExtractNextTargetFromQueue(TargetIndex.A);
 
+        // Every toil between nextTarget and the Jump(nextTarget) back to it completes
+        // synchronously (instant completion, and gotoThing's StartPath -> PatherArrived also
+        // completes synchronously whenever the pawn is already standing at the next queued
+        // item's cell, e.g. several stacks piled in the same stockpile square) - so without a
+        // real tick-deferred toil somewhere in that loop, JobDriver.JumpToToil recurses one more
+        // native stack frame per queued item instead of ever returning control to the tick
+        // scheduler. A long enough pickup queue then overflows the native stack outright, with
+        // no bad data or corrupted Thing involved. One idle tick per item is imperceptible but
+        // forces the loop back onto the tick scheduler, capping recursion depth at a constant.
+        var tickBreak = Toils_General.Wait(1);
+
         // Some things (e.g. a genepack held in a genebank's CompGenepackContainer, v1.5+ only -
         // see Patch/TradeShuttle.cs) are never Spawned themselves even while sitting in a
         // reachable, spawned holder - mirrors vanilla JobDriver_HaulToContainer's own gotoThing
@@ -783,10 +801,14 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
             {
                 var thing = job.GetTarget(TargetIndex.A).Thing;
                 var massCappedCount = MassUtility.CountToPickUpUntilOverEncumbered(pawn, thing);
-                var countToPickUp = Math.Min(job.count, massCappedCount);
+                var countToPickUp = ComputeCountToPickUp(
+                    job.count,
+                    massCappedCount,
+                    thing.stackCount
+                );
                 DebugLog(
                     $"takeThing: {thing.LabelCap} job.count={job.count} "
-                        + $"massCappedCount={massCappedCount} "
+                        + $"massCappedCount={massCappedCount} stackCount={thing.stackCount} "
                         + $"(FreeSpace={MassUtility.FreeSpace(pawn):F2}kg) -> "
                         + $"countToPickUp={countToPickUp}"
                 );
@@ -867,6 +889,7 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
 
         yield return nextTarget;
         yield return logExtractedTarget;
+        yield return tickBreak;
 
         // Notify_Starting couldn't find anything to load after all (e.g. another pawn claimed
         // it first) - nothing was queued, so there's nothing left to do.
@@ -884,8 +907,26 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
             () => job.GetTargetQueue(TargetIndex.A).Count < _handCarryGroupCount
         );
 
+        // The hand-carry group is empty in hand (e.g. its stack(s) disappeared or were fully
+        // claimed by someone else right at pickup, rare but possible), or nothing was ever
+        // hand-carried on this trip - nothing's in hand, so skip straight to unloading whatever
+        // already made it into inventory instead of pausing/depositing nothing.
+        var checkCarriedHand = Toils_Jump.JumpIf(
+            pullNextCarriedThing,
+            () => pawn.carryTracker.CarriedThing == null
+        );
+
         yield return takeThing;
-        yield return Toils_Jump.Jump(nextTarget);
+
+        // ExtractNextTargetFromQueue is a no-op once the queue is empty - it does NOT clear
+        // TargetIndex.A/job.count, so jumping back to it unconditionally here would leave
+        // TargetThingA stuck on this same already-picked-up item forever instead of ever
+        // reaching null. Only loop back while there's actually something left to extract.
+        yield return Toils_Jump.JumpIf(
+            nextTarget,
+            () => !job.GetTargetQueue(TargetIndex.A).NullOrEmpty()
+        );
+        yield return Toils_Jump.Jump(checkCarriedHand);
 
         yield return carryGatheredThing;
 
@@ -896,14 +937,7 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
             () => !job.GetTargetQueue(TargetIndex.A).NullOrEmpty()
         );
 
-        // The hand-carry group is empty in hand (e.g. its stack(s) disappeared or were fully
-        // claimed by someone else right at pickup, rare but possible) - nothing's in hand, so fall
-        // straight through to unloading whatever else already made it into inventory instead of
-        // pausing/depositing nothing.
-        yield return Toils_Jump.JumpIf(
-            pullNextCarriedThing,
-            () => pawn.carryTracker.CarriedThing == null
-        );
+        yield return checkCarriedHand;
         yield return carryPause;
 
         // Walks to the transporter while visibly carrying whatever's currently in hand - matches
