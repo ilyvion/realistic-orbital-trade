@@ -2,6 +2,8 @@
 <Defs>
     <!-- Abstract/base definitions -->
     <ThingDef Name="ROT_TradeShuttleBase" ParentName="ShuttleBase" Abstract="True">
+        <label>trade shuttle</label>
+        <description>A spacer-tech uranium-powered shuttle used by orbital traders to ferry goods to and from the surface during a deal. To prevent hijacking, the shuttle is locked to the pilot's bio-signature.</description>
         <comps>
             <li>
                 <compClass>RealisticOrbitalTrade.Comps.CompTradeShuttle</compClass>
@@ -16,6 +18,7 @@
         ParentName="ROT_TradeShuttleBase"
         Abstract="True"
     >
+        <description>A trade shuttle sent by a trader who's stopped trusting you to deal fairly. It's been openly rigged with explosives; a blunt message not to try swindling them again.</description>
         <comps>
             <li Class="CompProperties_Explosive">
                 <explodeOnKilled>true</explodeOnKilled>
@@ -38,6 +41,7 @@
     </ThingDef>
     <ThingDef ParentName="ROT_ExplosiveRiggedTradeShuttleBase">
         <defName>ROT_ExplosiveRiggedAmendmentTradeShuttle</defName>
+        <description>A trade shuttle sent while you're trying to make amends with a trader you've wronged. It arrives rigged with explosives in case you're still looking to cause trouble.</description>
         <!--
             In order to discourage "farming" shuttles for items, in addition to the explosives,
             the amendment shuttle will leave only scraps

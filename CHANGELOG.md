@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Added an 'Item condition matching tolerance' setting. When a traded item's condition affects its price, the shuttle requires the hauled item to still be in essentially the same condition it was in when the deal was struck; this setting lets its hit points drift by up to a percentage of its max (or 5 hit points, whichever is larger) and still count as a match, so a small amount of deterioration (e.g. from fire or vermin) while the item is waiting to be hauled doesn't get a trade stuck. Defaults to 2%.
 -   Items sold to a trader are now protected from other colony jobs the moment the deal is struck, so colonists can no longer eat, wear, or craft with something that's already been sold before a hauler gets around to loading it. Only sold items on the map are protected; items already sold under a trade that was in progress before this update won't retroactively gain protection.
 
+### Changed
+
+-   The trade shuttle is now labeled 'trade shuttle' instead of 'imperial shuttle', with a description explaining its role in orbital trade. The explosive-rigged shuttles sent when a trader no longer trusts you (whether for a regular delivery or while you're trying to make amends) now have their own descriptions explaining why they've shown up wired to blow.
+
 ### Fixed
 
 -   Fixed a bug during trade renegotiation where reducing the amount of a required item that had quality, health, or 'minified' requirements wouldn't actually reduce the required amount, causing the shuttle to keep demanding the original amount and never be able to depart.
