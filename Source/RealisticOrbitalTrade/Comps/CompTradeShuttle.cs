@@ -478,8 +478,34 @@ internal struct ThingDefCountWithRequirements : IExposable
         return def == thing.def
             && stuffDef == thing.Stuff
             && count != 0
-            && (!healthAffectsPrice || Math.Abs(thing.HitPoints - hitPoints) <= 5)
+            && (
+                !healthAffectsPrice
+                || HitPointsWithinTolerance(
+                    thing.HitPoints,
+                    hitPoints,
+                    maxHitPoints,
+                    Settings._hitPointsTolerancePercent
+                )
+            )
             && (!hasQuality || thingQuality == quality);
+    }
+
+    /// <summary>
+    /// Whether <paramref name="actualHitPoints"/> is close enough to the originally recorded
+    /// <paramref name="recordedHitPoints"/> to still count as the same item, allowing for minor
+    /// deterioration. The allowed drift is the larger of 5 hit points or
+    /// <paramref name="tolerancePercent"/>% of <paramref name="maxHitPoints"/>, so small items
+    /// keep a usable grace window and large items get one that scales with their size.
+    /// </summary>
+    internal static bool HitPointsWithinTolerance(
+        int actualHitPoints,
+        int recordedHitPoints,
+        int maxHitPoints,
+        int tolerancePercent
+    )
+    {
+        var tolerance = Math.Max(5, (int)(maxHitPoints * (tolerancePercent / 100f)));
+        return Math.Abs(actualHitPoints - recordedHitPoints) <= tolerance;
     }
 
     internal ThingDefCountWithRequirements WithCount(int count) =>

@@ -16,6 +16,7 @@ internal class Settings : ModSettings
     internal static int _buyMoreTimeBaseSilverCost = 200;
     internal static float _buyMoreTimeCostGrowthFactor = 1.5f;
     internal static bool _multiItemShuttleLoading = true;
+    internal static int _hitPointsTolerancePercent = 2;
 
     internal const string PickUpAndHaulPackageId = "Mehni.PickUpAndHaul";
 
@@ -50,6 +51,7 @@ internal class Settings : ModSettings
         Scribe_Values.Look(ref _buyMoreTimeBaseSilverCost, "buyMoreTimeBaseSilverCost", 200);
         Scribe_Values.Look(ref _buyMoreTimeCostGrowthFactor, "buyMoreTimeCostGrowthFactor", 1.5f);
         Scribe_Values.Look(ref _multiItemShuttleLoading, "multiItemShuttleLoading", true);
+        Scribe_Values.Look(ref _hitPointsTolerancePercent, "hitPointsTolerancePercent", 2);
 
         if (Scribe.mode == LoadSaveMode.PostLoadInit)
         {
@@ -93,6 +95,20 @@ internal class Settings : ModSettings
             ref _multiItemShuttleLoading,
             "RealisticOrbitalTrade.MultiItemShuttleLoadingTooltip".Translate()
         );
+
+        listingStandard.Label(
+            "RealisticOrbitalTrade.HitPointsTolerancePercentLabel".Translate(
+                _hitPointsTolerancePercent
+            ),
+            -1f,
+#if v1_6
+            (TipSignal?)
+#endif
+                "RealisticOrbitalTrade.HitPointsTolerancePercentTooltip".Translate()
+        );
+        _hitPointsTolerancePercent = (int)listingStandard.Slider(_hitPointsTolerancePercent, 0, 10);
+
+        listingStandard.Gap(4);
 
         listingStandard.Label("RealisticOrbitalTrade.MinimumTradeThresholdLabel".Translate());
         listingStandard.TextFieldNumeric(
