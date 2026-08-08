@@ -78,6 +78,7 @@ internal static class Rimworld_TradeShip_GiveSoldThingToTrader
         else
         {
             tradeAgreement.thingsSoldToTrader.Add(new(toGive, countToGive));
+            tradeAgreement.AddReservation(toGive, countToGive);
         }
 
         return false;

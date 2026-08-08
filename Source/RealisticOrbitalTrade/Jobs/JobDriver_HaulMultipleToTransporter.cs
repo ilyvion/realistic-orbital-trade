@@ -1,3 +1,4 @@
+using RealisticOrbitalTrade.Comps;
 using Verse.AI;
 
 namespace RealisticOrbitalTrade;
@@ -33,6 +34,33 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
     private CompTransporter? Transporter =>
         job.GetTarget(TargetIndex.B).Thing?.TryGetComp<CompTransporter>();
 
+    private TradeAgreement? TradeAgreement =>
+        Transporter?.parent.TryGetComp<CompTradeShuttle>()?.tradeAgreement;
+
+    // Releases count units of thing from the trade's reserved-for-protection list right before
+    // asking the real ReservationManager to reserve them for hauling - see
+    // TradeHaulReservationContext and Patch/Rimworld_ReservationManager.cs for why the two must
+    // never both think they're responsible for the same units, and TradeAgreement.ReduceReservation
+    // for why this only ever releases what's actually still tracked. Restores it if the real
+    // reservation fails after all (e.g. another pawn's job claimed the thing in the same tick).
+    // Callers still owe a TradeAgreement.ReconcileReservation call of their own afterwards - see
+    // there for why it needs the caller's own view of what's still needed rather than being folded
+    // in here.
+    private bool ReserveForHaul(Thing thing, int count)
+    {
+        var tradeAgreement = TradeAgreement;
+        var released = tradeAgreement?.ReduceReservation(thing, count) ?? 0;
+        if (pawn.Reserve(thing, job))
+        {
+            return true;
+        }
+        if (released > 0)
+        {
+            tradeAgreement!.RestoreReservation(thing, released);
+        }
+        return false;
+    }
+
     // Verbose per-decision tracing of the pickup/hauling logic below, gated on the
     // dev-messages toggle so it's opt-in and doesn't spam normal play.
     private void DebugLog(string message)
@@ -67,6 +95,11 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
             DebugLog("Notify_Starting: no transporter on targetB, bailing out.");
             return;
         }
+
+        // Covers both the FindThingToLoad candidate search below and every pawn.Reserve call this
+        // method (transitively, via ReserveForHaul/QueueItems/QueueHandCarryGroup) makes for this
+        // trip - see TradeHaulReservationContext for why it needs to span both.
+        using var haulReservationScope = TradeHaulReservationContext.Enter(pawn, transporter);
 
         var thingCount = LoadTransportersJobUtility.FindThingToLoad(pawn, transporter);
         DebugLog(
@@ -124,7 +157,17 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
             job.GetTargetQueue(TargetIndex.A).Add(thingCount.Thing);
             job.countQueue ??= [];
             job.countQueue.Add(primaryCount);
-            _ = pawn.Reserve(thingCount.Thing, job);
+            if (ReserveForHaul(thingCount.Thing, primaryCount) && primaryTransferable != null)
+            {
+                var alreadyCommitted = committed.GetValueOrDefault(primaryTransferable);
+                TradeAgreement?.ReconcileReservation(
+                    primaryTransferable,
+                    Math.Max(
+                        0,
+                        primaryTransferable.CountToTransfer - alreadyCommitted - primaryCount
+                    )
+                );
+            }
             _handCarryGroupCount = 1;
             DebugLog(
                 $"Notify_Starting: queued primary {thingCount.Thing.LabelCap} x{primaryCount} "
@@ -158,7 +201,7 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
     /// the full remaining amount is theirs to grab, and the shuttle ends up loaded with more than
     /// was actually sold.
     /// </summary>
-    private static Dictionary<TransferableOneWay, int> ComputeCommittedCounts(
+    internal static Dictionary<TransferableOneWay, int> ComputeCommittedCounts(
         CompTransporter transporter,
         Pawn excluding
     )
@@ -332,7 +375,7 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
                 remainingMassCapacity,
                 unitMass
             );
-            if (countToTake <= 0 || !pawn.Reserve(thing, job))
+            if (countToTake <= 0 || !ReserveForHaul(thing, countToTake))
             {
                 DebugLog(
                     $"QueueItems: dropping {thing.LabelCap} - countToTake={countToTake}, "
@@ -346,6 +389,7 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
             job.countQueue.Add(countToTake);
             remainingNeeded[transferable] = stillNeeded - countToTake;
             remainingMassCapacity -= countToTake * unitMass;
+            TradeAgreement?.ReconcileReservation(transferable, remainingNeeded[transferable]);
 
             DebugLog(
                 $"QueueItems: queued {thing.LabelCap} x{countToTake} (ceiling={ceiling}, "
@@ -505,7 +549,7 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
     {
         var stillNeeded = remainingNeeded.GetValueOrDefault(pending.Transferable);
         var countToCarry = Math.Min(pending.Ceiling, stillNeeded);
-        if (countToCarry <= 0 || !pawn.Reserve(pending.Thing, job))
+        if (countToCarry <= 0 || !ReserveForHaul(pending.Thing, countToCarry))
         {
             DebugLog(
                 $"QueueItems: dropping pending hand-carry topper {pending.Thing.LabelCap} - "
@@ -520,6 +564,10 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
         job.countQueue ??= [];
         job.countQueue.Add(countToCarry);
         remainingNeeded[pending.Transferable] = stillNeeded - countToCarry;
+        TradeAgreement?.ReconcileReservation(
+            pending.Transferable,
+            remainingNeeded[pending.Transferable]
+        );
         var groupCount = 1;
         var groupTotal = countToCarry;
         var stackLimit = pending.Thing.def.stackLimit;
@@ -572,7 +620,7 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
             var mergeStillNeeded = remainingNeeded.GetValueOrDefault(mergeTransferable);
             var roomLeft = stackLimit - groupTotal;
             var mergeCount = Math.Min(Math.Min(mergeAvailable, mergeStillNeeded), roomLeft);
-            if (mergeCount <= 0 || !pawn.Reserve(mergeCandidate, job))
+            if (mergeCount <= 0 || !ReserveForHaul(mergeCandidate, mergeCount))
             {
                 DebugLog(
                     $"QueueItems: skipping top-off candidate {mergeCandidate.LabelCap} - "
@@ -585,6 +633,10 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
             job.GetTargetQueue(TargetIndex.A).Add(mergeCandidate);
             job.countQueue.Add(mergeCount);
             remainingNeeded[mergeTransferable] = mergeStillNeeded - mergeCount;
+            TradeAgreement?.ReconcileReservation(
+                mergeTransferable,
+                remainingNeeded[mergeTransferable]
+            );
             groupTotal += mergeCount;
             groupCount++;
             searchPosition = mergeCandidate.PositionHeld;

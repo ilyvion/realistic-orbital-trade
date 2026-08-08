@@ -482,6 +482,7 @@ internal class Dialog_RenegotiateTrade : Window
                             {
                                 ThingCountClass thingCount = new(toGive, countToGive);
                                 tradeAgreement.thingsSoldToTrader.Add(thingCount);
+                                tradeAgreement.AddReservation(toGive, countToGive);
                                 Utils.AddThingToLoadToShuttle(
                                     thingCount,
                                     toTraderCompTradeShuttle,
@@ -561,12 +562,20 @@ internal class Dialog_RenegotiateTrade : Window
                                 if (thingCount.Count > leftToTakeOff)
                                 {
                                     thingCount.Count -= leftToTakeOff;
+                                    _ = tradeAgreement.ReduceReservation(
+                                        thingCount.thing,
+                                        leftToTakeOff
+                                    );
                                     leftToTakeOff = 0;
                                 }
                                 else
                                 {
                                     leftToTakeOff -= thingCount.Count;
                                     _ = tradeAgreement.thingsSoldToTrader.Remove(thingCount);
+                                    _ = tradeAgreement.ReduceReservation(
+                                        thingCount.thing,
+                                        thingCount.Count
+                                    );
                                 }
                             } while (leftToTakeOff > 0);
 

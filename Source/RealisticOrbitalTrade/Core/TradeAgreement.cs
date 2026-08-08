@@ -24,6 +24,17 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
     public List<ThingCountClass> thingsSoldToTrader = [];
     public List<Pawn> pawnsSoldToTrader = [];
 
+    // Things sold to the trader but not yet claimed by a hauling job, kept protected from other
+    // colony jobs (eating, crafting, wearing, etc.) by Patch/Rimworld_ReservationManager.cs. An
+    // entry's count shrinks (and is removed once it hits 0) the moment a hauling job actually
+    // reserves that portion of the stack for real - see
+    // JobDriver_HaulMultipleToTransporter/Rimworld_JobDriver_HaulToTransporter_Notify_Starting -
+    // so it only ever covers the portion still sitting unclaimed in the colony. Missing on saves
+    // from before this feature existed; PostExposeData defaults it to empty, so trades already in
+    // progress simply get no protection for items sold before the update, same as if the feature
+    // silently failed to find anything to protect.
+    public List<ThingCountClass> reservedTraderThings = [];
+
     public TransportShip? toTraderTransportShip;
 
     [Obsolete]
@@ -185,6 +196,8 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         Scribe_Values.Look(ref deliverItemsViaDropPod, "deliverItemsViaDropPod", false);
         Scribe_Collections.Look(ref thingsSoldToTrader, "thingsSoldToTrader", LookMode.Deep);
         Scribe_Collections.Look(ref pawnsSoldToTrader, "pawnsSoldToTrader", LookMode.Reference);
+        Scribe_Collections.Look(ref reservedTraderThings, "reservedTraderThings", LookMode.Deep);
+        reservedTraderThings ??= [];
         Scribe_References.Look(ref toTraderTransportShip, "toTraderTransportShip");
 
         Scribe_Deep.Look(ref tradeDeliveryMethod, "tradeDeliveryMethod");
@@ -276,6 +289,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
     {
         var lostAnything = thingsSoldToTrader.RemoveAll(t => t.thing == null) > 0;
         lostAnything |= pawnsSoldToTrader.RemoveAll(p => p == null) > 0;
+        _ = reservedTraderThings.RemoveAll(t => t.thing == null);
 
         if (toTraderTransportShip is { } transportShip)
         {
@@ -357,6 +371,27 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         {
             thingCount.thing = survivingThing;
         }
+
+        var absorbedReservation = reservedTraderThings.FirstOrDefault(t =>
+            t.thing == absorbedThing
+        );
+        if (absorbedReservation == null)
+        {
+            return;
+        }
+        _ = reservedTraderThings.Remove(absorbedReservation);
+        var survivingReservation = reservedTraderThings.FirstOrDefault(t =>
+            t.thing == survivingThing
+        );
+        if (survivingReservation != null)
+        {
+            survivingReservation.Count += absorbedReservation.Count;
+        }
+        else
+        {
+            absorbedReservation.thing = survivingThing;
+            reservedTraderThings.Add(absorbedReservation);
+        }
     }
 
     private void Notify_OwnThingDestroyed(Thing thing)
@@ -383,6 +418,11 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
             if (removed)
             {
                 _ = thingsSoldToTrader.Remove(thingCount!);
+                var reservedCount = reservedTraderThings.FirstOrDefault(t => t.thing == thing);
+                if (reservedCount != null)
+                {
+                    _ = reservedTraderThings.Remove(reservedCount);
+                }
                 ReduceRequiredCargoFor(thing, thingCount!.Count);
                 CancelHaulingJobFor(thing);
             }
@@ -454,5 +494,117 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
             LetterDefOf.NegativeEvent,
             toTraderTransportShip?.shipThing
         );
+    }
+
+    /// <summary>
+    /// How much of <paramref name="thing"/> is still tracked as reserved-for-protection (i.e. not
+    /// yet claimed by a hauling job).
+    /// </summary>
+    internal int ReservedCountFor(Thing thing) =>
+        reservedTraderThings.FirstOrDefault(t => t.thing == thing)?.Count ?? 0;
+
+    /// <summary>
+    /// Starts protecting <paramref name="count"/> units of <paramref name="thing"/> from other
+    /// colony jobs. Called when a thing/count is newly sold to the trader.
+    /// </summary>
+    internal void AddReservation(Thing thing, int count)
+    {
+        var existing = reservedTraderThings.FirstOrDefault(t => t.thing == thing);
+        if (existing != null)
+        {
+            existing.Count += count;
+        }
+        else
+        {
+            reservedTraderThings.Add(new(thing, count));
+        }
+    }
+
+    /// <summary>
+    /// Stops protecting up to <paramref name="count"/> units of <paramref name="thing"/>, clamped
+    /// to however much is still tracked - called right before a hauling job takes out a real
+    /// <see cref="ReservationManager"/> reservation on that portion, so the two never both think
+    /// they're responsible for the same units at once. Returns how much was actually released, so
+    /// a failed real reservation can restore exactly that amount via <see cref="RestoreReservation"/>.
+    /// </summary>
+    internal int ReduceReservation(Thing thing, int count)
+    {
+        var existing = reservedTraderThings.FirstOrDefault(t => t.thing == thing);
+        if (existing == null || count <= 0)
+        {
+            return 0;
+        }
+
+        var reduced = Math.Min(existing.Count, count);
+        existing.Count -= reduced;
+        if (existing.Count <= 0)
+        {
+            _ = reservedTraderThings.Remove(existing);
+        }
+        return reduced;
+    }
+
+    /// <summary>
+    /// Re-protects <paramref name="count"/> units of <paramref name="thing"/> previously released
+    /// via <see cref="ReduceReservation"/>, for when the real reservation it was making way for
+    /// failed after all.
+    /// </summary>
+    internal void RestoreReservation(Thing thing, int count)
+    {
+        if (count > 0)
+        {
+            AddReservation(thing, count);
+        }
+    }
+
+    /// <summary>
+    /// Reserved-for-protection things still sitting untouched on the map - anything left here once
+    /// the shuttle departs means a sold item never got claimed by a hauling job, which shouldn't
+    /// happen if the mod's own hauling logic ran to completion.
+    /// </summary>
+    internal IEnumerable<Thing> StillReservedSpawnedThings() =>
+        reservedTraderThings.Where(t => t.thing is { Spawned: true }).Select(t => t.thing);
+
+    /// <summary>
+    /// Releases whatever's left reserved across <paramref name="transferable"/>'s stacks beyond
+    /// <paramref name="stillNeeded"/> - the amount hauling jobs (this pawn's included) haven't
+    /// already claimed and still intend to come back for. The hauling algorithms treat same-def
+    /// stacks as fungible - whichever's closest gets grabbed, not necessarily the specific stack
+    /// <see cref="AddReservation"/> was originally called on for the sale - so a stack can easily
+    /// end up with only part of its own reservation ever claimed by a haul, while the rest of the
+    /// transferable's need gets satisfied entirely out of other stacks. <see
+    /// cref="Transferable.CountToTransfer"/> itself can't be used for this: it only drops once
+    /// items are actually delivered, which lags behind hauling jobs claiming/reserving them, so it
+    /// always reads too high while a haul is still in flight. The caller is expected to pass the
+    /// amount still left to claim from here on (accounting for every pawn's current claims,
+    /// including the one that just succeeded), which is the only number that can legitimately go
+    /// to zero while stock is still undelivered.
+    /// </summary>
+    internal void ReconcileReservation(TransferableOneWay? transferable, int stillNeeded)
+    {
+        if (transferable == null)
+        {
+            return;
+        }
+
+        var entries = reservedTraderThings
+            .Where(t => transferable.things.Contains(t.thing))
+            .ToList();
+        var excess = entries.Sum(t => t.Count) - Math.Max(0, stillNeeded);
+        foreach (var entry in entries)
+        {
+            if (excess <= 0)
+            {
+                break;
+            }
+
+            var release = Math.Min(entry.Count, excess);
+            entry.Count -= release;
+            excess -= release;
+            if (entry.Count <= 0)
+            {
+                _ = reservedTraderThings.Remove(entry);
+            }
+        }
     }
 }

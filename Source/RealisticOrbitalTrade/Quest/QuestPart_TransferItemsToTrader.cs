@@ -16,6 +16,8 @@ internal class QuestPart_TransferItemsToTrader : QuestPart
         base.Notify_QuestSignalReceived(signal);
         if (signal.tag == inSignal)
         {
+            WarnIfAnyStillReserved();
+
             var things = tradeAgreement!.tradeShip.things;
             var soldPrisoners = tradeAgreement.tradeShip.soldPrisoners;
 
@@ -52,6 +54,28 @@ internal class QuestPart_TransferItemsToTrader : QuestPart
                 }
             }
         }
+    }
+
+    // The shuttle is taking off with whatever made it into the transporter's inner container - by
+    // this point every sold item should either be loaded or gone from
+    // tradeAgreement.reservedTraderThings (see JobDriver_HaulMultipleToTransporter/
+    // Rimworld_JobDriver_HaulToTransporter_Notify_Starting, which shrink it as hauling jobs claim
+    // real reservations). Anything still sitting untouched on the map here means a sold item never
+    // got claimed by a hauling job - a bug in the mod's own logic, not something the player did.
+    private void WarnIfAnyStillReserved()
+    {
+        var stuck = tradeAgreement!.StillReservedSpawnedThings().ToList();
+        if (stuck.Count == 0)
+        {
+            return;
+        }
+
+        RealisticOrbitalTradeMod.Instance.LogWarning(
+            "Trade shuttle departed with sold item(s) still marked as reserved-for-protection but "
+                + "never hauled: "
+                + string.Join(", ", stuck.Select(t => t.LabelCap))
+                + ". This is a bug in the mod's hauling logic, please report it with a full log."
+        );
     }
 
     public override void ExposeData()
