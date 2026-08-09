@@ -58,4 +58,39 @@ internal static class TradeHaulReservationContext
             ?.tradeAgreement;
         return tradeAgreement != null && tradeAgreement.ReservedCountFor(thing) > 0;
     }
+
+    /// <summary>
+    /// Whether <paramref name="thing"/> is claimed by any of <paramref name="tradeAgreements"/>.
+    /// </summary>
+    internal static bool IsReservedByATrade(
+        Thing thing,
+        IReadOnlyList<TradeAgreement>? tradeAgreements
+    )
+    {
+        if (tradeAgreements == null)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < tradeAgreements.Count; i++)
+        {
+            if (tradeAgreements[i].ReservedCountFor(thing) > 0)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Whether <paramref name="claimant"/> should be prevented from reserving/taking
+    /// <paramref name="thing"/> because a trade agreement in <paramref name="tradeAgreements"/>
+    /// has it earmarked for hauling and <paramref name="claimant"/> isn't the pawn currently
+    /// entitled to do that specific haul (see <see cref="IsExempt"/>).
+    /// </summary>
+    internal static bool IsBlocked(
+        Pawn claimant,
+        Thing thing,
+        IReadOnlyList<TradeAgreement>? tradeAgreements
+    ) => IsReservedByATrade(thing, tradeAgreements) && !IsExempt(claimant, thing);
 }

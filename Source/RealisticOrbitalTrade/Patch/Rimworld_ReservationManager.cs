@@ -20,33 +20,16 @@ internal static class Rimworld_ReservationManager_CanReserve
             return;
         }
 
-        if (!IsReservedByATrade(target.Thing))
-        {
-            return;
-        }
-
-        if (!TradeHaulReservationContext.IsExempt(claimant, target.Thing))
+        if (
+            TradeHaulReservationContext.IsBlocked(
+                claimant,
+                target.Thing,
+                RealisticOrbitalTradeGameComponent.Current?.ActiveTradeAgreements
+            )
+        )
         {
             __result = false;
         }
-    }
-
-    private static bool IsReservedByATrade(Thing thing)
-    {
-        var tradeAgreements = RealisticOrbitalTradeGameComponent.Current?.ActiveTradeAgreements;
-        if (tradeAgreements == null)
-        {
-            return false;
-        }
-
-        for (var i = 0; i < tradeAgreements.Count; i++)
-        {
-            if (tradeAgreements[i].ReservedCountFor(thing) > 0)
-            {
-                return true;
-            }
-        }
-        return false;
     }
 }
 
