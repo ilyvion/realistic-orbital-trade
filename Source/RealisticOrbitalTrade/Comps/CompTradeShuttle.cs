@@ -9,6 +9,10 @@ namespace RealisticOrbitalTrade.Comps;
 internal class CompTradeShuttle : ThingComp
 {
     private static readonly Material RenegotiationRequiredOverlayMat = MaterialPool.MatFrom(
+        "UI/Overlays/ROT_TradeAttention",
+        ShaderDatabase.MetaOverlay
+    );
+    private static readonly Material MissingRequiredItemsOverlayMat = MaterialPool.MatFrom(
         "UI/Overlays/ROT_TradeIssue",
         ShaderDatabase.MetaOverlay
     );
@@ -17,6 +21,11 @@ internal class CompTradeShuttle : ThingComp
     internal bool isToTrader;
     internal TradeAgreement? tradeAgreement;
     internal List<ThingDefCountWithRequirements> requiredSpecificItems = [];
+
+    // Recomputed each time CheckAutoload runs (whenever loading is actively in progress), rather
+    // than tracked as saved state - a stale value left over from before a save/load is corrected
+    // within a few seconds by the next tick, same as everything else CheckAutoload derives.
+    internal bool missingRequiredItems;
 
     internal Action<int>? extendDepartureTimeAction;
     internal int timesBoughtMoreTime;
@@ -75,31 +84,39 @@ internal class CompTradeShuttle : ThingComp
     public override void PostDraw()
     {
         base.PostDraw();
-        if (parent.Spawned && !cancelled && tradeAgreement is { RenegotiationRequired: true })
+        if (!parent.Spawned || cancelled)
         {
-            DrawRenegotiationRequiredOverlay();
+            return;
+        }
+        if (tradeAgreement is { RenegotiationRequired: true })
+        {
+            DrawAttentionOverlay(RenegotiationRequiredOverlayMat);
+        }
+        else if (missingRequiredItems)
+        {
+            DrawAttentionOverlay(MissingRequiredItemsOverlayMat);
         }
     }
 
-    private const float RenegotiationRequiredOverlaySizeFraction = 3f / 5f;
+    private const float AttentionOverlaySizeFraction = 3f / 5f;
 
-    private void DrawRenegotiationRequiredOverlay()
+    private void DrawAttentionOverlay(Material material)
     {
         var drawPos = parent.DrawPos;
         drawPos.y = AltitudeLayer.MetaOverlays.AltitudeFor() + 0.21951221f;
 
-        var iconSize = parent.Graphic.drawSize.y * RenegotiationRequiredOverlaySizeFraction;
+        var iconSize = parent.Graphic.drawSize.y * AttentionOverlaySizeFraction;
         var mesh = MeshPool.GridPlane(new Vector2(iconSize, iconSize));
 
         var pulsePhase = (Time.realtimeSinceStartup + (397f * (parent.thingIDNumber % 571))) * 4f;
         var pulse = ((float)Math.Sin(pulsePhase) + 1f) * 0.5f;
         pulse = 0.3f + (pulse * 0.7f);
 
-        var material = FadedMaterialPool.FadedVersionOf(RenegotiationRequiredOverlayMat, pulse);
+        var fadedMaterial = FadedMaterialPool.FadedVersionOf(material, pulse);
         Graphics.DrawMesh(
             mesh,
             Matrix4x4.TRS(drawPos, Quaternion.identity, Vector3.one),
-            material,
+            fadedMaterial,
             0
         );
     }
@@ -153,6 +170,15 @@ internal class CompTradeShuttle : ThingComp
                 "RealisticOrbitalTrade.RenegotiationRequiredInspectString".Translate()
             );
         }
+        else if (missingRequiredItems)
+        {
+#if v1_6_OR_GREATER
+            _ =
+#endif
+            stringBuilder.AppendInNewLine(
+                "RealisticOrbitalTrade.RequiredItemsMissingInspectString".Translate()
+            );
+        }
 
         CalculateRemainingRequiredItems();
 
@@ -174,6 +200,17 @@ internal class CompTradeShuttle : ThingComp
             );
         }
         return stringBuilder.ToString();
+    }
+
+    /// <summary>
+    /// The requiredSpecificItems entries still owed, each reduced by whatever's already loaded -
+    /// what "RequiredThingsLabel" and the inspect string should display, rather than the full
+    /// original amounts in <see cref="requiredSpecificItems"/>.
+    /// </summary>
+    internal IEnumerable<ThingDefCountWithRequirements> RemainingRequiredItems()
+    {
+        CalculateRemainingRequiredItems();
+        return tmpRequiredSpecificItems.Where(t => t.count > 0);
     }
 
     private void CalculateRemainingRequiredItems()
@@ -294,6 +331,16 @@ internal class CompTradeShuttle : ThingComp
             excluding: null!
         );
 
+        // A requirement not fully covered by tmpAllSendableItems (colony stock plus everything
+        // already en route to this transporter - the same two sources renegotiation-triggering
+        // item loss and the loading below already treat as the full picture of what's available)
+        // means the shortfall genuinely can't be found anywhere right now (consumed, worn, hidden
+        // away, etc.), as opposed to merely not yet picked up for hauling.
+        missingRequiredItems = AnyRequiredItemMissing(
+            tmpRequiredSpecificItems,
+            tmpAllSendableItems
+        );
+
         foreach (var requiredItem in tmpRequiredSpecificItems)
         {
             if (requiredItem.count <= 0)
@@ -346,6 +393,39 @@ internal class CompTradeShuttle : ThingComp
                 );
             }
         }
+    }
+
+    /// <summary>
+    /// Whether any of <paramref name="remainingRequiredItems"/> (already reduced to what's still
+    /// owed) needs more than <paramref name="sendableItems"/> can cover in total - i.e. the
+    /// shortfall can't be found anywhere the game currently knows to look.
+    /// </summary>
+    internal static bool AnyRequiredItemMissing(
+        IEnumerable<ThingDefCountWithRequirements> remainingRequiredItems,
+        IEnumerable<Thing> sendableItems
+    )
+    {
+        foreach (var requiredItem in remainingRequiredItems)
+        {
+            if (requiredItem.count <= 0)
+            {
+                continue;
+            }
+
+            var numberOfMatches = 0;
+            foreach (var sendableItem in sendableItems)
+            {
+                if (requiredItem.Matches(sendableItem))
+                {
+                    numberOfMatches += sendableItem.stackCount;
+                }
+            }
+            if (numberOfMatches < requiredItem.count)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     // CalculateRemainingRequiredItems always reports the *full* amount still owed, not merely

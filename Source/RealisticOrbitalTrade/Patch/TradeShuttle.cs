@@ -41,12 +41,13 @@ internal static class Rimworld_CompShuttle_RequiredThingsLabel
     private static void InjectThingsLabel(CompShuttle __instance, StringBuilder stringBuilder)
     {
         var compTradeShuttle = __instance.parent?.TryGetComp<CompTradeShuttle>();
-        if (compTradeShuttle != null && compTradeShuttle.requiredSpecificItems.Count > 0)
+        if (compTradeShuttle == null)
         {
-            foreach (var requiredItem in compTradeShuttle.requiredSpecificItems)
-            {
-                _ = stringBuilder.AppendLine("  - " + requiredItem.Label.CapitalizeFirst());
-            }
+            return;
+        }
+        foreach (var requiredItem in compTradeShuttle.RemainingRequiredItems())
+        {
+            _ = stringBuilder.AppendLine("  - " + requiredItem.Label.CapitalizeFirst());
         }
     }
 
@@ -75,6 +76,65 @@ internal static class Rimworld_CompShuttle_RequiredThingsLabel
             );
             return e.Instructions;
         }
+    }
+}
+
+// Vanilla's own "Required: " line (built inside CompInspectStringExtra, separate from the
+// RequiredThingsLabel gizmo tooltip patched above) always shows requiredItems[i]'s full
+// original Count, even once some of it has already been loaded - only whether to show the
+// entry at all accounts for what's loaded, not the displayed amount. This replaces the call
+// that turns each entry into its displayed label with one that first subtracts what's already
+// in the transporter's innerContainer.
+[HarmonyPatch(typeof(CompShuttle), nameof(CompShuttle.CompInspectStringExtra))]
+internal static class Rimworld_CompShuttle_CompInspectStringExtra_RemainingAmounts
+{
+    private static string RemainingItemLabel(ref ThingDefCount item, CompShuttle __instance) =>
+        GenLabel.ThingLabel(
+            item.ThingDef,
+            null,
+            Mathf.Max(
+                0,
+                item.Count
+                    - __instance.Transporter.innerContainer.TotalStackCountOfDef(item.ThingDef)
+            )
+        );
+
+    private static readonly MethodInfo _methodThingDefCountLabelGetter = AccessTools.PropertyGetter(
+        typeof(ThingDefCount),
+        nameof(ThingDefCount.Label)
+    );
+
+    private static readonly MethodInfo _methodRemainingItemLabel = AccessTools.Method(
+        typeof(Rimworld_CompShuttle_CompInspectStringExtra_RemainingAmounts),
+        nameof(RemainingItemLabel)
+    );
+
+#pragma warning disable CA1859 // Use concrete types when possible for improved performance
+    private static IEnumerable<CodeInstruction> Transpiler(
+#pragma warning restore CA1859 // Use concrete types when possible for improved performance
+        IEnumerable<CodeInstruction> instructions
+    )
+    {
+        var codeMatcher = new CodeMatcher(instructions);
+
+        _ = codeMatcher.SearchForward(i =>
+            i.opcode == OpCodes.Call
+            && i.operand is MethodInfo m
+            && m == _methodThingDefCountLabelGetter
+        );
+        if (!codeMatcher.IsValid)
+        {
+            RealisticOrbitalTradeMod.Instance.LogError(
+                "Could not patch CompShuttle.CompInspectStringExtra, IL does not match expectations: call to get value of ThingDefCount::Label not found."
+            );
+            return codeMatcher.Instructions();
+        }
+
+        _ = codeMatcher.Insert([new CodeInstruction(OpCodes.Ldarg_0)]);
+        _ = codeMatcher.Advance(1);
+        codeMatcher.Instruction.operand = _methodRemainingItemLabel;
+
+        return codeMatcher.Instructions();
     }
 }
 
