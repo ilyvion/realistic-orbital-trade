@@ -1,3 +1,4 @@
+using RealisticOrbitalTrade.Comps;
 using RimWorld.QuestGen;
 
 namespace RealisticOrbitalTrade.Patch;
@@ -95,6 +96,50 @@ internal static class Rimworld_TradeDeal_TryExecute
             }
         }
 
+        // Renegotiation reopens the real trade dialog over an *existing* deal, so it can't let
+        // original TryExecute/ResolveTrade run: those always transfer a tradeable's absolute
+        // CountToTransfer from current availability, with no concept of "part of this was already
+        // delivered" - see TradeAgreement.ApplyRenegotiation for the delta-based replacement.
+        if (tradeAgreementForQuest.tradeDeliveryMethod != null)
+        {
+            var newTradeables = __instance.AllTradeables;
+            if (TradeAgreement.IsFullCancellation(newTradeables))
+            {
+                var toTraderCompTradeShuttle =
+                    tradeAgreementForQuest.toTraderTransportShip?.shipThing.TryGetComp<CompTradeShuttle>();
+                Find.WindowStack.Add(
+                    Dialog_MessageBox.CreateConfirmation(
+                        "RealisticOrbitalTrade.DidYouMeanToCancel".Translate(),
+                        () =>
+                        {
+                            if (toTraderCompTradeShuttle?.cancelTradeAction != null)
+                            {
+                                toTraderCompTradeShuttle.cancelTradeAction.Invoke();
+                            }
+                            else
+                            {
+                                RealisticOrbitalTradeMod.Instance.LogError(
+                                    "Can't cancel trade; cancelTradeAction is null!"
+                                );
+                            }
+                        }
+                    )
+                );
+                actuallyTraded = false;
+                __result = false;
+                return false;
+            }
+
+            var originalTradeables =
+                Utils.RenegotiationOriginalTradeables ?? tradeAgreementForQuest.AllTradeables;
+            actuallyTraded = tradeAgreementForQuest.ApplyRenegotiation(
+                originalTradeables,
+                newTradeables
+            );
+            __result = true;
+            return false;
+        }
+
         return true;
     }
 
@@ -112,26 +157,35 @@ internal static class Rimworld_TradeDeal_TryExecute
         RealisticOrbitalTradeMod.Instance.LogDevMessage(
             $"TradeDeal.TryExecute postfix: __result={__result}, actuallyTraded={actuallyTraded}, tradeAgreementForQuest={tradeAgreementForQuest}"
         );
-        if (__result)
+        if (!__result)
         {
-            if (actuallyTraded)
-            {
-                Slate slate = new();
-                slate.Set("tradeAgreement", tradeAgreementForQuest);
-                slate.Set("traderName", tradeAgreementForQuest.tradeShip.TraderName);
-
-                _ = QuestUtility.GenerateQuestAndMakeAvailable(
-                    QuestScriptDefOf.ROT_TradeShipTransportShip,
-                    slate
-                );
-            }
-            else
-            {
-                RealisticOrbitalTradeGameComponent.Current.EndTradeAgreement(
-                    tradeAgreementForQuest
-                );
-            }
-            TradeShipData.tradeAgreementForQuest = null;
+            return;
         }
+
+        // Renegotiation reuses the trade agreement/shuttle that's already in flight - no new
+        // quest to generate, just clean up the renegotiation session.
+        if (tradeAgreementForQuest.tradeDeliveryMethod != null)
+        {
+            TradeShipData.tradeAgreementForQuest = null;
+            Utils.EndRenegotiation();
+            return;
+        }
+
+        if (actuallyTraded)
+        {
+            Slate slate = new();
+            slate.Set("tradeAgreement", tradeAgreementForQuest);
+            slate.Set("traderName", tradeAgreementForQuest.tradeShip.TraderName);
+
+            _ = QuestUtility.GenerateQuestAndMakeAvailable(
+                QuestScriptDefOf.ROT_TradeShipTransportShip,
+                slate
+            );
+        }
+        else
+        {
+            RealisticOrbitalTradeGameComponent.Current.EndTradeAgreement(tradeAgreementForQuest);
+        }
+        TradeShipData.tradeAgreementForQuest = null;
     }
 }

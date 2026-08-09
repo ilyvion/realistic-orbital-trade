@@ -16,6 +16,7 @@ internal static class WithCountTests
     {
         var thingDef = new ThingDef { defName = "TestThingDef" };
         var stuffDef = new ThingDef { defName = "TestStuffDef" };
+        Thing requiredThing = new() { def = thingDef };
         ThingDefCountWithRequirements original = new()
         {
             def = thingDef,
@@ -27,6 +28,7 @@ internal static class WithCountTests
             maxHitPoints = 100,
             hasQuality = true,
             quality = QualityCategory.Excellent,
+            requiredThing = requiredThing,
         };
 
         var copy = original.WithCount(4);
@@ -40,5 +42,6 @@ internal static class WithCountTests
         Assert.That(copy.maxHitPoints).Is.EqualTo(100);
         Assert.That(copy.hasQuality).Is.True();
         Assert.That((int)copy.quality).Is.EqualTo((int)QualityCategory.Excellent);
+        Assert.That(copy.requiredThing == requiredThing).Is.True();
     }
 }

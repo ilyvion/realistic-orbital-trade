@@ -31,7 +31,32 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
     // QueueItems) - everything before that goes to inventory. Always at least 1.
     private int _handCarryGroupCount = 1;
 
-    private CompTransporter? Transporter =>
+    // Everything picked up on this trip that's still pending delivery (already split off its
+    // source stack and sitting in the pawn's inventory, waiting to be pulled into hand one at a
+    // time - see pullNextCarriedThing in MakeNewToils) - not including whatever's currently in
+    // pawn.carryTracker.CarriedThing, which is removed from this list the moment it's pulled out.
+    internal IReadOnlyList<Thing> CarriedThings => _carriedThings;
+
+    /// <summary>
+    /// Everything a bulk hauling trip has physically split off colony stacks but not yet
+    /// deposited: whatever's in the pawn's hands plus every stack still waiting in inventory.
+    /// </summary>
+    internal static IEnumerable<Thing> InFlightCargo(
+        Thing? carriedThing,
+        IReadOnlyList<Thing> pendingDeliveries
+    )
+    {
+        if (carriedThing != null)
+        {
+            yield return carriedThing;
+        }
+        foreach (var pending in pendingDeliveries)
+        {
+            yield return pending;
+        }
+    }
+
+    internal CompTransporter? Transporter =>
         job.GetTarget(TargetIndex.B).Thing?.TryGetComp<CompTransporter>();
 
     private TradeAgreement? TradeAgreement =>
@@ -227,14 +252,13 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
                 return;
             }
 
-            foreach (var transferable in leftToLoad)
+            var transferable = FindCommittedTransferable(thing, leftToLoad);
+            if (transferable == null)
             {
-                if (transferable.things.Contains(thing))
-                {
-                    committed[transferable] = committed.GetValueOrDefault(transferable) + count;
-                    return;
-                }
+                return;
             }
+
+            committed[transferable] = committed.GetValueOrDefault(transferable) + count;
         }
 
         foreach (var otherPawn in transporter.parent.Map.mapPawns.AllPawnsSpawned)
@@ -250,7 +274,15 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
             )
             {
                 var otherJob = otherPawn.CurJob;
-                AddCommitted(otherJob.GetTarget(TargetIndex.A).Thing, otherJob.count);
+                var targetThing = otherJob.GetTarget(TargetIndex.A).Thing;
+                AddCommitted(
+                    targetThing,
+                    CommittedCountForTarget(
+                        targetThing,
+                        otherPawn.carryTracker?.CarriedThing,
+                        otherJob.count
+                    )
+                );
 
                 var queueA = otherJob.GetTargetQueue(TargetIndex.A);
                 var countQueue = otherJob.countQueue;
@@ -282,6 +314,36 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
 
         return committed;
     }
+
+    // Thing.SplitOff hands back a brand-new Thing instance whenever it splits off part (rather
+    // than the whole) of a stack, so a thing that's already been picked up for this trip is no
+    // longer the same object present in any transferable's `things` list - a reference-identity
+    // lookup like `things.Contains(thing)` silently fails to attribute it to anything.
+    // TransferableMatchingDesperate falls back to a stackability/def match (same as vanilla's own
+    // CompTransporter.SubtractFromToLoadList uses to attribute a just-deposited thing back to its
+    // transferable), so it still finds the right transferable for an already-split portion.
+    internal static TransferableOneWay? FindCommittedTransferable(
+        Thing thing,
+        List<TransferableOneWay> leftToLoad
+    ) =>
+        TransferableUtility.TransferableMatchingDesperate(
+            thing,
+            leftToLoad,
+            TransferAsOneMode.PodsOrCaravanPacking
+        );
+
+    // Once a trip's hand-carry group has merged more than one queued pickup into a single carried
+    // stack (see QueueHandCarryGroup), job.count only ever reflects the most recently extracted
+    // queue entry's own amount, not the merged stack's true total - so once `targetThing` is
+    // actually the pawn's CarriedThing, its own stackCount (which does reflect every merge) is the
+    // only accurate figure. Before pickup, targetThing is still the original, unsplit stack still
+    // sitting elsewhere, which can hold more than this pawn is actually entitled to - jobCount is
+    // the right figure there instead.
+    internal static int CommittedCountForTarget(
+        Thing? targetThing,
+        Thing? carriedThing,
+        int jobCount
+    ) => targetThing != null && targetThing == carriedThing ? targetThing.stackCount : jobCount;
 
     /// <summary>
     /// Queues the primary pickup plus any other stacks still needed by the transporter, sweeping
@@ -828,6 +890,15 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
                     .inventory.GetDirectlyHeldThings()
                     .TryAdd(splitThing, canMergeWithExistingStacks: false);
                 _carriedThings.Add(splitThing);
+
+                // Nothing downstream reads targetA again before the next queue extraction
+                // overwrites it (or the job moves on to the hand-carry/delivery toils, which key
+                // off pawn.carryTracker.CarriedThing instead) - but ComputeCommittedCounts, called
+                // from *other* pawns' Notify_Starting, does inspect it. Left pointing at the
+                // now-partially-consumed original stack, it would count this pickup a second time
+                // on top of its entry in _carriedThings for as long as this item sits in inventory
+                // awaiting delivery.
+                job.SetTarget(TargetIndex.A, LocalTargetInfo.Invalid);
             },
         };
 

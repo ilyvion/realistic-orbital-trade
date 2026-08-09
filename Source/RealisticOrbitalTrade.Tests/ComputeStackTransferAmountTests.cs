@@ -13,7 +13,7 @@ internal static class ComputeStackTransferAmountTests
     public static void StackLargerThanRemainingOnlyTakesWhatIsOwed()
     {
         var (countToTransfer, remainingToTransfer, done) =
-            Dialog_RenegotiateTrade.ComputeStackTransferAmount(leftToTransfer: 5, stackCount: 20);
+            TradeAgreement.ComputeStackTransferAmount(leftToTransfer: 5, stackCount: 20);
 
         Assert.That(countToTransfer).Is.EqualTo(5);
         Assert.That(remainingToTransfer).Is.EqualTo(0);
@@ -24,7 +24,7 @@ internal static class ComputeStackTransferAmountTests
     public static void StackSmallerThanRemainingTakesWholeStackAndContinues()
     {
         var (countToTransfer, remainingToTransfer, done) =
-            Dialog_RenegotiateTrade.ComputeStackTransferAmount(leftToTransfer: 20, stackCount: 5);
+            TradeAgreement.ComputeStackTransferAmount(leftToTransfer: 20, stackCount: 5);
 
         Assert.That(countToTransfer).Is.EqualTo(5);
         Assert.That(remainingToTransfer).Is.EqualTo(15);
@@ -35,7 +35,7 @@ internal static class ComputeStackTransferAmountTests
     public static void ExactlyMatchingStackFinishesCleanly()
     {
         var (countToTransfer, remainingToTransfer, done) =
-            Dialog_RenegotiateTrade.ComputeStackTransferAmount(leftToTransfer: 5, stackCount: 5);
+            TradeAgreement.ComputeStackTransferAmount(leftToTransfer: 5, stackCount: 5);
 
         Assert.That(countToTransfer).Is.EqualTo(5);
         Assert.That(remainingToTransfer).Is.EqualTo(0);

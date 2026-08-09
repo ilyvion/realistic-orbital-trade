@@ -43,6 +43,39 @@ internal static class Utils
     public static bool IsMakingAmends => AmendsQuest != null;
 
     /// <summary>
+    /// The agreement currently being renegotiated (a real trade dialog reopened over an existing
+    /// deal), or <see langword="null"/> outside of that flow. Set by
+    /// <see cref="JobDriver_RenegotiateTrade"/> before reopening comms; read by
+    /// <see cref="Patch.Rimworld_TradeShip_TryOpenComms"/> (to reuse the existing agreement
+    /// instead of starting a new one) and by the close/accept patches (to know an in-progress
+    /// trade shouldn't be discarded/replayed the way a fresh one would).
+    /// </summary>
+    public static TradeAgreement? RenegotiatingAgreement { get; private set; }
+
+    /// <summary>
+    /// Snapshot of <see cref="TradeAgreement.AllTradeables"/> taken the moment the reopened trade
+    /// dialog's <see cref="TradeDeal"/> is first built, before the player could edit anything - the
+    /// "original" side of the diff <see cref="TradeAgreement.ApplyRenegotiation"/> applies against.
+    /// Captured by <see cref="Patch.Rimworld_TradeDeal_AddAllTradeables"/> rather than
+    /// <see cref="BeginRenegotiation"/> itself, since <see cref="TradeAgreement.AllTradeables"/>
+    /// dereferences <c>TradeSession.trader</c> (via <c>TransferableUtility.TradeableMatching</c>),
+    /// which isn't assigned until comms are actually opened.
+    /// </summary>
+    public static List<Tradeable>? RenegotiationOriginalTradeables { get; internal set; }
+
+    internal static void BeginRenegotiation(TradeAgreement tradeAgreement)
+    {
+        RenegotiatingAgreement = tradeAgreement;
+        RenegotiationOriginalTradeables = null;
+    }
+
+    internal static void EndRenegotiation()
+    {
+        RenegotiatingAgreement = null;
+        RenegotiationOriginalTradeables = null;
+    }
+
+    /// <summary>
     /// Returns <paramref name="cache"/> unless <paramref name="isDone"/> says it's done, in which
     /// case the cache is cleared (set to <see langword="null"/>) first. Used to lazily invalidate
     /// a cached reference to something that starts "live" and eventually finishes, without
@@ -85,6 +118,7 @@ internal static class Utils
                     maxHitPoints = thing.MaxHitPoints,
                     hasQuality = qualityCategory.HasValue,
                     quality = qualityCategory ?? QualityCategory.Normal,
+                    requiredThing = thing is GeneSetHolderBase ? thing : null,
                 }
             );
         }
@@ -186,6 +220,71 @@ internal static class Utils
             }
         }
     }
+
+    /// <summary>
+    /// Everything currently physically split off a colony stack and in a pawn's hands or
+    /// inventory en route to <paramref name="compTransporter"/> - already gone from the map's
+    /// reachable stockpiles, but not yet inside the transporter either, so neither vanilla's own
+    /// colony scan nor a straight read of the transporter's contents will find it.
+    /// </summary>
+    public static IEnumerable<Thing> ThingsCarriedTowardTransporter(
+        CompTransporter compTransporter,
+        Map map
+    )
+    {
+        foreach (var pawn in map.mapPawns.AllPawnsSpawned)
+        {
+            if (
+                pawn.jobs.curDriver is JobDriver_HaulToTransporter vanillaDriver
+                && vanillaDriver.Transporter == compTransporter
+            )
+            {
+                if (pawn.carryTracker.CarriedThing is { } carried)
+                {
+                    yield return carried;
+                }
+            }
+            else
+            {
+                foreach (var thing in BulkHauledThingsCarriedBy(pawn, compTransporter))
+                {
+                    yield return thing;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// The subset of <see cref="ThingsCarriedTowardTransporter"/> riding with pawns running this
+    /// mod's own bulk hauling job - the part vanilla's
+    /// <see cref="TransporterUtility.ThingsBeingHauledTo"/> cannot see (see
+    /// Patch/Rimworld_TransporterUtility_ThingsBeingHauledTo.cs).
+    /// </summary>
+    public static IEnumerable<Thing> BulkHauledThingsTowardTransporter(
+        CompTransporter compTransporter,
+        Map map
+    )
+    {
+        foreach (var pawn in map.mapPawns.AllPawnsSpawned)
+        {
+            foreach (var thing in BulkHauledThingsCarriedBy(pawn, compTransporter))
+            {
+                yield return thing;
+            }
+        }
+    }
+
+    private static IEnumerable<Thing> BulkHauledThingsCarriedBy(
+        Pawn pawn,
+        CompTransporter compTransporter
+    ) =>
+        pawn.jobs.curDriver is JobDriver_HaulMultipleToTransporter bulkDriver
+        && bulkDriver.Transporter == compTransporter
+            ? JobDriver_HaulMultipleToTransporter.InFlightCargo(
+                pawn.carryTracker.CarriedThing,
+                bulkDriver.CarriedThings
+            )
+            : [];
 }
 
 #pragma warning disable CA1032 // Implement standard exception constructors

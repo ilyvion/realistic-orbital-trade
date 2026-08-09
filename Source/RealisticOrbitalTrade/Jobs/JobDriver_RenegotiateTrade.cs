@@ -24,12 +24,12 @@ internal class JobDriver_RenegotiateTrade : JobDriver
             if (tradeAgreement == null)
             {
                 RealisticOrbitalTradeMod.Instance.LogError(
-                    "TradeAgreement is null in JobDriver_RenegotiateTrade. This is a bug, can't open Dialog_RenegotiateTrade."
+                    "TradeAgreement is null in JobDriver_RenegotiateTrade. This is a bug, can't reopen the trade dialog."
                 );
                 return;
             }
-            Dialog_RenegotiateTrade tradeDialog = new(tradeAgreement);
-            Find.WindowStack.Add(tradeDialog);
+            Utils.BeginRenegotiation(tradeAgreement);
+            tradeAgreement.tradeShip.TryOpenComms(tradeAgreement.negotiator);
         };
         yield return renegotiateTrade;
     }

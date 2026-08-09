@@ -126,6 +126,17 @@ internal static class Rimworld_TradeShip_TryOpenComms
     private static bool Prefix(TradeShip __instance, Pawn negotiator)
     {
         var tradeShipExtra = __instance.GetData();
+
+        // Renegotiation reopens comms on a shuttle whose deal is already active - the usual
+        // grace-time/amends/blacklist/already-trading gates below either don't apply (this isn't
+        // a *new* trade) or would incorrectly block reopening the very trade they're guarding.
+        if (Utils.RenegotiatingAgreement != null)
+        {
+            tradeShipExtra.activeTradeAgreement = TradeShipData.tradeAgreementForQuest =
+                Utils.RenegotiatingAgreement;
+            return true;
+        }
+
         if (tradeShipExtra.ticksUntilCommsClosed == 0)
         {
             Messages.Message(

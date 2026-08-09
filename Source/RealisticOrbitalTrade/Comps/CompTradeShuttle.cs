@@ -264,8 +264,34 @@ internal class CompTradeShuttle : ThingComp
 
         tmpAllSendableItems.Clear();
         tmpAllSendableItems.AddRange(tradeAgreement.ColonyThingsTraderWillingToBuy());
-        tmpAllSendableItems.AddRange(
-            TransporterUtility.ThingsBeingHauledTo(Shuttle.TransportersInGroup, parent.Map)
+
+        // Vanilla's TransporterUtility.ThingsBeingHauledTo only recognizes pawns running its own
+        // JobDriver_HaulToTransporter - a pawn running this mod's own
+        // JobDriver_HaulMultipleToTransporter never matches that check, so everything it's
+        // currently carrying (hand-carried or still queued in its inventory via CarriedThings)
+        // would otherwise vanish from tmpAllSendableItems for the whole trip. That understated
+        // numberOfMatches below, clamping `count` under the true remaining requirement while a
+        // haul was still in flight - see Utils.ThingsCarriedTowardTransporter, the same helper
+        // TradeAgreement.CountOfMatchingThingsInFlightToTrader already uses for this reason.
+        foreach (var transporter in Shuttle.TransportersInGroup)
+        {
+            tmpAllSendableItems.AddRange(
+                Utils.ThingsCarriedTowardTransporter(transporter, parent.Map)
+            );
+        }
+
+        // What's already been split off and promised to this transporter by an in-flight haul
+        // (this mod's own bulk driver or vanilla's single-item one) - excluding: null since
+        // nothing here should be excluded from this global tally, unlike the hauling job's own
+        // use of this method, which excludes the pawn currently making its own hauling decision.
+        // Below, this floors each existing entry's corrected count so a still-running autoload
+        // tick can never talk a requirement back down below an amount a pawn has already reserved
+        // and physically split off the stockpile for - doing so would desync the entry from the
+        // real delivery already in motion and either strand the difference or, worse, make the
+        // requirement look already met while that pawn is still carrying the shortfall.
+        var committed = JobDriver_HaulMultipleToTransporter.ComputeCommittedCounts(
+            Transporter,
+            excluding: null!
         );
 
         foreach (var requiredItem in tmpRequiredSpecificItems)
@@ -296,8 +322,105 @@ internal class CompTradeShuttle : ThingComp
                 }
             }
             var count = Mathf.Min(requiredItem.count, numberOfMatches);
-            Transporter.AddToTheToLoadList(transferableOneWay, count);
+            if (requiredItem.requiredThing != null)
+            {
+                // A specific-item requirement keeps its own row rather than merging with
+                // same-def rows the way UpdateToLoadList's stackability match does (see there) -
+                // requiredThing already narrowed transferableOneWay to this exact instance, so
+                // its existing row (if any) has to be found by that instance's identity instead.
+                UpdateSpecificToLoadEntry(
+                    Transporter.leftToLoad ??= [],
+                    requiredItem.requiredThing,
+                    transferableOneWay,
+                    count,
+                    committed
+                );
+            }
+            else
+            {
+                UpdateToLoadList(
+                    Transporter.leftToLoad ??= [],
+                    transferableOneWay,
+                    count,
+                    committed
+                );
+            }
         }
+    }
+
+    // CalculateRemainingRequiredItems always reports the *full* amount still owed, not merely
+    // what's newly become available since the last run - CompTick re-runs CheckAutoload every
+    // ~2 seconds while autoload is on, so an existing to-load entry must be corrected to that
+    // figure rather than incremented by it. Vanilla's own CompTransporter.AddToTheToLoadList
+    // merges into a matching existing entry via an additive AdjustBy, which is fine for its own
+    // callers (each call reports a genuinely new-found stack), but calling it here with the same
+    // aggregate "still needed" total on every autoload tick would keep inflating CountToTransfer
+    // past the real requirement, capped only by how much matching stock physically exists.
+    internal static void UpdateToLoadList(
+        List<TransferableOneWay> leftToLoad,
+        TransferableOneWay transferableOneWay,
+        int count,
+        Dictionary<TransferableOneWay, int> committed
+    )
+    {
+        // Must resolve the existing entry the same way ComputeCommittedCounts does (via
+        // FindCommittedTransferable/TransferableMatchingDesperate on every candidate thing), not
+        // vanilla's stricter TransferableMatching against just AnyThing - the two can disagree
+        // (e.g. a split-off thing's hit points have drifted enough that vanilla's TransferAsOne no
+        // longer considers it the same stack as the entry's AnyThing, even though this mod's own
+        // requiredItem.Matches still does). When they disagree, this would create a second,
+        // duplicate leftToLoad entry for the same requirement instead of updating the original -
+        // splitting CountToTransfer updates and commitment tracking across two different rows for
+        // the same item, which is exactly what let committed counts sum higher than the entry
+        // Notify_Starting was actually reading CountToTransfer from.
+        TransferableOneWay? existing = null;
+        foreach (var thing in transferableOneWay.things)
+        {
+            existing = JobDriver_HaulMultipleToTransporter.FindCommittedTransferable(
+                thing,
+                leftToLoad
+            );
+            if (existing != null)
+            {
+                break;
+            }
+        }
+        if (existing == null)
+        {
+            leftToLoad.Add(transferableOneWay);
+            transferableOneWay.AdjustTo(count);
+            return;
+        }
+
+        foreach (var thing in transferableOneWay.things)
+        {
+            if (!existing.things.Contains(thing))
+            {
+                existing.things.Add(thing);
+            }
+        }
+        existing.AdjustTo(Math.Max(count, committed.GetValueOrDefault(existing)));
+    }
+
+    // Same corrective-rather-than-additive fix as UpdateToLoadList, for the requiredThing-keyed
+    // rows that don't go through TransferableMatching's stackability check.
+    internal static void UpdateSpecificToLoadEntry(
+        List<TransferableOneWay> leftToLoad,
+        Thing requiredThing,
+        TransferableOneWay transferableOneWay,
+        int count,
+        Dictionary<TransferableOneWay, int> committed
+    )
+    {
+        var existing = leftToLoad.FirstOrDefault(t => t.things.Contains(requiredThing));
+        if (existing == null)
+        {
+            leftToLoad.Add(transferableOneWay);
+            transferableOneWay.AdjustTo(count);
+            return;
+        }
+
+        existing.AdjustTo(Math.Max(count, committed.GetValueOrDefault(existing)));
     }
 
     public bool AllRequiredThingsLoaded
@@ -410,10 +533,14 @@ internal class CompTradeShuttle : ThingComp
     }
 }
 
-internal struct ThingDefCountWithRequirements : IExposable
+// A class rather than a struct: ExposeData() needs Scribe_References for requiredThing, and
+// Scribe_References only works when Scribe.loader.curParent is a reference type - a struct
+// list entry is boxed separately per access and always reports as a value type, which breaks
+// cross-ref resolution (RimWorld logs "current node is a value type" and fails to resolve it).
+internal class ThingDefCountWithRequirements : IExposable
 {
-    public ThingDef def;
-    internal ThingDef stuffDef;
+    public ThingDef def = null!;
+    internal ThingDef? stuffDef;
     public bool isInnerThing;
     internal int count;
     public bool healthAffectsPrice;
@@ -422,9 +549,19 @@ internal struct ThingDefCountWithRequirements : IExposable
     public bool hasQuality;
     public QualityCategory quality;
 
-    public readonly string Label => GenLabel.ThingLabel(def, stuffDef, count) + LabelExtras();
+    // Genepacks/xenogerms carry no quality or health-price info to tell them apart by, so instead
+    // of criteria this holds the exact required Thing itself - Matches() then requires that exact
+    // reference rather than treating any Thing of the same def as satisfying the requirement, and
+    // Label can show the item's own distinguishing label (e.g. a genepack's gene set name) instead
+    // of the generic def label.
+    internal Thing? requiredThing;
 
-    private readonly string LabelExtras()
+    public string Label =>
+        requiredThing != null
+            ? requiredThing.LabelCap
+            : GenLabel.ThingLabel(def, stuffDef, count) + LabelExtras();
+
+    private string LabelExtras()
     {
         var text = string.Empty;
         var reducedHealth = healthAffectsPrice && hitPoints < maxHitPoints;
@@ -459,9 +596,10 @@ internal struct ThingDefCountWithRequirements : IExposable
         Scribe_Values.Look(ref maxHitPoints, "maxHitPoints");
         Scribe_Values.Look(ref hasQuality, "hasQuality");
         Scribe_Values.Look(ref quality, "quality");
+        Scribe_References.Look(ref requiredThing, "requiredThing");
     }
 
-    internal readonly bool Matches(Thing thing)
+    internal bool Matches(Thing thing)
     {
         if (isInnerThing)
         {
@@ -478,6 +616,7 @@ internal struct ThingDefCountWithRequirements : IExposable
         return def == thing.def
             && stuffDef == thing.Stuff
             && count != 0
+            && (requiredThing == null || requiredThing == thing)
             && (
                 !healthAffectsPrice
                 || HitPointsWithinTolerance(
@@ -520,34 +659,29 @@ internal struct ThingDefCountWithRequirements : IExposable
             maxHitPoints = maxHitPoints,
             hasQuality = hasQuality,
             quality = quality,
+            requiredThing = requiredThing,
         };
 
     /// <summary>
     /// Finds the first entry in <paramref name="requiredSpecificItems"/> matching
-    /// <paramref name="thingDef"/> and reduces its count by <paramref name="leftToTakeOff"/>,
-    /// removing the entry entirely if its count would be fully consumed. Writes the reduced
-    /// count back into the list by index, since list elements of a struct type are copies.
+    /// <paramref name="thing"/> and reduces its count by <paramref name="leftToTakeOff"/>,
+    /// removing the entry entirely if its count would be fully consumed.
     /// </summary>
     /// <returns><see langword="false"/> if no matching entry was found.</returns>
     internal static bool TryReduceRequiredCount(
         List<ThingDefCountWithRequirements> requiredSpecificItems,
-        ThingDef thingDef,
+        Thing thing,
         ref int leftToTakeOff
     )
     {
-        var thingDefCountMaybeNull = requiredSpecificItems
-            .Cast<ThingDefCountWithRequirements?>()
-            .FirstOrDefault(t => thingDef == t!.Value.def);
-        if (!thingDefCountMaybeNull.HasValue)
+        var thingDefCount = requiredSpecificItems.FirstOrDefault(t => t.Matches(thing));
+        if (thingDefCount == null)
         {
             return false;
         }
-        var thingDefCount = thingDefCountMaybeNull.Value;
         if (thingDefCount.count > leftToTakeOff)
         {
-            var thingDefCountIndex = requiredSpecificItems.IndexOf(thingDefCount);
             thingDefCount.count -= leftToTakeOff;
-            requiredSpecificItems[thingDefCountIndex] = thingDefCount;
             leftToTakeOff = 0;
         }
         else

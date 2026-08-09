@@ -14,6 +14,7 @@ internal static class TryReduceRequiredCountTests
     public static void PartialReductionIsWrittenBackToTheList()
     {
         var thingDef = new ThingDef { defName = "TestThingDef" };
+        Thing thing = new() { def = thingDef };
         List<ThingDefCountWithRequirements> requiredSpecificItems =
         [
             new() { def = thingDef, count = 10 },
@@ -22,7 +23,7 @@ internal static class TryReduceRequiredCountTests
 
         var found = ThingDefCountWithRequirements.TryReduceRequiredCount(
             requiredSpecificItems,
-            thingDef,
+            thing,
             ref leftToTakeOff
         );
 
@@ -36,6 +37,7 @@ internal static class TryReduceRequiredCountTests
     public static void FullReductionRemovesTheEntry()
     {
         var thingDef = new ThingDef { defName = "TestThingDef" };
+        Thing thing = new() { def = thingDef };
         List<ThingDefCountWithRequirements> requiredSpecificItems =
         [
             new() { def = thingDef, count = 4 },
@@ -44,7 +46,7 @@ internal static class TryReduceRequiredCountTests
 
         var found = ThingDefCountWithRequirements.TryReduceRequiredCount(
             requiredSpecificItems,
-            thingDef,
+            thing,
             ref leftToTakeOff
         );
 
@@ -57,6 +59,7 @@ internal static class TryReduceRequiredCountTests
     public static void OverReductionRemovesTheEntryAndReturnsRemainder()
     {
         var thingDef = new ThingDef { defName = "TestThingDef" };
+        Thing thing = new() { def = thingDef };
         List<ThingDefCountWithRequirements> requiredSpecificItems =
         [
             new() { def = thingDef, count = 4 },
@@ -65,7 +68,7 @@ internal static class TryReduceRequiredCountTests
 
         var found = ThingDefCountWithRequirements.TryReduceRequiredCount(
             requiredSpecificItems,
-            thingDef,
+            thing,
             ref leftToTakeOff
         );
 
@@ -79,6 +82,7 @@ internal static class TryReduceRequiredCountTests
     {
         var thingDef = new ThingDef { defName = "TestThingDef" };
         var otherThingDef = new ThingDef { defName = "OtherTestThingDef" };
+        Thing thing = new() { def = thingDef };
         List<ThingDefCountWithRequirements> requiredSpecificItems =
         [
             new() { def = otherThingDef, count = 4 },
@@ -87,7 +91,7 @@ internal static class TryReduceRequiredCountTests
 
         var found = ThingDefCountWithRequirements.TryReduceRequiredCount(
             requiredSpecificItems,
-            thingDef,
+            thing,
             ref leftToTakeOff
         );
 
@@ -103,6 +107,11 @@ internal static class TryReduceRequiredCountTests
     public static void PartialReductionPreservesRequirementFields()
     {
         var thingDef = new ThingDef { defName = "TestThingDef" };
+        ThingWithComps thing = new() { def = thingDef, HitPoints = 50 };
+        CompQuality compQuality = new() { parent = thing };
+        compQuality.SetQuality(QualityCategory.Excellent, null);
+        thing.compQuality = compQuality;
+
         List<ThingDefCountWithRequirements> requiredSpecificItems =
         [
             new()
@@ -120,7 +129,7 @@ internal static class TryReduceRequiredCountTests
 
         _ = ThingDefCountWithRequirements.TryReduceRequiredCount(
             requiredSpecificItems,
-            thingDef,
+            thing,
             ref leftToTakeOff
         );
 
@@ -131,5 +140,44 @@ internal static class TryReduceRequiredCountTests
         Assert.That(remaining.maxHitPoints).Is.EqualTo(100);
         Assert.That(remaining.hasQuality).Is.True();
         Assert.That((int)remaining.quality).Is.EqualTo((int)QualityCategory.Excellent);
+    }
+
+    // Regression guard for the bug reported live: with genepacks bound to their exact Thing via
+    // requiredThing, reducing must target the entry bound to the specific Thing being removed,
+    // not merely the first entry sharing the same def - otherwise unselling one genepack during
+    // renegotiation could eject/keep the wrong physical genepack.
+    [Test]
+    public static void RequiredThingBindingOnlyReducesTheEntryBoundToThatExactThing()
+    {
+        var thingDef = new ThingDef { defName = "TestGenepackDef" };
+        Thing thingA = new() { def = thingDef };
+        Thing thingB = new() { def = thingDef };
+        List<ThingDefCountWithRequirements> requiredSpecificItems =
+        [
+            new()
+            {
+                def = thingDef,
+                count = 1,
+                requiredThing = thingA,
+            },
+            new()
+            {
+                def = thingDef,
+                count = 1,
+                requiredThing = thingB,
+            },
+        ];
+        var leftToTakeOff = 1;
+
+        var found = ThingDefCountWithRequirements.TryReduceRequiredCount(
+            requiredSpecificItems,
+            thingB,
+            ref leftToTakeOff
+        );
+
+        Assert.That(found).Is.True();
+        Assert.That(leftToTakeOff).Is.EqualTo(0);
+        Assert.That(requiredSpecificItems.Count).Is.EqualTo(1);
+        Assert.That(requiredSpecificItems[0].requiredThing == thingA).Is.True();
     }
 }
