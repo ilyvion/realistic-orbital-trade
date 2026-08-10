@@ -98,8 +98,22 @@ internal class QuestPart_TradeShuttleLeaveDelay : QuestPart_ShuttleLeaveDelay
         }
         if (shuttle?.TryGetComp<CompTradeShuttle>(out var compTradeShuttle) ?? false)
         {
-            compTradeShuttle.extendDepartureTimeAction = ticks => delayTicks += ticks;
+            compTradeShuttle.extendDepartureTimeAction = ticks =>
+                ExtendDepartureTime(
+                    ref delayTicks,
+                    compTradeShuttle.tradeAgreement!.tradeShip,
+                    ticks
+                );
         }
+    }
+
+    // The trade ship's own departure timer runs independently of the shuttle's leave delay -
+    // without extending it too, the trade ship can depart (and get despawned) while the shuttle
+    // it's still waiting on is left with a dangling reference to it.
+    internal static void ExtendDepartureTime(ref int delayTicks, TradeShip tradeShip, int ticks)
+    {
+        delayTicks += ticks;
+        tradeShip.ticksUntilDeparture += ticks;
     }
 }
 

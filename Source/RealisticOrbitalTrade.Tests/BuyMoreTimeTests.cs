@@ -1,4 +1,5 @@
 using RealisticOrbitalTrade.Comps;
+using RealisticOrbitalTrade.Quests;
 using RimTestRedux;
 
 namespace RealisticOrbitalTrade.Tests;
@@ -116,5 +117,22 @@ internal static class BuyMoreTimeTests
             Settings._buyMoreTimeBaseSilverCost = originalBaseCost;
             Settings._buyMoreTimeCostGrowthFactor = originalGrowthFactor;
         }
+    }
+
+    // Regression guard: buying more time used to only extend the shuttle's own leave-delay quest
+    // timer, leaving the underlying TradeShip's ticksUntilDeparture on its original schedule. The
+    // trade ship would then despawn out from under a shuttle still waiting on it, leaving a
+    // dangling tradeShip reference that failed to deep-save ("PassingShip_0 is referenced ... but
+    // is not deep-saved").
+    [Test]
+    public static void ExtendDepartureTimeExtendsBothShuttleDelayAndTradeShip()
+    {
+        var tradeShip = new TradeShip { ticksUntilDeparture = 500 };
+        var delayTicks = 500;
+
+        QuestPart_TradeShuttleLeaveDelay.ExtendDepartureTime(ref delayTicks, tradeShip, 1000);
+
+        Assert.That(delayTicks).Is.EqualTo(1500);
+        Assert.That(tradeShip.ticksUntilDeparture).Is.EqualTo(1500);
     }
 }
