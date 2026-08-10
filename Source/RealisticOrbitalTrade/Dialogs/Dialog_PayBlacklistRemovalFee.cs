@@ -80,21 +80,45 @@ internal class Dialog_PayBlacklistRemovalFee : Dialog_NodeTree
         var nominalFee = WealthUtility.PlayerWealth * 0.01f;
         var totalSilver = LaborCost + nominalFee;
 
-        Dictionary<ThingDef, int> thingsToReturn = [];
+        List<(ThingDef thingDef, int count)> partsToReturn = [];
         foreach (var (thingDefCount, payWith) in ThingDefPayments)
         {
             if (payWith == PayWith.Parts)
             {
-                thingsToReturn.Add(thingDefCount.thingDef, thingDefCount.count);
+                partsToReturn.Add((thingDefCount.thingDef, thingDefCount.count));
             }
             else
             {
                 totalSilver += CalculateCostOf(thingDefCount);
             }
         }
-        thingsToReturn.Add(RwThingDefOf.Silver, (int)totalSilver);
+
+        var thingsToReturn = AccumulateThingCounts(
+            partsToReturn,
+            RwThingDefOf.Silver,
+            (int)totalSilver
+        );
 
         return [.. thingsToReturn.Select(t => new ThingDefCount(t.Key, t.Value))];
+    }
+
+    // Additively upserts so a ThingDef appearing more than once (e.g. two
+    // killedLeavings entries resolving to the same def, or a parts payment that
+    // happens to be silver) accumulates instead of throwing on the duplicate key.
+    internal static Dictionary<ThingDef, int> AccumulateThingCounts(
+        IEnumerable<(ThingDef thingDef, int count)> counts,
+        ThingDef silverDef,
+        int totalSilverCount
+    )
+    {
+        Dictionary<ThingDef, int> result = [];
+        foreach (var (thingDef, count) in counts)
+        {
+            result[thingDef] = result.GetValueOrDefault(thingDef) + count;
+        }
+        result[silverDef] = result.GetValueOrDefault(silverDef) + totalSilverCount;
+
+        return result;
     }
 
     private void SetupNextText()
