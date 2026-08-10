@@ -35,13 +35,13 @@ internal class ShipJob_CancelLoad : ShipJob
             compTradeShuttle.ShuttleAutoLoad = false;
             transportShip.TransporterComp.leftToLoad?.Clear();
 
-            // End any jobs currently involved in loading the transport ship
+            // End any jobs currently involved in loading the transport ship - both vanilla's
+            // own single-item hauling and this mod's bulk-haul job (JobDefOf.ROT_HaulMultipleToTransporter,
+            // the default loading path per Settings._multiItemShuttleLoading) target the shuttle
+            // thing itself via targetB, so both are matched the same way.
             foreach (var humanLike in transportShip.shipThing.Map.mapPawns.GetAllHumanLike())
             {
-                if (
-                    humanLike.CurJobDef == RimWorld.JobDefOf.HaulToTransporter
-                    && humanLike.CurJob.targetB == transportShip.shipThing
-                )
+                if (IsLoadingCancelledShip(humanLike.CurJob, transportShip.shipThing))
                 {
                     humanLike.jobs.EndCurrentJob(JobCondition.Incompletable, true, true);
                 }
@@ -51,6 +51,16 @@ internal class ShipJob_CancelLoad : ShipJob
             done = true;
         }
     }
+
+    // Split out from Tick/TickInterval so the matching condition is unit-testable without a live
+    // map/pawn - see IsLoadingCancelledShipTests.
+    internal static bool IsLoadingCancelledShip(Job? curJob, Thing shipThing) =>
+        curJob != null
+        && (
+            curJob.def == RimWorld.JobDefOf.HaulToTransporter
+            || curJob.def == JobDefOf.ROT_HaulMultipleToTransporter
+        )
+        && curJob.targetB == shipThing;
 }
 
 internal static class MapPawnsGetAllHumanLike

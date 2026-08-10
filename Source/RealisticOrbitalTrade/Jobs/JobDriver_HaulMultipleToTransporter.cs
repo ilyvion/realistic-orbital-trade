@@ -109,6 +109,73 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
         Scribe_Collections.Look(ref _carriedThings, "carriedThings", LookMode.Reference);
         _carriedThings ??= [];
         Scribe_Values.Look(ref _handCarryGroupCount, "handCarryGroupCount", 1);
+
+        // AddFinishAction registrations (see Notify_Starting) don't survive a save/load - a job
+        // resumed after loading a save needs EjectUndeliveredCargo re-armed here instead.
+        if (Scribe.mode == LoadSaveMode.PostLoadInit)
+        {
+            AddFinishAction(EjectUndeliveredCargo);
+        }
+    }
+
+    // Safety net for a job that ends mid-trip (cancelled, pawn downed/drafted, reservation lost,
+    // etc.): anything already split off a colony stack and stashed in the pawn's inventory for
+    // later delivery (see takeThing/_carriedThings above) has no other job that will ever come
+    // back for it, so left alone the pawn would carry it around indefinitely. Registered via
+    // AddFinishAction, so this also runs on a normal finish, where _carriedThings is already
+    // empty by construction (see pullNextCarriedThing) and this is a no-op.
+    // JobDriver.AddFinishAction takes Action<JobCondition> from v1.5 onward, but plain Action on
+    // v1.4 - the delegate signature registered here has to match whichever this target actually
+    // builds against.
+#if v1_5_OR_GREATER
+    private void EjectUndeliveredCargo(JobCondition condition)
+    {
+        if (_carriedThings.Count == 0)
+        {
+            return;
+        }
+
+        DebugLog(
+            $"EjectUndeliveredCargo: job ended ({condition}) with {_carriedThings.Count} "
+                + "item(s) still in inventory - dropping them."
+        );
+        EjectUndeliveredCargoCore();
+    }
+#else
+    private void EjectUndeliveredCargo()
+    {
+        if (_carriedThings.Count == 0)
+        {
+            return;
+        }
+
+        DebugLog(
+            $"EjectUndeliveredCargo: job ended with {_carriedThings.Count} item(s) still in "
+                + "inventory - dropping them."
+        );
+        EjectUndeliveredCargoCore();
+    }
+#endif
+
+    private void EjectUndeliveredCargoCore()
+    {
+        foreach (var thing in _carriedThings)
+        {
+            if (thing.DestroyedOrNull() || !pawn.inventory.innerContainer.Contains(thing))
+            {
+                continue;
+            }
+
+            _ = pawn.inventory.innerContainer.TryDrop(
+                thing,
+                pawn.PositionHeld,
+                pawn.MapHeld,
+                ThingPlaceMode.Near,
+                thing.stackCount,
+                out _
+            );
+        }
+        _carriedThings.Clear();
     }
 
     // Mirrors vanilla JobDriver_HaulToTransporter: at this point job.targetA/targetQueueA are
@@ -120,6 +187,7 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
     public override void Notify_Starting()
     {
         base.Notify_Starting();
+        AddFinishAction(EjectUndeliveredCargo);
 
         var transporter = Transporter;
         if (transporter == null)
