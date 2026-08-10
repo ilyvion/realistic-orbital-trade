@@ -86,6 +86,29 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
         return false;
     }
 
+    // Queues a candidate for the standalone hand-carry path (pawn, or no batchable transferable)
+    // only once reserve() actually claims it - mirrors CommitToInventory/QueueHandCarryGroup,
+    // which both drop their candidate outright on a failed reservation instead of queuing a pickup
+    // nothing will ever protect. Takes reserve as a delegate (rather than calling ReserveForHaul
+    // directly) so the queuing decision can be unit tested without a live pawn/map.
+    internal static bool TryQueueStandaloneHandCarry(
+        Thing thing,
+        int count,
+        Func<Thing, int, bool> reserve,
+        List<LocalTargetInfo> targetQueue,
+        List<int> countQueue
+    )
+    {
+        if (!reserve(thing, count))
+        {
+            return false;
+        }
+
+        targetQueue.Add(thing);
+        countQueue.Add(count);
+        return true;
+    }
+
     // Thing.SplitOff doesn't clamp: asking it to split off more than a thing's actual stackCount
     // logs an error and despawns/detaches the *original* thing instead of returning a valid
     // partial split, so the queued pickup amount must never exceed what's really left in the
@@ -254,10 +277,25 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
             || transporter.leftToLoad == null
         )
         {
-            job.GetTargetQueue(TargetIndex.A).Add(thingCount.Thing);
             job.countQueue ??= [];
-            job.countQueue.Add(primaryCount);
-            if (ReserveForHaul(thingCount.Thing, primaryCount) && primaryTransferable != null)
+            if (
+                !TryQueueStandaloneHandCarry(
+                    thingCount.Thing,
+                    primaryCount,
+                    ReserveForHaul,
+                    job.GetTargetQueue(TargetIndex.A),
+                    job.countQueue
+                )
+            )
+            {
+                DebugLog(
+                    $"Notify_Starting: dropping primary {thingCount.Thing.LabelCap} - "
+                        + "reservation failed."
+                );
+                return;
+            }
+
+            if (primaryTransferable != null)
             {
                 var alreadyCommitted = committed.GetValueOrDefault(primaryTransferable);
                 TradeAgreement?.ReconcileReservation(
