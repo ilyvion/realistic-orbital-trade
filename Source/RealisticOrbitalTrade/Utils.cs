@@ -76,6 +76,15 @@ internal static class Utils
     }
 
     /// <summary>
+    /// True while <see cref="JobDriver_BuyMoreTime"/> is handing the payment silver to the trade
+    /// ship. That transfer runs outside any open trade dialog, so
+    /// <see cref="TradeShipData.tradeAgreementForQuest"/> is legitimately unset at that point;
+    /// <see cref="Patch.Rimworld_TradeShip_GiveSoldThingToTrader"/> checks this flag to avoid
+    /// logging its missing-agreement warning for that expected case.
+    /// </summary>
+    public static bool IsBuyingMoreTime { get; internal set; }
+
+    /// <summary>
     /// Returns <paramref name="cache"/> unless <paramref name="isDone"/> says it's done, in which
     /// case the cache is cleared (set to <see langword="null"/>) first. Used to lazily invalidate
     /// a cached reference to something that starts "live" and eventually finishes, without

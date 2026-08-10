@@ -55,7 +55,20 @@ internal class JobDriver_BuyMoreTime : JobDriver
                     ),
                     () =>
                     {
-                        TradeUtility.LaunchThingsOfType(RwThingDefOf.Silver, cost, map, tradeShip);
+                        Utils.IsBuyingMoreTime = true;
+                        try
+                        {
+                            TradeUtility.LaunchThingsOfType(
+                                RwThingDefOf.Silver,
+                                cost,
+                                map,
+                                tradeShip
+                            );
+                        }
+                        finally
+                        {
+                            Utils.IsBuyingMoreTime = false;
+                        }
                         extendDepartureTimeAction(ticks);
                         compTradeShuttle.timesBoughtMoreTime++;
                         Messages.Message(

@@ -61,10 +61,13 @@ internal static class Rimworld_TradeShip_GiveSoldThingToTrader
         var tradeAgreement = TradeShipData.tradeAgreementForQuest;
         if (tradeAgreement == null)
         {
-            RealisticOrbitalTradeMod.Instance.LogWarningOnce(
-                "Trade ship did not have a trade agreement arranged. Mod incompatibility?",
-                ref _hasWarnedAboutMissingTradeAgreement
-            );
+            if (!Utils.IsBuyingMoreTime)
+            {
+                RealisticOrbitalTradeMod.Instance.LogWarningOnce(
+                    "Trade ship did not have a trade agreement arranged. Mod incompatibility?",
+                    ref _hasWarnedAboutMissingTradeAgreement
+                );
+            }
             return true;
         }
 
