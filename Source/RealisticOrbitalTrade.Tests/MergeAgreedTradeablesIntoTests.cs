@@ -78,7 +78,7 @@ internal static class MergeAgreedTradeablesIntoTests
         Assert.That(tradeables[0].CountToTransfer).Is.EqualTo(-10);
     }
 
-    // Regression guard for the bug reported live: renegotiating a partially-hauled sale (some of
+    // Regression guard: renegotiating a partially-hauled sale (some of
     // the stack already split off and loaded onto the shuttle, or mid-haul in a pawn's hands)
     // showed a maximum sellable amount lower than what was actually already sold, because
     // CountHeldBy(Colony) only summed physically-reachable Things, undercounting the portion no
@@ -109,13 +109,90 @@ internal static class MergeAgreedTradeablesIntoTests
         Assert.That(tradeables[0].CountHeldBy(Transactor.Colony)).Is.EqualTo(430);
     }
 
-    // Regression guard for the bug reported live: a colony can hold more of an already-sold def
+    // Regression guard: silver was excluded from the Tradeable_Capped
+    // treatment every other sold def gets (both here and in ComputeRenegotiationChanges's
+    // matching), so silver already loaded onto the shuttle or mid-haul toward it vanished from
+    // CountHeldBy(Colony) entirely instead of being added back like every other sold good -
+    // making the renegotiation dialog show only whatever silver was still sitting in storage as
+    // the colony's total available amount.
+    [Test]
+    public static void MergeAppliesACapFloorForSilverToo()
+    {
+        var tradeAgreement = NewTradeAgreement();
+        var thing = NewThing(RimWorld.ThingDefOf.Silver, 430);
+        tradeAgreement.thingsSoldToTrader.Add(new ThingCountClass(thing, 430));
+        thing.stackCount = 375;
+
+        Tradeable existing = new();
+        existing.AddThing(thing, Transactor.Colony);
+        List<Tradeable> tradeables = [existing];
+
+        tradeAgreement.MergeAgreedTradeablesInto(tradeables);
+
+        Assert.ThatCollection(tradeables).Has.Count(1);
+        Assert.That(tradeables[0].CountToTransfer).Is.EqualTo(-430);
+        Assert.That(tradeables[0].CountHeldBy(Transactor.Colony)).Is.EqualTo(430);
+    }
+
+    // Regression guard: a colony can hold more of an already-sold def
     // than was originally committed (e.g. more was gathered since, or some is already loaded onto
     // the shuttle plus more sits untouched in storage) - CountHeldBy(Colony) must reflect that
     // true, higher total rather than plateauing at the originally agreed amount. This is the pure
     // matching/summing logic that total is built from (see
     // TradeAgreement.CountOfMatchingThingsInFlightToTrader, which feeds it the trader shuttle's
     // cargo and whatever's mid-haul toward it - both untestable here without a live Map/TransportShip).
+    // Regression guard: when nothing is left reachable in colony
+    // stockpiles (everything sold is already loaded/hauled), vanilla's own AddAllTradeables scan
+    // finds no IsCurrency tradeable and seeds a zero-stack dummy on the trader side instead (see
+    // TradeDeal.AddAllTradeables's final block). The merge must still find and upgrade *that*
+    // entry for a committed silver payment, the same way it upgrades a colony-stock-backed one -
+    // otherwise the live TradeDeal ends up with two Silver-def tradeables (vanilla's untouched
+    // dummy plus a second one this merge creates from scratch), and whichever one
+    // Dialog_Trade/Window_DynamicTrade's own currency lookup happens to find first is not
+    // necessarily the one carrying the real CountToTransfer, silently hiding the currency row's
+    // true value from the player.
+    [Test]
+    public static void MergeUpgradesVanillasOwnCurrencyDummyWhenNoColonySilverIsReachable()
+    {
+        var tradeAgreement = NewTradeAgreement();
+        var thing = NewThing(RimWorld.ThingDefOf.Silver, 299);
+        tradeAgreement.thingsSoldToTrader.Add(new ThingCountClass(thing, 299));
+
+        var dummy = NewThing(RimWorld.ThingDefOf.Silver, 0);
+        Tradeable existing = new();
+        existing.AddThing(dummy, Transactor.Trader);
+        List<Tradeable> tradeables = [existing];
+
+        tradeAgreement.MergeAgreedTradeablesInto(tradeables);
+
+        Assert.ThatCollection(tradeables).Has.Count(1);
+        Assert.That(tradeables[0].IsCurrency).Is.True();
+        Assert.That(tradeables[0].CountToTransfer).Is.EqualTo(-299);
+    }
+
+    // Regression guard: TradeUI.DrawTradeableRow shows the trader's own
+    // held count (and its price) via Tradeable.CountHeldBy(Transactor.Trader), skipping that whole
+    // column when the count is 0. The upgraded (Tradeable_Capped) entry must still report the
+    // trader's real holdings there instead of always reporting 0 - otherwise, for silver
+    // specifically (whose thingsTrader always carries the trader's funds), the trader's silver
+    // amount silently disappears from the currency row the moment any silver gets sold/loaded.
+    [Test]
+    public static void MergeDoesNotZeroOutTheTradersOwnHeldCount()
+    {
+        var tradeAgreement = NewTradeAgreement();
+        var soldThing = NewThing(RimWorld.ThingDefOf.Silver, 299);
+        tradeAgreement.thingsSoldToTrader.Add(new ThingCountClass(soldThing, 299));
+
+        var traderSilver = NewThing(RimWorld.ThingDefOf.Silver, 5000);
+        Tradeable existing = new();
+        existing.AddThing(traderSilver, Transactor.Trader);
+        List<Tradeable> tradeables = [existing];
+
+        tradeAgreement.MergeAgreedTradeablesInto(tradeables);
+
+        Assert.That(tradeables[0].CountHeldBy(Transactor.Trader)).Is.EqualTo(5000);
+    }
+
     [Test]
     public static void SumMatchingStackCountsOnlySumsThingsMatchingTheTradeable()
     {

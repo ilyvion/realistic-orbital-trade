@@ -20,11 +20,15 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         // both are added back in here. cap (the cumulative amount actually agreed to be sold)
         // still floors the total on top of that, in case some of it is briefly invisible to all
         // three sources at once (e.g. mid-SplitOff).
+        // Only the colony side is capped/floored here - thingsTrader (e.g. the trader's own
+        // silver funds, for a currency tradeable) is reported normally, since TradeUI's row
+        // (the "TraderCount" column) reads CountHeldBy(Trader) to show what the trader is
+        // holding, unrelated to what this class exists to fix up on the colony side.
         public override int CountHeldBy(Transactor trans)
         {
             if (trans != Transactor.Colony)
             {
-                return 0;
+                return base.CountHeldBy(trans);
             }
             var total = base.CountHeldBy(trans) + owner.CountOfMatchingThingsInFlightToTrader(this);
             return Math.Max(total, cap);
@@ -184,24 +188,22 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
             var tradeable = TransferableUtility.TradeableMatching(item.thing, tradeables);
             if (tradeable == null)
             {
-                tradeable =
-                    item.thing.def != RimWorld.ThingDefOf.Silver
-                        ? new Tradeable_Capped(this, item.Count)
-                        : new Tradeable();
+                tradeable = new Tradeable_Capped(this, item.Count);
                 tradeables.Add(tradeable);
             }
             else if (tradeable is Tradeable_Capped capped)
             {
                 capped.cap += item.Count;
             }
-            else if (item.thing.def != RimWorld.ThingDefOf.Silver)
+            else
             {
                 // Vanilla's own scan already created a plain Tradeable for this def (e.g. other
-                // loose stock of the same item elsewhere on the map) - upgrade it in place to a
-                // capped one so the amount already committed here isn't lost to whatever vanilla
-                // happened to find reachable. TradeableMatching matches purely by AnyThing, not by
-                // Tradeable subtype, so later items sharing this def still find this same upgraded
-                // entry rather than creating a duplicate.
+                // loose stock of the same item elsewhere on the map, or - for silver - the single
+                // currency tradeable TradeDeal always seeds) - upgrade it in place to a capped one
+                // so the amount already committed here isn't lost to whatever vanilla happened to
+                // find reachable. TradeableMatching matches purely by AnyThing, not by Tradeable
+                // subtype, so later items sharing this def still find this same upgraded entry
+                // rather than creating a duplicate.
                 var index = tradeables.IndexOf(tradeable);
                 var upgraded = new Tradeable_Capped(this, item.Count)
                 {
@@ -237,6 +239,53 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
             }
             tradeable.ForceTo(-1);
         }
+    }
+
+    /// <summary>
+    /// Force-reduces every sold-to-trader <paramref name="tradeables"/> entry (negative
+    /// <see cref="Tradeable.CountToTransfer"/>) to, at most, however much of it is present in
+    /// <paramref name="loadedThings"/> - anything sold but not actually loaded yet is dropped from
+    /// the deal entirely, as if it had never been sold. Bought-from-trader entries are left
+    /// untouched. Used to lock in only the already-loaded portion of a sale when the trader is
+    /// leaving before loading finished - see <see cref="Utils.TryBeginDepartureRenegotiation"/>.
+    /// </summary>
+    internal static void ClampSoldTradeablesToLoaded(
+        List<Tradeable> tradeables,
+        IEnumerable<Thing> loadedThings
+    )
+    {
+        var loaded = loadedThings as ICollection<Thing> ?? [.. loadedThings];
+        foreach (var tradeable in tradeables)
+        {
+            if (tradeable.CountToTransfer >= 0)
+            {
+                continue;
+            }
+
+            if (tradeable.AnyThing is Pawn pawn)
+            {
+                tradeable.ForceTo(loaded.Contains(pawn) ? tradeable.CountToTransfer : 0);
+                continue;
+            }
+
+            var loadedCount = SumMatchingStackCounts(tradeable, loaded);
+            tradeable.ForceTo(-Math.Min(loadedCount, -tradeable.CountToTransfer));
+        }
+    }
+
+    /// <summary>
+    /// Same as <see cref="AllTradeables"/>, except every sold-to-trader tradeable is clamped to
+    /// what's physically loaded onto <see cref="toTraderTransportShip"/> right now - see
+    /// <see cref="ClampSoldTradeablesToLoaded"/>.
+    /// </summary>
+    internal List<Tradeable> LoadedOnlyTradeables()
+    {
+        var tradeables = AllTradeables;
+        ClampSoldTradeablesToLoaded(
+            tradeables,
+            toTraderTransportShip!.TransporterComp.innerContainer
+        );
+        return tradeables;
     }
 
     internal static bool IsSoldThingLost(ThingCountClass thingCount) =>
@@ -737,6 +786,20 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         newTradeables.Sum(t => Math.Abs(t.CountToTransfer)) == 0;
 
     /// <summary>
+    /// The most silver the colony can still pay the trader during a departure renegotiation - like
+    /// any other already-loaded good (see <see cref="ClampSoldTradeablesToLoaded"/>), silver that's
+    /// physically on the shuttle can't be added to further, only reduced. Unlike other goods this
+    /// never shows up as a tradeable's own <see cref="Tradeable.CountToTransfer"/> in the UI, since
+    /// vanilla's <c>TradeDeal.UpdateCurrencyCount</c> recalculates the currency tradeable every
+    /// frame to auto-balance the deal, overwriting it - see
+    /// <see cref="Patch.Rimworld_Dialog_Trade_DoWindowContents"/>'s silver-ceiling row.
+    /// </summary>
+    internal static int MaxPayableSilver(IEnumerable<Tradeable> originalTradeables) =>
+        originalTradeables.FirstOrDefault(t => t.IsCurrency) is { CountToTransfer: < 0 } currency
+            ? -currency.CountToTransfer
+            : 0;
+
+    /// <summary>
     /// Pure diff: compares <paramref name="originalTradeables"/> (the deal as agreed before the
     /// renegotiation dialog opened, see <see cref="AllTradeables"/>) against
     /// <paramref name="newTradeables"/> (the live <see cref="TradeDeal"/>'s tradeables after the
@@ -859,6 +922,18 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
 
         return changes;
     }
+
+    /// <summary>
+    /// Picks which <paramref name="candidates"/> entry <see cref="ApplyRenegotiation"/> should trim
+    /// first when a sold amount is reduced - whichever isn't loaded yet
+    /// (<paramref name="isLoaded"/> false), so an already-loaded stack is left alone and a stack
+    /// still sitting on the map (no longer needed) gets dropped instead. Falls back to whatever's
+    /// first among equally-loaded/unloaded candidates otherwise.
+    /// </summary>
+    internal static ThingCountClass? PreferUnloadedThingCount(
+        IEnumerable<ThingCountClass> candidates,
+        Func<Thing, bool> isLoaded
+    ) => candidates.OrderBy(t => isLoaded(t.thing) ? 1 : 0).FirstOrDefault();
 
     /// <summary>
     /// Applies <see cref="ComputeRenegotiationChanges"/>'s delta between the deal as originally
@@ -1037,17 +1112,27 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                         {
                             var tradedThingDef = tradeable.ThingDef;
 
-                            // Take things off the soldToTrader list
+                            // Take things off the soldToTrader list. A sold def can span several
+                            // stacks - some already loaded into the shuttle's container, some
+                            // still sitting on the map waiting for a hauling job - so entries not
+                            // yet loaded are taken off first (see PreferUnloadedThingCount).
+                            // Otherwise this could just as easily trim an already-loaded stack
+                            // instead, leaving the untouched one's now-stale reservation dangling
+                            // on the map forever (it's no longer part of the sale, but nothing
+                            // would ever release it).
                             var leftToTakeOff = -amount;
                             do
                             {
-                                var thingCount = tradeable.AnyThing.HasRequirements()
-                                    ? thingsSoldToTrader.FirstOrDefault(t =>
-                                        t.thing.GetInnerIfMinified() == tradeable.AnyThing
-                                    )
-                                    : thingsSoldToTrader.FirstOrDefault(t =>
-                                        t.thing.def == tradedThingDef
-                                    );
+                                var thingCount = PreferUnloadedThingCount(
+                                    tradeable.AnyThing.HasRequirements()
+                                        ? thingsSoldToTrader.Where(t =>
+                                            t.thing.GetInnerIfMinified() == tradeable.AnyThing
+                                        )
+                                        : thingsSoldToTrader.Where(t =>
+                                            t.thing.def == tradedThingDef
+                                        ),
+                                    toTraderTransportShipContainer.Contains
+                                );
                                 if (thingCount == null)
                                 {
                                     break;

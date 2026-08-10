@@ -142,7 +142,7 @@ internal static class TryReduceRequiredCountTests
         Assert.That((int)remaining.quality).Is.EqualTo((int)QualityCategory.Excellent);
     }
 
-    // Regression guard for the bug reported live: with genepacks bound to their exact Thing via
+    // Regression guard: with genepacks bound to their exact Thing via
     // requiredThing, reducing must target the entry bound to the specific Thing being removed,
     // not merely the first entry sharing the same def - otherwise unselling one genepack during
     // renegotiation could eject/keep the wrong physical genepack.

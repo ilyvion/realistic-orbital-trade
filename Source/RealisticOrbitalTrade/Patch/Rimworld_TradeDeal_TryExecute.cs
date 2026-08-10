@@ -102,7 +102,113 @@ internal static class Rimworld_TradeDeal_TryExecute
         // delivered" - see TradeAgreement.ApplyRenegotiation for the delta-based replacement.
         if (tradeAgreementForQuest.tradeDeliveryMethod != null)
         {
+            // Vanilla's Dialog_Trade recalculates the silver tradeable every frame
+            // (TradeDeal.UpdateCurrencyCount, called from Dialog_Trade.DoWindowContents) so it's
+            // always current by the time Accept is clicked - but DTI's Window_DynamicTrade only
+            // does this inside its own throttled refresh, not unconditionally, so the silver
+            // tradeable can still be showing a stale (often untouched-since-original-trade) amount
+            // the moment Accept is clicked there. Doing it here directly, before diffing below,
+            // means the comparison always sees what the deal actually needs regardless of which
+            // trade UI is open - without it, a renegotiation the player left untouched (silver
+            // tradeable still at its pre-renegotiation value) shows no diff from
+            // RenegotiationOriginalTradeables at all, and the ToTrader-increase check further down
+            // never has anything to catch.
+            __instance.UpdateCurrencyCount();
+
+            // Vanilla's own TradeDeal.TryExecute refuses to run at all once the colony can't
+            // cover what's owed (CurrencyTradeable.CountPostDealFor(Colony) < 0) - but that check
+            // lives inside the very method body this branch replaces wholesale (see the big
+            // comment above), so without repeating it here a renegotiation the player can't
+            // afford sails straight into ApplyRenegotiation and tries to pull more silver off the
+            // colony than it actually has.
+            if (
+                __instance.CurrencyTradeable == null
+                || __instance.CurrencyTradeable.CountPostDealFor(Transactor.Colony) < 0
+            )
+            {
+                // Setting the static directly (rather than Dialog_Trade.FlashSilver(), an instance
+                // method) flashes the currency row under DTI too - DTI's own Window_DynamicTrade.
+                // DrawCurrencyRow reads this exact same vanilla field, and WindowOfType<Dialog_Trade>
+                // finds nothing to call FlashSilver() on when DTI, not the vanilla dialog, is open.
+                Dialog_Trade.lastCurrencyFlashTime = Time.time;
+                Messages.Message(
+                    "MessageColonyCannotAfford".Translate(),
+                    MessageTypeDefOf.RejectInput,
+                    historical: false
+                );
+
+                actuallyTraded = false;
+                __result = false;
+                return false;
+            }
+
             var newTradeables = __instance.AllTradeables;
+            var originalTradeables =
+                Utils.RenegotiationOriginalTradeables ?? tradeAgreementForQuest.AllTradeables;
+
+            // A departure-triggered renegotiation only offers the player a chance to adjust what
+            // they're buying to match what's already loaded - they can't sell anything further at
+            // this stage (see Utils.TryBeginDepartureRenegotiation). This includes silver: paying
+            // more silver toward the trader still means physically loading more of it onto the
+            // shuttle, which is exactly as impossible post-departure as loading more of any other
+            // good - the player can only balance the deal by buying less, not by paying more.
+            // ComputeRenegotiationChanges tags a tradeable ToTrader for any change to the sold
+            // side, including reducing it (e.g. handing over less of the loaded silver than the
+            // full amount) - amount > 0 is what actually distinguishes a genuine increase from a
+            // harmless reduction; see its "negative number: colony gets less" comment.
+            if (Utils.RenegotiatingBecauseDeparting)
+            {
+                var allChanges = TradeAgreement.ComputeRenegotiationChanges(
+                    originalTradeables,
+                    newTradeables
+                );
+                RealisticOrbitalTradeMod.Instance.LogDevMessage(
+                    "Departure renegotiation accept check: "
+                        + $"RenegotiationOriginalTradeables is {(Utils.RenegotiationOriginalTradeables == null ? "null (using tradeAgreementForQuest.AllTradeables fallback)" : "set")}; "
+                        + $"originalTradeables=[{string.Join(", ", originalTradeables.Select(t => $"{t.ThingDef?.defName}:IsCurrency={t.IsCurrency}:HasAnyThing={t.HasAnyThing}:CountToTransfer={t.CountToTransfer}"))}]; "
+                        + $"newTradeables=[{string.Join(", ", newTradeables.Select(t => $"{t.ThingDef?.defName}:IsCurrency={t.IsCurrency}:HasAnyThing={t.HasAnyThing}:CountToTransfer={t.CountToTransfer}"))}]; "
+                        + $"changes=[{string.Join(", ", allChanges.Select(c => $"{c.direction}:{c.tradeable.ThingDef?.defName}:{c.amount}"))}]"
+                );
+
+                var (_, loadedGoodsTradeable, blockingAmount) = allChanges.FirstOrDefault(change =>
+                    change.direction == TradeAgreement.TransferDirection.ToTrader
+                    && change.amount > 0
+                );
+                if (loadedGoodsTradeable != null)
+                {
+                    var originalCount = originalTradeables
+                        .FirstOrDefault(t => t.ThingDef == loadedGoodsTradeable.ThingDef)
+                        ?.CountToTransfer;
+                    RealisticOrbitalTradeMod.Instance.LogDevMessage(
+                        $"Blocking departure renegotiation accept: {loadedGoodsTradeable.LabelCap} "
+                            + $"blocked by {blockingAmount} (original CountToTransfer="
+                            + $"{originalCount}, new CountToTransfer="
+                            + $"{loadedGoodsTradeable.CountToTransfer})"
+                    );
+
+                    // Silver's own row never shows this ceiling on its own (see MaxPayableSilver) -
+                    // flash it here the same way the affordability check above does, so the player
+                    // has some visual cue pointing at which row is actually blocking Accept.
+                    if (loadedGoodsTradeable.IsCurrency)
+                    {
+                        Dialog_Trade.lastCurrencyFlashTime = Time.time;
+                    }
+
+                    Messages.Message(
+                        "RealisticOrbitalTrade.CantChangeLoadedGoods".Translate(
+                            loadedGoodsTradeable.LabelCap,
+                            Math.Abs(originalCount ?? 0)
+                        ),
+                        MessageTypeDefOf.RejectInput,
+                        historical: false
+                    );
+
+                    actuallyTraded = false;
+                    __result = false;
+                    return false;
+                }
+            }
+
             if (TradeAgreement.IsFullCancellation(newTradeables))
             {
                 var toTraderCompTradeShuttle =
@@ -130,8 +236,6 @@ internal static class Rimworld_TradeDeal_TryExecute
                 return false;
             }
 
-            var originalTradeables =
-                Utils.RenegotiationOriginalTradeables ?? tradeAgreementForQuest.AllTradeables;
             actuallyTraded = tradeAgreementForQuest.ApplyRenegotiation(
                 originalTradeables,
                 newTradeables

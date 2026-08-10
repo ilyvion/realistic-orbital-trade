@@ -2,7 +2,7 @@ using RimTestRedux;
 
 namespace RealisticOrbitalTrade.Tests;
 
-// Regression guard for the bug reported live: a genepack has no quality, no
+// Regression guard: a genepack has no quality, no
 // healthAffectsPrice, and isn't minified, so without GeneSetHolderBase being special-cased here
 // it fell through to HasRequirements() == false and got treated as interchangeable with any
 // other genepack throughout ApplyRenegotiation's hard-case removal - unselling one specific

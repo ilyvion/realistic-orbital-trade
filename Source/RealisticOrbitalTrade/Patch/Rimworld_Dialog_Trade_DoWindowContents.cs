@@ -77,6 +77,12 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
             yOffset += 30f;
         }
 
+        if (Utils.RenegotiatingBecauseDeparting)
+        {
+            DrawSilverCeilingRow(rowWidth, yOffset, tradeAgreement);
+            yOffset += 30f;
+        }
+
         return yOffset;
     }
 
@@ -233,6 +239,55 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
         Rect labelRect = new(80f, 0f, rowWidth - 175f - 80f, rowRect.height);
         Text.Anchor = TextAnchor.MiddleLeft;
         Widgets.Label(labelRect, labelKey.Translate().CapitalizeFirst());
+
+        Widgets.EndGroup();
+    }
+
+    // Departure renegotiations lock every already-loaded good, including silver, to what's
+    // physically on the shuttle and forbid increasing it further (see
+    // Rimworld_TradeDeal_TryExecute's ToTrader-increase block) - but unlike every other good,
+    // silver's own row can't show that ceiling: vanilla's TradeDeal.UpdateCurrencyCount
+    // recalculates its CountToTransfer every frame to auto-balance the deal, overwriting whatever
+    // ClampSoldTradeablesToLoaded set it to the moment the dialog opened. This row surfaces the
+    // ceiling directly instead, using the same original-tradeables snapshot the Accept-time check
+    // itself compares against.
+    private static void DrawSilverCeilingRow(
+        float rowWidth,
+        float yOffset,
+        TradeAgreement tradeAgreement
+    )
+    {
+        var rowRect = new Rect(0f, 58f + yOffset, rowWidth, 30f);
+
+        Text.Font = GameFont.Small;
+        Widgets.BeginGroup(rowRect);
+
+        var maxPayableSilver = TradeAgreement.MaxPayableSilver(
+            Utils.RenegotiationOriginalTradeables ?? tradeAgreement.AllTradeables
+        );
+
+        Rect valueRect = new(rowWidth - 175f, 0f, 175f, rowRect.height);
+        if (Mouse.IsOver(valueRect))
+        {
+            Widgets.DrawHighlight(valueRect);
+        }
+        Text.Anchor = TextAnchor.MiddleRight;
+        var valueLabelRect = valueRect;
+        valueLabelRect.xMin += 5f;
+        valueLabelRect.xMax -= 5f;
+        Widgets.Label(valueLabelRect, maxPayableSilver.ToStringCached());
+        TooltipHandler.TipRegionByKey(
+            valueRect,
+            "RealisticOrbitalTrade.MaxPayableSilverTip",
+            maxPayableSilver.ToStringCached()
+        );
+
+        Rect labelRect = new(80f, 0f, rowWidth - 175f - 80f, rowRect.height);
+        Text.Anchor = TextAnchor.MiddleLeft;
+        Widgets.Label(
+            labelRect,
+            "RealisticOrbitalTrade.MaxPayableSilverLabel".Translate().CapitalizeFirst()
+        );
 
         Widgets.EndGroup();
     }

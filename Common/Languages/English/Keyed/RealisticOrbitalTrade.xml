@@ -87,4 +87,10 @@
     <RealisticOrbitalTrade.BoughtMoreTime>Paid {1} to extend the trade shuttle's departure timer by {0}.</RealisticOrbitalTrade.BoughtMoreTime>
     <RealisticOrbitalTrade.ReservedForTradeSuffix>reserved for trade</RealisticOrbitalTrade.ReservedForTradeSuffix>
     <RealisticOrbitalTrade.ReservedForTradeMessage>{0} is reserved for an orbital trade agreement and can't be used for anything else until it's hauled to the trade shuttle.</RealisticOrbitalTrade.ReservedForTradeMessage>
+    <RealisticOrbitalTrade.DepartureRenegotiationExplanationTitle>Trade shuttle departing early</RealisticOrbitalTrade.DepartureRenegotiationExplanationTitle>
+    <RealisticOrbitalTrade.DepartureRenegotiationExplanationText>{0} is leaving before your trade shuttle finished loading. What's already loaded, including any silver, has been locked in as what you're selling - you can't add to it, not even by paying more silver. Reduce what you're buying until the trader's willing to accept it in exchange for what's already loaded. Closing the negotiation without accepting instead fails the whole trade and unloads the shuttle.</RealisticOrbitalTrade.DepartureRenegotiationExplanationText>
+    <RealisticOrbitalTrade.CantChangeLoadedGoods>{0} can't be increased past the {1} already loaded onto the shuttle.</RealisticOrbitalTrade.CantChangeLoadedGoods>
+    <RealisticOrbitalTrade.MaxPayableSilverLabel>silver already loaded</RealisticOrbitalTrade.MaxPayableSilverLabel>
+    <RealisticOrbitalTrade.MaxPayableSilverTip>The trader is leaving before the shuttle finished loading, so this is capped: you can't pay more silver than what's already been loaded onto it, no matter how much you have in storage. Reduce what you're buying if the currency row above needs more than this.</RealisticOrbitalTrade.MaxPayableSilverTip>
+    <RealisticOrbitalTrade.ConfirmDepartureRenegotiationCancel>Closing this without accepting will fail the trade and unload the shuttle. Are you sure?</RealisticOrbitalTrade.ConfirmDepartureRenegotiationCancel>
 </LanguageData>

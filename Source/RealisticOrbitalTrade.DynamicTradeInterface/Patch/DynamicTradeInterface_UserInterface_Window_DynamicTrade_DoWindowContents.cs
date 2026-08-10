@@ -18,6 +18,12 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
                 typeof(Window_DynamicTrade),
                 nameof(Window_DynamicTrade.DoWindowContents)
             ),
+            prefix: new HarmonyMethod(
+                AccessTools.Method(
+                    typeof(DynamicTradeInterface_UserInterface_Window_DynamicTrade_DoWindowContents),
+                    nameof(UpdateCurrencyCount)
+                )
+            ),
             transpiler: new HarmonyMethod(
                 AccessTools.Method(
                     typeof(DynamicTradeInterface_UserInterface_Window_DynamicTrade_DoWindowContents),
@@ -35,6 +41,15 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
             )
         );
     }
+
+    // Vanilla's Dialog_Trade.DoWindowContents calls TradeSession.deal.UpdateCurrencyCount()
+    // unconditionally on every frame, so the silver tradeable always reflects what the current
+    // selection actually needs to balance by the time the player looks at it or clicks Accept.
+    // Window_DynamicTrade only calls it inside its own throttled _refresh block (e.g. after a row
+    // callback flips a dirty flag), not on every frame - so the currency row (and anything reading
+    // CountToTransfer off of it, like Rimworld_TradeDeal_TryExecute's renegotiation balance check)
+    // can still be showing whatever it was left at from before the window opened.
+    private static void UpdateCurrencyCount() => TradeSession.deal.UpdateCurrencyCount();
 
     private static readonly FieldInfo _field_Window_DynamicTrade_currencyFont = AccessTools.Field(
         typeof(Window_DynamicTrade),
@@ -59,8 +74,9 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
 
     // Number of extra rows to draw below the currency row: the trade-value threshold row (only
     // when that setting is enabled), the outgoing cargo mass row (always, since it's a hard
-    // shuttle capacity limit rather than a balance preference), and the incoming cargo mass row
-    // (only when bought items actually arrive by shuttle rather than drop pod).
+    // shuttle capacity limit rather than a balance preference), the incoming cargo mass row (only
+    // when bought items actually arrive by shuttle rather than drop pod), and the silver-ceiling
+    // row (only during a departure renegotiation).
     private static int ExtraRowsCount()
     {
         var tradeAgreement = TradeShipData.tradeAgreementForQuest;
@@ -75,6 +91,10 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
             count++;
         }
         if (!tradeAgreement.deliverItemsViaDropPod)
+        {
+            count++;
+        }
+        if (Utils.RenegotiatingBecauseDeparting)
         {
             count++;
         }
@@ -107,6 +127,12 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
         {
             rowRect.y += currencyRowRect.height;
             DrawCargoMassRow(rowRect, outgoing: false);
+        }
+
+        if (Utils.RenegotiatingBecauseDeparting)
+        {
+            rowRect.y += currencyRowRect.height;
+            DrawSilverCeilingRow(rowRect, tradeAgreement);
         }
 
         Text.Font = currentFont;
@@ -245,6 +271,50 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
                 tipKey,
                 mass.ToStringEnsureThreshold(massCapacity, 2),
                 massCapacity.ToString("F2", CultureInfo.CurrentCulture)
+            );
+        }
+
+        Text.Font = currentFont;
+    }
+
+    // Mirrors the equivalent row in the vanilla trade dialog (Rimworld_Dialog_Trade_DoWindowContents
+    // .DrawSilverCeilingRow) but laid out to match this window's currency-row style - see that
+    // method for why this row exists at all (silver's own row can't show the ceiling itself).
+    private static void DrawSilverCeilingRow(Rect rowRect, TradeAgreement tradeAgreement)
+    {
+        var currentFont = Text.Font;
+        Text.Font = GameFont.Small;
+
+        var maxPayableSilver = TradeAgreement.MaxPayableSilver(
+            Utils.RenegotiationOriginalTradeables ?? tradeAgreement.AllTradeables
+        );
+
+        Rect valueRect = new(rowRect.xMax - 260f, rowRect.y, 200f, rowRect.height);
+
+        var curX = rowRect.x + 60f;
+        Rect labelRect = new(curX, rowRect.y, valueRect.x - curX - 10f, rowRect.height);
+        Text.Anchor = TextAnchor.MiddleLeft;
+        Widgets.Label(
+            labelRect,
+            "RealisticOrbitalTrade.MaxPayableSilverLabel".Translate().CapitalizeFirst()
+        );
+        if (Mouse.IsOver(labelRect))
+        {
+            TooltipHandler.TipRegionByKey(
+                labelRect,
+                "RealisticOrbitalTrade.MaxPayableSilverTip",
+                maxPayableSilver.ToStringCached()
+            );
+        }
+
+        Text.Anchor = TextAnchor.MiddleRight;
+        Widgets.Label(valueRect, maxPayableSilver.ToStringCached());
+        if (Mouse.IsOver(valueRect))
+        {
+            TooltipHandler.TipRegionByKey(
+                valueRect,
+                "RealisticOrbitalTrade.MaxPayableSilverTip",
+                maxPayableSilver.ToStringCached()
             );
         }
 

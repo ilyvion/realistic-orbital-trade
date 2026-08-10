@@ -511,6 +511,20 @@ internal class CompTradeShuttle : ThingComp
             {
                 return false;
             }
+            // Utils.TryBeginDepartureRenegotiation locks in the loaded amount as the new required
+            // amount (via TradeAgreement.ApplyRenegotiation) before the renegotiation dialog even
+            // opens, which would otherwise make this true immediately - and since the toTrader
+            // shuttle's WaitForever ship job has leaveImmediatelyWhenSatisfied set, that makes it
+            // auto-launch (see ShipJob_Wait.TickInterval/SendAway) before the player has seen or
+            // resolved the dialog, regardless of whether they go on to accept or decline it.
+            if (
+                tradeAgreement != null
+                && Utils.RenegotiatingBecauseDeparting
+                && Utils.RenegotiatingAgreement == tradeAgreement
+            )
+            {
+                return false;
+            }
             CalculateRemainingRequiredItems();
             return tmpRequiredSpecificItems.Sum(t => t.count) == 0;
         }

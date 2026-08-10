@@ -63,16 +63,122 @@ internal static class Utils
     /// </summary>
     public static List<Tradeable>? RenegotiationOriginalTradeables { get; internal set; }
 
+    /// <summary>
+    /// Set alongside <see cref="RenegotiatingAgreement"/> when the reopened trade dialog was
+    /// triggered automatically because the trader is leaving with the shuttle only partially
+    /// loaded (see <see cref="TryBeginDepartureRenegotiation"/>), rather than by the player
+    /// choosing to renegotiate. Already-loaded/boarded sold goods can't be edited in this mode -
+    /// see <see cref="Patch.Rimworld_TradeDeal_TryExecute"/> - and closing without accepting warns
+    /// the player it will fail the trade instead of silently doing nothing - see
+    /// <see cref="Patch.Rimworld_Dialog_Trade_Close"/>.
+    /// </summary>
+    public static bool RenegotiatingBecauseDeparting { get; private set; }
+
+    /// <summary>
+    /// Set once the player has confirmed, via the warning shown by
+    /// <see cref="Patch.Rimworld_Dialog_Trade_Close"/>, that closing a departure-triggered
+    /// renegotiation without accepting should actually fail the trade.
+    /// </summary>
+    public static bool DepartureRenegotiationCancelConfirmed { get; internal set; }
+
+    /// <summary>
+    /// The <see cref="Quests.QuestPart_TryBeginDepartureRenegotiation.outSignalFailed"/> tag for
+    /// the renegotiation currently in progress, set alongside <see cref="RenegotiatingBecauseDeparting"/>.
+    /// Declining a departure-triggered renegotiation - see
+    /// <see cref="Patch.Rimworld_Dialog_Trade_Close"/> - fires this instead of duplicating the
+    /// quest's own dump-and-fail logic, so there's exactly one place that logic lives regardless
+    /// of which reason caused the renegotiation to not go through.
+    /// </summary>
+    public static string? DepartureRenegotiationFailedSignal { get; private set; }
+
     internal static void BeginRenegotiation(TradeAgreement tradeAgreement)
     {
         RenegotiatingAgreement = tradeAgreement;
         RenegotiationOriginalTradeables = null;
+        RenegotiatingBecauseDeparting = false;
+        DepartureRenegotiationCancelConfirmed = false;
+        DepartureRenegotiationFailedSignal = null;
     }
 
     internal static void EndRenegotiation()
     {
         RenegotiatingAgreement = null;
         RenegotiationOriginalTradeables = null;
+        RenegotiatingBecauseDeparting = false;
+        DepartureRenegotiationCancelConfirmed = false;
+        DepartureRenegotiationFailedSignal = null;
+    }
+
+    /// <summary>
+    /// Called when the trade shuttle's departure timer expires with the shuttle only partially
+    /// loaded. Locks in whatever's already physically loaded as the new sold-to-trader amount
+    /// (see <see cref="TradeAgreement.ApplyRenegotiation"/>), then reopens the trade dialog so the
+    /// player can adjust what they're buying to match, instead of dumping everything and failing
+    /// the trade outright. Returns <see langword="false"/> without doing anything if there's
+    /// nothing loaded to salvage, or no negotiator available to run the renegotiation - the caller
+    /// is expected to fall back to failing the trade outright in that case.
+    /// </summary>
+    internal static bool TryBeginDepartureRenegotiation(
+        TradeAgreement tradeAgreement,
+        string outSignalFailed
+    )
+    {
+        if (!tradeAgreement.NegotiatorAvailable)
+        {
+            RealisticOrbitalTradeMod.Instance.LogDevMessage(
+                "TryBeginDepartureRenegotiation failing because there is no negotiator available"
+            );
+            return false;
+        }
+
+        // Tradeable.TraderWillTrade (hit while merging more than one already-committed
+        // tradeable, including inside ApplyRenegotiation's own diffing) reads the static
+        // TradeSession.trader, which is only populated while an actual trade dialog is open -
+        // null here, since this runs from a quest signal with no dialog open yet, and would
+        // otherwise NRE. Setting it to the correct trader for the duration of every tradeable
+        // computation below is also semantically correct, not just crash avoidance: it's the
+        // same trader TryOpenComms is about to open a real session with anyway.
+        var previousTrader = TradeSession.trader;
+        TradeSession.trader = tradeAgreement.tradeShip;
+        try
+        {
+            var loadedOnlyTradeables = tradeAgreement.LoadedOnlyTradeables();
+            if (TradeAgreement.IsFullCancellation(loadedOnlyTradeables))
+            {
+                RealisticOrbitalTradeMod.Instance.LogDevMessage(
+                    "TryBeginDepartureRenegotiation failing because this is a full cancellation"
+                );
+                return false;
+            }
+
+            _ = tradeAgreement.ApplyRenegotiation(
+                tradeAgreement.AllTradeables,
+                loadedOnlyTradeables
+            );
+        }
+        finally
+        {
+            TradeSession.trader = previousTrader;
+        }
+
+        BeginRenegotiation(tradeAgreement);
+        RenegotiatingBecauseDeparting = true;
+        DepartureRenegotiationFailedSignal = outSignalFailed;
+
+        // A letter sent the same tick the dialog opens can't actually be read before the
+        // renegotiation happens - shown as a blocking dialog instead so the player sees the
+        // explanation before comms open, not buried behind it.
+        Find.WindowStack.Add(
+            new Dialog_MessageBox(
+                "RealisticOrbitalTrade.DepartureRenegotiationExplanationText".Translate(
+                    tradeAgreement.tradeShip.TraderName
+                ),
+                title: "RealisticOrbitalTrade.DepartureRenegotiationExplanationTitle".Translate(),
+                buttonAAction: () =>
+                    tradeAgreement.tradeShip.TryOpenComms(tradeAgreement.negotiator)
+            )
+        );
+        return true;
     }
 
     /// <summary>

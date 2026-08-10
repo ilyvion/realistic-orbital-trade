@@ -13,7 +13,7 @@ internal class QuestNode_Root_TradeShipTransportShip : QuestNode
         var quest = QuestGen.quest;
         var slate = QuestGen.slate;
 
-        var tradeAgreement = slate.Get<TradeAgreement>("tradeAgreement")!;
+        var tradeAgreement = slate.Get<TradeAgreement>("tradeAgreement");
 
         var questTag = QuestGenUtility.HardcodedTargetQuestTagWithQuestID(
             "ROT_TradeShipTransportShip"
@@ -93,13 +93,35 @@ internal class QuestNode_Root_TradeShipTransportShip : QuestNode
         var ticksUntilShuttleDeparture = !tradeAgreement.tradePausesDepartureTimer
             ? QuestUtils.CheckTradeShipRequiresGraceTime(quest, slate, tradeAgreement.tradeShip)
             : tradeAgreement.tradeShip.ticksUntilDeparture;
+        var shuttleDepartureExpiredSignal = QuestGenUtility.HardcodedSignalWithQuestID(
+            "ShuttleDepartureExpired"
+        );
         _ = quest.TradeShuttleLeaveDelay(
             toTraderShuttle,
             tradeAgreement.tradePausesDepartureTimer,
             tradeAgreement.tradeShip.TraderName,
             ticksUntilShuttleDeparture,
             inSignalsDisable: Gen.YieldSingle(signalToTraderShuttleSentSatisfied),
-            complete: () =>
+            outSignalComplete: shuttleDepartureExpiredSignal
+        );
+
+        // Rather than dumping everything and failing outright, offer to renegotiate the trade
+        // down to whatever's already loaded, so the player isn't punished for a
+        // partially-completed haul - see QuestPart_TryBeginDepartureRenegotiation. Falls through
+        // to the dump-and-fail behavior below (via departureRenegotiationFailedSignal) if there's
+        // nothing loaded to salvage, or no negotiator available to renegotiate.
+        var departureRenegotiationFailedSignal = QuestGenUtility.HardcodedSignalWithQuestID(
+            "DepartureRenegotiationFailed"
+        );
+        _ = quest.TryBeginDepartureRenegotiation(
+            tradeAgreement,
+            departureRenegotiationFailedSignal,
+            inSignal: shuttleDepartureExpiredSignal
+        );
+
+        quest.Signal(
+            departureRenegotiationFailedSignal,
+            () =>
             {
                 quest.CancelTransportShip(toTraderTransportShip);
                 _ = quest.ReturnBoughtItemsToTradeShip(tradeAgreement);
@@ -334,7 +356,7 @@ internal class QuestNode_Root_TradeShipTransportShip : QuestNode
         {
             throw new ArgumentNullException(nameof(slate));
         }
-        var tradeAgreement = slate.Get<TradeAgreement>("tradeAgreement")!;
+        var tradeAgreement = slate.Get<TradeAgreement>("tradeAgreement");
 
         return tradeAgreement.tradeShip.GetData().ticksUntilCommsClosed != 0;
     }
