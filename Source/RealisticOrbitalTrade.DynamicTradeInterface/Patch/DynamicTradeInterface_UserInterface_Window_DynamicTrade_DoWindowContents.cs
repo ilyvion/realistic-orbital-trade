@@ -144,7 +144,15 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
         TradeAgreement tradeAgreement
     )
     {
-        var flash = Time.time - Rimworld_Dialog_Trade_DoWindowContents.lastTradeValueFlashTime < 1f;
+        var combinedTradeValue =
+            Rimworld_Dialog_Trade_DoWindowContents.CalculateCombinedTradeValue();
+        var minimumTradeThreshold = tradeAgreement.tradeShip.GetData().minimumTradeThreshold;
+        var (tradeValueDifference, valueColor, flash) =
+            Rimworld_Dialog_Trade_DoWindowContents.GetTradeValueThresholdRowDisplay(
+                combinedTradeValue,
+                minimumTradeThreshold
+            );
+
         if (flash)
         {
             GUI.DrawTexture(thresholdRowRect, TransferableUIUtility.FlashTex);
@@ -158,9 +166,6 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
         {
             TooltipHandler.TipRegionByKey(labelRect, "RealisticOrbitalTrade.TradeValueTip");
         }
-
-        var combinedTradeValue =
-            Rimworld_Dialog_Trade_DoWindowContents.CalculateCombinedTradeValue();
 
         var centerX = thresholdRowRect.center.x;
         _ = thresholdRowRect.SplitVerticallyWithMargin(
@@ -183,9 +188,7 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
         Widgets.Label(left, ((int)Math.Round(combinedTradeValue)).ToStringCached());
         TooltipHandler.TipRegionByKey(left, "RealisticOrbitalTrade.CurrentTradeValue");
 
-        var minimumTradeThreshold = tradeAgreement.tradeShip.GetData().minimumTradeThreshold;
-        var tradeValueDifference = (int)Math.Round(combinedTradeValue) - minimumTradeThreshold;
-        GUI.color = tradeValueDifference < 0 ? Color.yellow : Color.green;
+        GUI.color = valueColor;
 
         Rect currencyLabelRect = new(
             centerX - 50f,
@@ -213,18 +216,13 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
         var mass = outgoing
             ? Rimworld_Dialog_Trade_DoWindowContents.CalculateOutgoingMass(TradeSession.deal)
             : Rimworld_Dialog_Trade_DoWindowContents.CalculateIncomingMass(TradeSession.deal);
-        var overCapacity = mass > massCapacity;
-        var labelKey = outgoing
-            ? "RealisticOrbitalTrade.CargoMassLabel"
-            : "RealisticOrbitalTrade.IncomingCargoMassLabel";
-        var tipKey = outgoing
-            ? "RealisticOrbitalTrade.CargoMassTip"
-            : "RealisticOrbitalTrade.IncomingCargoMassTip";
-        var flashTime = outgoing
-            ? Rimworld_Dialog_Trade_DoWindowContents.lastMassFlashTime
-            : Rimworld_Dialog_Trade_DoWindowContents.lastIncomingMassFlashTime;
+        var (overCapacity, flash, labelKey, tipKey) =
+            Rimworld_Dialog_Trade_DoWindowContents.GetCargoMassRowDisplay(
+                outgoing,
+                mass,
+                massCapacity
+            );
 
-        var flash = Time.time - flashTime < 1f;
         if (flash)
         {
             GUI.DrawTexture(rowRect, TransferableUIUtility.FlashTex);
@@ -285,8 +283,8 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
         var currentFont = Text.Font;
         Text.Font = GameFont.Small;
 
-        var maxPayableSilver = TradeAgreement.MaxPayableSilver(
-            Utils.RenegotiationOriginalTradeables ?? tradeAgreement.AllTradeables
+        var maxPayableSilver = Rimworld_Dialog_Trade_DoWindowContents.GetMaxPayableSilver(
+            tradeAgreement
         );
 
         Rect valueRect = new(rowRect.xMax - 260f, rowRect.y, 200f, rowRect.height);

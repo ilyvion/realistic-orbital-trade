@@ -118,7 +118,10 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
         rowWidth -= 175f;
         var combinedTradeValue = CalculateCombinedTradeValue();
 
-        var tradeValueDifference = (int)Math.Round(combinedTradeValue) - minimumTradeThreshold;
+        var (tradeValueDifference, valueColor, flash) = GetTradeValueThresholdRowDisplay(
+            combinedTradeValue,
+            minimumTradeThreshold
+        );
         var trad = new TradeValueTradeable(tradeValueDifference);
 
         Rect rect5 = new(rowWidth - 240f, 0f, 240f, rowRect.height);
@@ -130,7 +133,7 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
             25f
         ).Rounded();
 
-        GUI.color = tradeValueDifference < 0 ? Color.yellow : Color.green;
+        GUI.color = valueColor;
         Text.Anchor = TextAnchor.MiddleCenter;
         if (Mouse.IsOver(tradeValueDifferenceLabelRect))
         {
@@ -143,7 +146,6 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
         );
         GUI.color = Color.white;
 
-        var flash = Time.time - lastTradeValueFlashTime < 1f;
         if (flash)
         {
             GUI.DrawTexture(tradeValueDifferenceLabelRect, TransferableUIUtility.FlashTex);
@@ -175,6 +177,52 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
         Widgets.EndGroup();
     }
 
+    // The per-row content decisions (label/tip key, which flash-time field applies, over-capacity
+    // color) that both this dialog's DrawCargoMassRow and the DynamicTradeInterface patch's mirror
+    // need identically - only the Rect layout differs between the two UIs.
+    internal static (
+        bool overCapacity,
+        bool flash,
+        string labelKey,
+        string tipKey
+    ) GetCargoMassRowDisplay(bool outgoing, float mass, float massCapacity)
+    {
+        var flashTime = outgoing ? lastMassFlashTime : lastIncomingMassFlashTime;
+        return (
+            mass > massCapacity,
+            Time.time - flashTime < 1f,
+            outgoing
+                ? "RealisticOrbitalTrade.CargoMassLabel"
+                : "RealisticOrbitalTrade.IncomingCargoMassLabel",
+            outgoing
+                ? "RealisticOrbitalTrade.CargoMassTip"
+                : "RealisticOrbitalTrade.IncomingCargoMassTip"
+        );
+    }
+
+    // Mirrors the flash/color decision both DrawTradeValueThresholdRow and its DynamicTradeInterface
+    // counterpart make from the same trade-value-vs-threshold difference.
+    internal static (
+        int tradeValueDifference,
+        Color valueColor,
+        bool flash
+    ) GetTradeValueThresholdRowDisplay(float combinedTradeValue, int minimumTradeThreshold)
+    {
+        var tradeValueDifference = (int)Math.Round(combinedTradeValue) - minimumTradeThreshold;
+        return (
+            tradeValueDifference,
+            tradeValueDifference < 0 ? Color.yellow : Color.green,
+            Time.time - lastTradeValueFlashTime < 1f
+        );
+    }
+
+    // Shared by DrawSilverCeilingRow and its DynamicTradeInterface counterpart - see that method
+    // for why the ceiling can't be read off the currency tradeable itself.
+    internal static int GetMaxPayableSilver(TradeAgreement tradeAgreement) =>
+        TradeAgreement.MaxPayableSilver(
+            Utils.RenegotiationOriginalTradeables ?? tradeAgreement.AllTradeables
+        );
+
     // Mirrors CompTransporter.MassUsage's own calculation (same IgnorePawnsInventoryMode and
     // includePawnsMass arguments) so the number shown here before Accept matches what the shuttle
     // will actually compute once loading starts. Handles both the outgoing (sold-to-trader) and
@@ -191,14 +239,11 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
         var mass = outgoing
             ? CalculateOutgoingMass(TradeSession.deal)
             : CalculateIncomingMass(TradeSession.deal);
-        var overCapacity = mass > massCapacity;
-        var labelKey = outgoing
-            ? "RealisticOrbitalTrade.CargoMassLabel"
-            : "RealisticOrbitalTrade.IncomingCargoMassLabel";
-        var tipKey = outgoing
-            ? "RealisticOrbitalTrade.CargoMassTip"
-            : "RealisticOrbitalTrade.IncomingCargoMassTip";
-        var flashTime = outgoing ? lastMassFlashTime : lastIncomingMassFlashTime;
+        var (overCapacity, flash, labelKey, tipKey) = GetCargoMassRowDisplay(
+            outgoing,
+            mass,
+            massCapacity
+        );
 
         Rect massValueRect = new(rowWidth - 175f, 0f, 175f, rowRect.height);
         if (Mouse.IsOver(massValueRect))
@@ -226,7 +271,6 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
             massCapacity.ToString("F2", CultureInfo.CurrentCulture)
         );
 
-        var flash = Time.time - flashTime < 1f;
         if (flash)
         {
             GUI.DrawTexture(massValueRect, TransferableUIUtility.FlashTex);
@@ -261,9 +305,7 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
         Text.Font = GameFont.Small;
         Widgets.BeginGroup(rowRect);
 
-        var maxPayableSilver = TradeAgreement.MaxPayableSilver(
-            Utils.RenegotiationOriginalTradeables ?? tradeAgreement.AllTradeables
-        );
+        var maxPayableSilver = GetMaxPayableSilver(tradeAgreement);
 
         Rect valueRect = new(rowWidth - 175f, 0f, 175f, rowRect.height);
         if (Mouse.IsOver(valueRect))
