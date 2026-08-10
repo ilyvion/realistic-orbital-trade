@@ -23,6 +23,9 @@ internal class Settings : ModSettings
     private static string _minimumTradeThresholdBuffer = string.Empty;
     private static string _buyMoreTimeBaseSilverCostBuffer = string.Empty;
 
+    private static Vector2 _scrollPosition = Vector2.zero;
+    private static float _scrollViewHeight;
+
     public override void ExposeData()
     {
         base.ExposeData();
@@ -66,8 +69,14 @@ internal class Settings : ModSettings
 
     public static void DoSettingsWindowContents(Rect inRect)
     {
+        var viewRect = new Rect(0f, 0f, inRect.width - 16f, _scrollViewHeight);
+        Widgets.BeginScrollView(inRect, ref _scrollPosition, viewRect);
+
+        var listingRect = viewRect;
+        listingRect.height = 99999f;
+
         Listing_Standard listingStandard = new();
-        listingStandard.Begin(inRect);
+        listingStandard.Begin(listingRect);
 
         if (Prefs.DevMode)
         {
@@ -234,7 +243,10 @@ internal class Settings : ModSettings
             Mathf.Round(listingStandard.Slider(_buyMoreTimeCostGrowthFactor, 1f, 3f) / 0.05f)
             * 0.05f;
 
+        _scrollViewHeight = listingStandard.CurHeight;
         listingStandard.End();
+
+        Widgets.EndScrollView();
     }
 
     public static int GenerateDeviatingMinimumTradeThreshold()
