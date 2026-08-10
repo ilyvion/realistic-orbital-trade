@@ -91,15 +91,10 @@ internal static class Rimworld_TradeUI_DrawTradeableRow
     // by) the colony. Since silver itself has mass, the bound search below has to account for that
     // rebalancing rather than assuming every other tradeable's count/mass stays fixed while this
     // row's count changes.
-    internal static (int? massMin, int? massMax) GetMassBounds(Tradeable trad)
-    {
-        if (TradeShipData.tradeAgreementForQuest == null || !trad.HasAnyThing)
-        {
-            return (null, null);
-        }
-
-        return ComputeMassBounds(trad, trad.AnyThing.GetStatValue(StatDefOf.Mass));
-    }
+    internal static (int? massMin, int? massMax) GetMassBounds(Tradeable trad) =>
+        TradeShipData.tradeAgreementForQuest == null || !trad.HasAnyThing
+            ? ((int? massMin, int? massMax))(null, null)
+            : ComputeMassBounds(trad, trad.AnyThing.GetStatValue(StatDefOf.Mass));
 
     // The direction-gating half of GetMassBounds, split out so it can be exercised with a
     // pre-computed unitMass instead of going through Thing.GetStatValue (which needs a live game
@@ -159,7 +154,7 @@ internal static class Rimworld_TradeUI_DrawTradeableRow
         }
 
         int? massMax = null;
-        var tradeAgreement = TradeShipData.tradeAgreementForQuest;
+        var tradeAgreement = TradeShipData.tradeAgreementForQuest!;
         if (
             trad.CountToTransfer >= 0
             && trad.CountHeldBy(Transactor.Trader) > 0
