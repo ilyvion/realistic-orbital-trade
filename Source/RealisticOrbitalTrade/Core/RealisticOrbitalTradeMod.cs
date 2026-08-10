@@ -10,17 +10,9 @@ internal partial class RealisticOrbitalTradeMod
 {
     partial void Construct()
     {
-        // if (!ModsConfig.RoyaltyActive)
-        // {
-        //     Error("Realistic Orbital Trade requires the Royalty DLC to be active to work. The mod's functionality has therefore been disabled and trade will behave as in vanilla.");
-
-        // }
-        // else
-        // {
         //Harmony.DEBUG = true;
         new Harmony(Constants.Id).PatchAll(Assembly.GetExecutingAssembly());
         //Harmony.DEBUG = false;
-        //}
 
         _ = GetSettings<Settings>();
     }

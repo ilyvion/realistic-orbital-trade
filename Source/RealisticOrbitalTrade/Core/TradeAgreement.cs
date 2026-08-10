@@ -412,7 +412,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                     tmpSavedPawns.Add(pawn);
                     if (!pawn.IsWorldPawn())
                     {
-                        Log.Error(
+                        RealisticOrbitalTradeMod.Instance.LogError(
                             "Trying to save a non-world pawn ("
                                 + pawn.ToString()
                                 + ") as a reference in a trade agreement."

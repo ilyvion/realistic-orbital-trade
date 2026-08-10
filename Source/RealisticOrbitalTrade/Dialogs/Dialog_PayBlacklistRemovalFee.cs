@@ -246,9 +246,7 @@ internal class Dialog_PayBlacklistRemovalFee : Dialog_NodeTree
     {
         Widgets.BeginGroup(inRect);
         Rect rect = new(0f, 0f, inRect.width / 2f, 70f);
-        //Rect rect2 = new Rect(0f, rect.yMax, rect.width, 60f);
         Rect rect3 = new(inRect.width / 2f, 0f, inRect.width / 2f, 70f);
-        //Rect rect4 = new Rect(inRect.width / 2f, rect.yMax, rect.width, 60f);
         Text.Font = GameFont.Medium;
         Widgets.Label(rect, _negotiator.LabelCap);
         Text.Anchor = TextAnchor.UpperRight;

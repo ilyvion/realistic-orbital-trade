@@ -153,7 +153,6 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
 
         Rect rect6 = new(rowWidth - 100f, 0f, 100f, rowRect.height);
         Text.Anchor = TextAnchor.MiddleLeft;
-        //DrawPrice(rect6, trad, TradeAction.PlayerSells);
         Rect currentTradeValueRect = new(rect6.x - 75f, 0f, 75f, rowRect.height);
         if (Mouse.IsOver(currentTradeValueRect))
         {
