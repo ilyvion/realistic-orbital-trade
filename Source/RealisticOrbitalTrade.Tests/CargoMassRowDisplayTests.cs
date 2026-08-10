@@ -5,7 +5,7 @@ namespace RealisticOrbitalTrade.Tests;
 
 // Regression/coverage guard for Rimworld_Dialog_Trade_DoWindowContents.GetCargoMassRowDisplay: the
 // label/tip-key/flash-time/over-capacity selection factored out of DrawCargoMassRow and its
-// DynamicTradeInterface mirror (OPP-004) so both UIs stay in sync instead of copy-pasting this
+// DynamicTradeInterface mirror so both UIs stay in sync instead of copy-pasting this
 // logic.
 [TestSuite]
 internal static class CargoMassRowDisplayTests

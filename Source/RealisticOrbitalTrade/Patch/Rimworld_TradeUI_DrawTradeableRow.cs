@@ -98,7 +98,14 @@ internal static class Rimworld_TradeUI_DrawTradeableRow
             return (null, null);
         }
 
-        var unitMass = trad.AnyThing.GetStatValue(StatDefOf.Mass);
+        return ComputeMassBounds(trad, trad.AnyThing.GetStatValue(StatDefOf.Mass));
+    }
+
+    // The direction-gating half of GetMassBounds, split out so it can be exercised with a
+    // pre-computed unitMass instead of going through Thing.GetStatValue (which needs a live game
+    // to resolve, unlike everything below).
+    internal static (int? massMin, int? massMax) ComputeMassBounds(Tradeable trad, float unitMass)
+    {
         if (unitMass <= 0f)
         {
             return (null, null);
@@ -189,7 +196,7 @@ internal static class Rimworld_TradeUI_DrawTradeableRow
     // rare case that assumption doesn't hold, the search still only ever returns a c that's
     // actually within capacity, just not necessarily the largest one, and the mod's Accept-time
     // mass check remains the authoritative guard regardless.
-    private static int FindMaxBuyCount(
+    internal static int FindMaxBuyCount(
         Tradeable row,
         Tradeable? currency,
         float unitMass,
@@ -222,7 +229,7 @@ internal static class Rimworld_TradeUI_DrawTradeableRow
     // Mirror of FindMaxBuyCount for selling: largest sell magnitude s (0..trueMax, representing a
     // CountToTransfer of -s) for which otherOutgoingMass plus this row's and the rebalanced
     // currency tradeable's mass at that s stays within massCapacity.
-    private static int FindMaxSellCount(
+    internal static int FindMaxSellCount(
         Tradeable row,
         Tradeable? currency,
         float unitMass,

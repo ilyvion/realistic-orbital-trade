@@ -5,7 +5,7 @@ namespace RealisticOrbitalTrade.Tests;
 
 // Regression/coverage guard for Rimworld_Dialog_Trade_DoWindowContents.GetTradeValueThresholdRowDisplay:
 // the trade-value-difference/color/flash selection factored out of DrawTradeValueThresholdRow and
-// its DynamicTradeInterface mirror (OPP-004) so both UIs stay in sync instead of copy-pasting this
+// its DynamicTradeInterface mirror so both UIs stay in sync instead of copy-pasting this
 // logic.
 [TestSuite]
 internal static class TradeValueThresholdRowDisplayTests
