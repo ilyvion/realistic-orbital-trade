@@ -34,12 +34,16 @@ internal static class Rimworld_ReservationManager_CanReserve
 }
 
 /// <summary>
-/// Wraps the vanilla haul-candidate scan (also reached from our own
-/// <see cref="WorkGiver_HaulMultipleToTransporter.HasJobOnThing"/> via
-/// <see cref="LoadTransportersJobUtility.HasJobOnTransporter"/>) in a
+/// Wraps the vanilla haul-candidate scan (reached from vanilla's own
+/// <see cref="WorkGiver_LoadTransporters"/> and <see cref="JobGiver_LoadTransporters"/>) in a
 /// <see cref="TradeHaulReservationContext"/> scope, so <see cref="LoadTransportersJobUtility.FindThingToLoad"/>'s
 /// internal <c>CanReserve</c> checks see items this pawn is entitled to haul to this transporter
-/// as reservable, even before any job exists to reserve them through.
+/// as reservable, even before any job exists to reserve them through. Our own
+/// <see cref="WorkGiver_HaulMultipleToTransporter.HasJobOnThing"/> enters the same scope directly
+/// around its own <see cref="LoadTransportersJobUtility.FindThingToLoad"/> call instead of going
+/// through <see cref="LoadTransportersJobUtility.HasJobOnTransporter"/>, since a third-party mod
+/// patching that method with its own competing loading logic (e.g. Bulk Load For Transporters)
+/// would otherwise hijack the call.
 /// </summary>
 [HarmonyPatch(
     typeof(LoadTransportersJobUtility),

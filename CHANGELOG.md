@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed colonists occasionally getting stuck standing still doing nothing, or (with another mod like Bulk Load For Transporters installed) never picking up any hauling job at all, instead of loading a trade shuttle. With multi-item shuttle loading turned on, this mod is now the sole authority for loading trade shuttles, so other mods' own transporter-loading logic no longer gets a chance to interfere with them, and its own hauling scan no longer treats already-sold items as off-limits to the very pawn checking whether it can haul them.
+
 ## [0.11.0] - 2026-08-11
 
 ### Added
