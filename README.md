@@ -12,8 +12,8 @@ Mod compatibility is probably generally good, but there might be issues with mod
 
 Licensed under either of
 
--   Apache License, Version 2.0, ([LICENSE.Apache-2.0](LICENSE.Apache-2.0) or http://www.apache.org/licenses/LICENSE-2.0)
--   MIT license ([LICENSE.MIT](LICENSE.MIT) or http://opensource.org/licenses/MIT)
+- Apache License, Version 2.0, ([LICENSE.Apache-2.0](LICENSE.Apache-2.0) or http://www.apache.org/licenses/LICENSE-2.0)
+- MIT license ([LICENSE.MIT](LICENSE.MIT) or http://opensource.org/licenses/MIT)
 
 at your option.
 
