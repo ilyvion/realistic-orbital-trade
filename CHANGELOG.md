@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.1] - 2026-08-11
+
 ### Fixed
 
 - Fixed colonists getting stuck instead of loading a trade shuttle when another mod like Bulk Load For Transporters was installed: standing still doing nothing, never picking up any hauling job at all, or endlessly reissuing a short expiring Wait job. These mods' own transporter-loading or job-building logic re-checks whether a pawn may pick up each item, and that recheck ran outside the same allowance this mod's job-search step already granted it, so it kept seeing already-sold items as off-limits to the very pawn entitled to haul them. With multi-item shuttle loading turned on, this mod is now the sole authority for loading trade shuttles, so other mods' own transporter-loading logic no longer gets a chance to interfere with them.
@@ -185,7 +187,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.11.0...HEAD
+[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.11.1...HEAD
+[0.11.1]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.11.0..v0.11.1
 [0.11.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.10.2..v0.11.0
 [0.10.2]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.10.1..v0.10.2
 [0.10.1]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.10.0..v0.10.1
