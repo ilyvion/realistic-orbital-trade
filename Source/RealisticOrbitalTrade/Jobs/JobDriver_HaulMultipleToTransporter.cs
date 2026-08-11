@@ -37,6 +37,15 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
     // pawn.carryTracker.CarriedThing, which is removed from this list the moment it's pulled out.
     internal IReadOnlyList<Thing> CarriedThings => _carriedThings;
 
+    // takeThing's actual pickup (mass-capped for real, via MassUtility.CountToPickUpUntilOverEncumbered)
+    // can come in under CommitToInventory's own up-front mass estimate (see CalculateCountToTake) -
+    // when it does, the shortfall is still physically sitting in the very same, exclusively
+    // reserved stack that QueueItems carries forward as the trip's hand-carry topper (see
+    // QueueItems' `pending`/leftover handling), so it's recorded here keyed by that Thing and
+    // added back on top of whatever queue entry hand-carries the rest of that same stack (see
+    // carryGatheredThing) instead of being stranded on the map for a separate future trip.
+    private Dictionary<Thing, int> _pendingMassShortfall = [];
+
     /// <summary>
     /// Everything a bulk hauling trip has physically split off colony stacks but not yet
     /// deposited: whatever's in the pawn's hands plus every stack still waiting in inventory.
@@ -116,6 +125,24 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
     internal static int ComputeCountToPickUp(int jobCount, int massCappedCount, int stackCount) =>
         Math.Min(Math.Min(jobCount, massCappedCount), stackCount);
 
+    // The gap between what a pickup was planned to take and what it actually took, bounded by
+    // what was physically there to take in the first place - so a stack that's simply smaller
+    // than planned (nothing left to give) never counts as a shortfall to carry forward.
+    internal static int ComputeMassShortfall(
+        int jobCount,
+        int stackCountBeforeSplit,
+        int countPickedUp
+    ) => Math.Max(0, Math.Min(jobCount, stackCountBeforeSplit) - countPickedUp);
+
+    // The hand-carry topper's own planned count, topped up with whatever shortfall an earlier
+    // pickup from this same (exclusively reserved) stack left behind - still bounded by what's
+    // actually left in the stack, same as every other pickup here.
+    internal static int ComputeHandCarryCount(
+        int jobCount,
+        int carriedOverShortfall,
+        int stackCount
+    ) => Math.Min(jobCount + carriedOverShortfall, stackCount);
+
     // Verbose per-decision tracing of the pickup/hauling logic below, gated on the
     // dev-messages toggle so it's opt-in and doesn't spam normal play.
     private void DebugLog(string message)
@@ -132,6 +159,13 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
         Scribe_Collections.Look(ref _carriedThings, "carriedThings", LookMode.Reference);
         _carriedThings ??= [];
         Scribe_Values.Look(ref _handCarryGroupCount, "handCarryGroupCount", 1);
+        Scribe_Collections.Look(
+            ref _pendingMassShortfall,
+            "pendingMassShortfall",
+            LookMode.Reference,
+            LookMode.Value
+        );
+        _pendingMassShortfall ??= [];
 
         // AddFinishAction registrations (see Notify_Starting) don't survive a save/load - a job
         // resumed after loading a save needs EjectUndeliveredCargo re-armed here instead.
@@ -947,9 +981,15 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
             initAction = () =>
             {
                 var thing = job.GetTarget(TargetIndex.A).Thing;
-                var countToCarry = Math.Min(job.count, thing.stackCount);
+                var shortfall = _pendingMassShortfall.GetValueOrDefault(thing);
+                if (shortfall > 0)
+                {
+                    _ = _pendingMassShortfall.Remove(thing);
+                }
+                var countToCarry = ComputeHandCarryCount(job.count, shortfall, thing.stackCount);
                 DebugLog(
                     $"carryGatheredThing: {thing.LabelCap} job.count={job.count} "
+                        + (shortfall > 0 ? $"shortfallCarriedOver={shortfall} " : "")
                         + $"stackCount={thing.stackCount} -> countToCarry={countToCarry}"
                 );
                 if (countToCarry <= 0)
@@ -983,6 +1023,18 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
                 if (countToPickUp <= 0)
                 {
                     return;
+                }
+
+                var shortfall = ComputeMassShortfall(job.count, thing.stackCount, countToPickUp);
+                if (shortfall > 0)
+                {
+                    _pendingMassShortfall[thing] =
+                        _pendingMassShortfall.GetValueOrDefault(thing) + shortfall;
+                    DebugLog(
+                        $"takeThing: {shortfall} unit(s) of {thing.LabelCap} short of plan due to "
+                            + "mass - carrying the shortfall forward to whatever queue entry "
+                            + "hand-carries the rest of this same stack."
+                    );
                 }
 
                 var splitThing = thing.SplitOff(countToPickUp);
