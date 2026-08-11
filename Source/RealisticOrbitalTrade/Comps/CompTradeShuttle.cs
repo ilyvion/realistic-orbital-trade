@@ -271,6 +271,7 @@ internal class CompTradeShuttle : ThingComp
 
     private static readonly List<ThingDefCountWithRequirements> tmpRequiredSpecificItems = [];
     private static readonly List<Thing> tmpAllSendableItems = [];
+    private static readonly List<ThingDefCount> tmpRequiredGenericItems = [];
 
     internal void CheckAutoload()
     {
@@ -336,10 +337,18 @@ internal class CompTradeShuttle : ThingComp
         // item loss and the loading below already treat as the full picture of what's available)
         // means the shortfall genuinely can't be found anywhere right now (consumed, worn, hidden
         // away, etc.), as opposed to merely not yet picked up for hauling.
-        missingRequiredItems = AnyRequiredItemMissing(
-            tmpRequiredSpecificItems,
-            tmpAllSendableItems
+        //
+        // requiredSpecificItems only covers this mod's own per-instance-tracked requirements
+        // (genepacks/xenogerms via requiredThing, apparel via quality+hitpoints) - Shuttle's own
+        // plain ThingDef-counted requiredItems (e.g. wood, steel, meals) is vanilla's own list and
+        // needs the same "can it be found anywhere" check, or a shortfall in it never gets flagged.
+        tmpRequiredGenericItems.Clear();
+        tmpRequiredGenericItems.AddRange(
+            CalculateRemainingGenericItems(Shuttle.requiredItems, Transporter.innerContainer)
         );
+        missingRequiredItems =
+            AnyRequiredItemMissing(tmpRequiredSpecificItems, tmpAllSendableItems)
+            || AnyGenericRequiredItemMissing(tmpRequiredGenericItems, tmpAllSendableItems);
 
         foreach (var requiredItem in tmpRequiredSpecificItems)
         {
@@ -426,6 +435,79 @@ internal class CompTradeShuttle : ThingComp
             }
         }
         return false;
+    }
+
+    /// <summary>
+    /// Same check as <see cref="AnyRequiredItemMissing"/>, for the plain ThingDef-counted
+    /// requirements vanilla's own <c>CompShuttle.requiredItems</c> tracks (wood, steel, meals,
+    /// etc.), matched by def alone rather than <see cref="ThingDefCountWithRequirements.Matches"/>.
+    /// </summary>
+    internal static bool AnyGenericRequiredItemMissing(
+        IEnumerable<ThingDefCount> remainingRequiredItems,
+        IEnumerable<Thing> sendableItems
+    )
+    {
+        foreach (var requiredItem in remainingRequiredItems)
+        {
+            if (requiredItem.Count <= 0)
+            {
+                continue;
+            }
+
+            var numberOfMatches = 0;
+            foreach (var sendableItem in sendableItems)
+            {
+                if (sendableItem.def == requiredItem.ThingDef)
+                {
+                    numberOfMatches += sendableItem.stackCount;
+                }
+            }
+            if (numberOfMatches < requiredItem.Count)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// <paramref name="requiredItems"/> reduced by whatever matching stock is already sitting in
+    /// <paramref name="loadedThings"/> (the transporter's own <c>innerContainer</c>) - mirrors
+    /// vanilla <c>CompShuttle.CheckAutoload</c>'s own local <c>tmpRequiredItems</c> computation,
+    /// which isn't exposed for reuse here.
+    /// </summary>
+    internal static List<ThingDefCount> CalculateRemainingGenericItems(
+        IReadOnlyList<ThingDefCount> requiredItems,
+        IEnumerable<Thing> loadedThings
+    )
+    {
+        var remaining = new List<ThingDefCount>(requiredItems);
+
+        foreach (var loadedThing in loadedThings)
+        {
+            if (loadedThing is Pawn)
+            {
+                continue;
+            }
+
+            var stackCount = loadedThing.stackCount;
+            for (var i = 0; i < remaining.Count; i++)
+            {
+                if (remaining[i].ThingDef != loadedThing.def)
+                {
+                    continue;
+                }
+
+                var reduce = Math.Min(remaining[i].Count, stackCount);
+                if (reduce > 0)
+                {
+                    remaining[i] = remaining[i].WithCount(remaining[i].Count - reduce);
+                    stackCount -= reduce;
+                }
+            }
+        }
+
+        return remaining;
     }
 
     // CalculateRemainingRequiredItems always reports the *full* amount still owed, not merely
