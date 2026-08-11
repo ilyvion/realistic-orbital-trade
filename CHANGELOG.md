@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Colonists could still stand around doing nothing instead of loading a trade shuttle when a mod like Bulk Load For Transporters was installed, even after the previous fix for this: that fix only covered the moment such a mod builds its own hauling job, not the mod's own job execution afterward, which can recheck whether a pawn may pick up each item well into the trip. That recheck kept seeing already-sold items as off-limits, so a colonist would jump straight to giving up on the job (without ever actually walking anywhere) the instant it started, over and over. The allowance now stays in effect for as long as a pawn's current job is hauling to that shuttle, not just while the job is being built.
+
 ## [0.11.1] - 2026-08-11
 
 ### Fixed
@@ -19,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- You can now right-click a trade shuttle with another colonist and choose 'Take over as trade negotiator' if the original negotiator has died or otherwise become unavailable while the trade is still ongoing. This lets autoloading and renegotiation resume normally instead of staying stuck. You'll receive a letter as soon as an active trade's negotiator becomes unavailable, so you don't have to discover it yourself.
+- You can now right-click a trade shuttle with another colonist and choose 'Take over as trade negotiator' if the original negotiator has died or otherwise become unavailable while the trade is still ongoing. This lets autoloading and renegotiation resume normally instead of staying stuck. You'll receive a letter as soon as an active trade's negotiator becomes unavailable, so you don't have to discover it yourself.d
 - A trade shuttle that needs renegotiating now shows a pulsing icon over it, so you can spot at a glance when a trading shuttle needs your attention.
 - Genepacks stored in a genebank now get hauled to the shuttle. This also applies to modded genebanks, as long as they use the vanilla genepack-container building logic. Fixes [#10](https://github.com/ilyvion/realistic-orbital-trade/issues/10).
 - Genepacks and xenogerms required by a trade shuttle now show up as their own separate entries in its Contents tab's 'To load' list and in its required-cargo summary, labeled by their specific gene set (e.g. 'Genepack (psy-deaf)') instead of being lumped together under a single generic 'Genepack' label.

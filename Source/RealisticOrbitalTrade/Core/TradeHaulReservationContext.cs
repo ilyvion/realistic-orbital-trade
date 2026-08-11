@@ -1,4 +1,5 @@
 using RealisticOrbitalTrade.Comps;
+using Verse.AI;
 
 namespace RealisticOrbitalTrade;
 
@@ -14,6 +15,15 @@ namespace RealisticOrbitalTrade;
 /// <see cref="Scope"/>), since the scan can run one level deep inside another active scope (e.g.
 /// our own <c>JobDriver_HaulMultipleToTransporter.Notify_Starting</c> wraps the whole method,
 /// including its own inner call to <c>FindThingToLoad</c>).
+///
+/// For the pre-job scan phase there's no job yet to read the transporter off of, so that phase
+/// still relies on the explicit <see cref="Scope"/> above. Once a job exists, <see cref="IsExempt"/>
+/// also falls back to reading the transporter straight off the claimant's own current job (target
+/// B is the convention every transporter-loading job - vanilla or third-party - uses for the
+/// transporter), so a job's execution stays exempt for as long as it runs, even long after
+/// whichever <see cref="Scope"/> built the job has closed. This matters for third-party loading
+/// mods (e.g. Bulk Load For Transporters) whose own toils re-check reservability of their job's
+/// target well into execution, not just while the job is being built.
 /// </summary>
 internal static class TradeHaulReservationContext
 {
@@ -44,18 +54,25 @@ internal static class TradeHaulReservationContext
 
     /// <summary>
     /// Whether <paramref name="claimant"/> is currently mid-scan/mid-reservation for hauling
-    /// <paramref name="thing"/> to a shuttle whose trade agreement has it reserved.
+    /// <paramref name="thing"/> to a shuttle whose trade agreement has it reserved, or is
+    /// currently running a job that is itself hauling to such a shuttle.
     /// </summary>
-    internal static bool IsExempt(Pawn claimant, Thing thing)
+    internal static bool IsExempt(Pawn claimant, Thing thing) =>
+        IsExemptForTransporter(ResolveTransporter(claimant), thing);
+
+    private static CompTransporter? ResolveTransporter(Pawn claimant) =>
+        ActivePawn == claimant && ActiveTransporter != null
+            ? ActiveTransporter
+            : claimant.jobs?.curJob?.GetTarget(TargetIndex.B).Thing?.TryGetComp<CompTransporter>();
+
+    private static bool IsExemptForTransporter(CompTransporter? transporter, Thing thing)
     {
-        if (ActivePawn != claimant || ActiveTransporter == null)
+        if (transporter == null)
         {
             return false;
         }
 
-        var tradeAgreement = ActiveTransporter
-            .parent.TryGetComp<CompTradeShuttle>()
-            ?.tradeAgreement;
+        var tradeAgreement = transporter.parent.TryGetComp<CompTradeShuttle>()?.tradeAgreement;
         return tradeAgreement != null && tradeAgreement.ReservedCountFor(thing) > 0;
     }
 
