@@ -58,6 +58,25 @@ internal static class Rimworld_LoadTransportersJobUtility_HasJobOnTransporter
 }
 
 /// <summary>
+/// Same wrapping as <see cref="Rimworld_LoadTransportersJobUtility_HasJobOnTransporter"/>, but for
+/// <see cref="LoadTransportersJobUtility.JobOnTransporter"/> - a third-party mod's replacement
+/// logic for that method (e.g. Bulk Load For Transporters' planner) can re-scan and re-check
+/// reservability of the same candidates <c>HasJobOnTransporter</c> already vetted, so the
+/// exemption has to cover both calls, not just the first.
+/// </summary>
+[HarmonyPatch(
+    typeof(LoadTransportersJobUtility),
+    nameof(LoadTransportersJobUtility.JobOnTransporter)
+)]
+internal static class Rimworld_LoadTransportersJobUtility_JobOnTransporter
+{
+    private static void Prefix(Pawn p, CompTransporter transporter, out IDisposable __state) =>
+        __state = TradeHaulReservationContext.Enter(p, transporter);
+
+    private static void Postfix(IDisposable? __state) => __state?.Dispose();
+}
+
+/// <summary>
 /// Wraps vanilla's own <see cref="JobDriver_HaulToTransporter.Notify_Starting"/> (used when
 /// <see cref="Settings._multiItemShuttleLoading"/> is off, or for pawns leading a live
 /// animal/prisoner our own driver hands off to it) in the same
