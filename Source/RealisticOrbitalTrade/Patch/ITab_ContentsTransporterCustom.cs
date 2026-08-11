@@ -88,7 +88,7 @@ internal static class Rimworld_ITab_ContentsBase_DoThingRow_Reverse
         float scale,
         Color? color,
         int? graphicIndexOverride,
-#if v1_6
+#if v1_6_OR_GREATER
         float alpha,
 #endif
         ITab_ContentsBase instance,
@@ -121,7 +121,7 @@ internal static class Rimworld_ITab_ContentsBase_DoThingRow_Reverse
             typeof(float),
             typeof(Color?),
             typeof(int?),
-#if v1_6
+#if v1_6_OR_GREATER
             typeof(float),
 #endif
         ]
@@ -151,7 +151,7 @@ internal static class Rimworld_ITab_ContentsBase_DoThingRow_Reverse
             default,
             default,
             default,
-#if v1_6
+#if v1_6_OR_GREATER
             default,
 #endif
             default,

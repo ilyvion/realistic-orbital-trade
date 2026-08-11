@@ -27,10 +27,10 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
         public override string Label => "RealisticOrbitalTrade.TradeValue".Translate();
         public override string TipDescription => "RealisticOrbitalTrade.TradeValueTip".Translate();
 
-#if v1_4 || v1_5
-        public override int GetHashCode() => Label.GetHashCode();
-#else
+#if v1_6_OR_GREATER
         public override int GetHashCode() => Label.GetHashCode(StringComparison.Ordinal);
+#else
+        public override int GetHashCode() => Label.GetHashCode();
 #endif
     }
 

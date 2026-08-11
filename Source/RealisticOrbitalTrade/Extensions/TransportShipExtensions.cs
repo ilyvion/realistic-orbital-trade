@@ -8,7 +8,7 @@ internal static class TransportShipExtensions
         {
             throw new ArgumentNullException(nameof(transportShip));
         }
-#if v1_6
+#if v1_6_OR_GREATER
         var dropLoc = transportShip.shipThing.InteractionCell;
 #else
         var dropLoc = transportShip.shipThing.Position + ShipJob_Unload.DropoffSpotOffset;

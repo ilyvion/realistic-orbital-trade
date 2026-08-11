@@ -110,7 +110,7 @@ internal class Settings : ModSettings
                 _hitPointsTolerancePercent
             ),
             -1f,
-#if v1_6
+#if v1_6_OR_GREATER
             (TipSignal?)
 #endif
                 "RealisticOrbitalTrade.HitPointsTolerancePercentTooltip".Translate()
@@ -159,7 +159,7 @@ internal class Settings : ModSettings
                 minHoursUntilDepartureBeforeGraceTime
             ),
             -1f,
-#if v1_6
+#if v1_6_OR_GREATER
             (TipSignal?)
 #endif
                 "RealisticOrbitalTrade.MinTimeUntilDepartureBeforeGraceTimeTooltip".Translate()
@@ -183,7 +183,7 @@ internal class Settings : ModSettings
                 departureGraceTime
             ),
             -1f,
-#if v1_6
+#if v1_6_OR_GREATER
             (TipSignal?)
 #endif
                 "RealisticOrbitalTrade.DepartureGraceTimeTooltip".Translate()
@@ -201,7 +201,7 @@ internal class Settings : ModSettings
                 buyMoreTimeHours
             ),
             -1f,
-#if v1_6
+#if v1_6_OR_GREATER
             (TipSignal?)
 #endif
                 "RealisticOrbitalTrade.BuyMoreTimeHoursTooltip".Translate()
@@ -215,7 +215,7 @@ internal class Settings : ModSettings
         listingStandard.Label(
             "RealisticOrbitalTrade.BuyMoreTimeBaseCostLabel".Translate(),
             -1f,
-#if v1_6
+#if v1_6_OR_GREATER
             (TipSignal?)
 #endif
                 "RealisticOrbitalTrade.BuyMoreTimeBaseCostTooltip".Translate()
@@ -234,7 +234,7 @@ internal class Settings : ModSettings
                 _buyMoreTimeCostGrowthFactor
             ),
             -1f,
-#if v1_6
+#if v1_6_OR_GREATER
             (TipSignal?)
 #endif
                 "RealisticOrbitalTrade.BuyMoreTimeCostGrowthTooltip".Translate()

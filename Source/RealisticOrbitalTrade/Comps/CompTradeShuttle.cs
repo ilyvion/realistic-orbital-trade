@@ -189,10 +189,10 @@ internal class CompTradeShuttle : ThingComp
         }
         if (tmpRequiredLabels.Any())
         {
-#if v1_4 || v1_5
-            stringBuilder.AppendInNewLine(
-#else
+#if v1_6_OR_GREATER
             _ = stringBuilder.AppendInNewLine(
+#else
+            stringBuilder.AppendInNewLine(
 #endif
                 "RealisticOrbitalTrade.RequiredThings".Translate()
                     + ": "

@@ -18,7 +18,7 @@ internal class ShipJob_CancelLoad : ShipJob
         Scribe_Values.Look(ref done, "done");
     }
 
-#if v1_6
+#if v1_6_OR_GREATER
     public override void TickInterval(int delta)
     {
         base.TickInterval(delta);
