@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- The 'Multi-item shuttle loading' setting now shows a warning when Bulk Load For Transporters is installed and the setting is turned off, since that mod takes over shuttle loading in that case but doesn't know how to haul genepacks or xenogerms out of genebanks.
+
 ### Fixed
 
 - Colonists could still stand around doing nothing instead of loading a trade shuttle when a mod like Bulk Load For Transporters was installed, even after the previous fix for this: that fix only covered the moment such a mod builds its own hauling job, not the mod's own job execution afterward, which can recheck whether a pawn may pick up each item well into the trip. That recheck kept seeing already-sold items as off-limits, so a colonist would jump straight to giving up on the job (without ever actually walking anywhere) the instant it started, over and over. The allowance now stays in effect for as long as a pawn's current job is hauling to that shuttle, not just while the job is being built.

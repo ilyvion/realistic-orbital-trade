@@ -1,3 +1,5 @@
+using ilyvion.Laboratory.UI;
+
 namespace RealisticOrbitalTrade;
 
 [HotSwappable]
@@ -18,7 +20,7 @@ internal class Settings : ModSettings
     internal static bool _multiItemShuttleLoading = true;
     internal static int _hitPointsTolerancePercent = 2;
 
-    internal const string PickUpAndHaulPackageId = "Mehni.PickUpAndHaul";
+    internal const string BulkLoadForTransportersPackageId = "ilarion.bulkloadfortransporters";
 
     private static string _minimumTradeThresholdBuffer = string.Empty;
     private static string _buyMoreTimeBaseSilverCostBuffer = string.Empty;
@@ -104,6 +106,23 @@ internal class Settings : ModSettings
             ref _multiItemShuttleLoading,
             "RealisticOrbitalTrade.MultiItemShuttleLoadingTooltip".Translate()
         );
+
+        if (
+            ShouldShowBlftGenebankWarning(
+                _multiItemShuttleLoading,
+                ModsConfig.IsActive(BulkLoadForTransportersPackageId)
+            )
+        )
+        {
+            using (GUIScope.Font(GameFont.Tiny))
+            {
+                listingStandard.Label(
+                    "<color=#ffff00>"
+                        + "RealisticOrbitalTrade.MultiItemShuttleLoadingBlftWarning".Translate()
+                        + "</color>"
+                );
+            }
+        }
 
         listingStandard.Label(
             "RealisticOrbitalTrade.HitPointsTolerancePercentLabel".Translate(
@@ -248,6 +267,11 @@ internal class Settings : ModSettings
 
         Widgets.EndScrollView();
     }
+
+    internal static bool ShouldShowBlftGenebankWarning(
+        bool multiItemShuttleLoading,
+        bool blftActive
+    ) => !multiItemShuttleLoading && blftActive;
 
     public static int GenerateDeviatingMinimumTradeThreshold()
     {
