@@ -1,2 +1,82 @@
+# Commits in this file are ordered chronologically. Entries with a commented-out hash were
+# considered and deliberately left out; the comment above each explains why.
+
+# deletes 123 lines of dead commented-out code. Nothing added or reformatted, so no
+# surviving line needs its blame reattributed — ignoring it would have no effect.
+# a57e1cf9150ad1d6cf31b7984b441c6e97604fc9
+
+# adds null-safety guards
+c83e9c337dae9dddd0dba0d22b01c0936aeeb144
+
+# adds new DefOf safety checks; a functional change, not a mechanical one.
+# 95cf1052b2a3050746936d006bfd6225257b47d6
+
+# Move Harmony patch classes out of CompTradeShuttle.cs/ITab_ContentsTransporterCustom.cs into
+# dedicated TradeShip.cs/TradeShuttle.cs/ITab_ContentsTransporterCustom.cs patch files verbatim,
+# with no logic changes.
+e38fe7ad3557ece41e65c19273ceb6ffd330fbe4
+
+# adds a genuinely missing XML entry (a functional/content fix), not a formatting pass.
+# fb1e2656b4a7c44b7069bd93ac8dddebf8e5d059
+
+# project/build reorg (moving .csproj/.sln/.vscode files) bundled with a substantive,
+# unrelated addition of a new modVersion field in About.xml; also touches no .cs source files.
+# ff60762b7a03ca168e892f62e88dd8fcb6d3efab
+
+# removes settings indirection: a behavioral/architectural change, not mechanical.
+# 3af76df97ac7c75ce596fe8adb4e5a622c0cedcc
+
+# Swap the order of two #if/#else branches (v1_5/v1_4) with no change to either branch's logic.
+550523dfbfd1d335d60d02e8aa19670af3c16f85
+
+# Replace per-file `using System;`/`using RimWorld;`/`using UnityEngine;`/`using Verse;`/etc. with
+# a single globalusings.cs, removing now-redundant using directives.
+8f2b0eb28cc165b164d1883df3a9e1240ca070b0
+
+# Replace `new T[] { ... }`/`new() { ... }` array/list initializers with collection expressions.
+b1116ebccf2b5d946082da674afc814a6f2ebb54
+
+# mostly mechanical (collection expressions, `new()` simplification, sealed class)
+b2d094bf9257c002991bdf20a741f405ab42ad25
+
+# Automated formatter pass.
 abe2c73344c2c556d24713dcc1dd2ab0336c4784
+
+# Automated code-quality/formatting pass.
 ba14a501f8a52924540281c1bee400d4f9f0835f
+
+# Replace string-based AccessTools reflection lookups with typed access via Krafs.Publicizer,
+# with no change in the members accessed or how they're used.
+130518b1b0f16a68e0d46bf10d32ee2319d8883c
+
+# Run csharpier formatting.
+8b5c3f83aee69af23a6fabb5cc4f99a8b720a67b
+
+# Replace manual cached-backing-field properties with the C# `field` keyword; no behavior change.
+df75b1086813624544595164e5a99986ca8997db
+
+# mostly pure formatting.
+7adb135f01cb4087d16197abec36c0c04d993c64
+
+# single-line namespace correction
+1fee4eaad68257e31853c0077dc63558072ad74b
+
+# same as above, for a different file.
+bc717293dbd019095ba4ecdf8f56191cd04f4a0a
+
+# mixes dead-code removal with a real behavior change (routes a log call through the
+# mod's error logger instead of leaving it uncaught).
+# 069b7b91530385034a5d7baf71b992ded9b3af17
+
+# a genuine logic-sharing refactor between the vanilla and DTI UIs, with new tests
+# added; not a mechanical change.
+# 12e808a565a7cd305f3a6466856081d3852ba61a
+
+# purely mechanical
+685c2b6d0b2de42c278cf79e45c1a0631b4f3b44
+
+# Rename the v1_6 preprocessor guard to v1_6_OR_GREATER throughout; no logic change.
+78f85a78dc95872b9fa6d30924d0e03bf42a2607
+
+# Run prettier formatting on Markdown files.
+375a1ca7ffdbed8a1539ab603e803bdbe09fc9bb
