@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.2] - 2026-08-11
+
 ### Changed
 
 - The 'Multi-item shuttle loading' setting now shows a warning when Bulk Load For Transporters is installed and the setting is turned off, since that mod takes over shuttle loading in that case but doesn't know how to haul genepacks or xenogerms out of genebanks.
@@ -195,7 +197,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.11.1...HEAD
+[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.11.2...HEAD
+[0.11.2]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.11.1..v0.11.2
 [0.11.1]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.11.0..v0.11.1
 [0.11.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.10.2..v0.11.0
 [0.10.2]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.10.1..v0.10.2
