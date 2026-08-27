@@ -565,6 +565,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         }
 
         bool removed;
+        var actualShortfall = false;
         if (thing is Pawn pawn)
         {
             removed = pawnsSoldToTrader.Remove(pawn);
@@ -572,6 +573,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
             {
                 _ = toTraderTransportShip.ShuttleComp.requiredPawns.Remove(pawn);
                 CancelHaulingJobFor(pawn);
+                actualShortfall = true;
             }
         }
         else
@@ -586,12 +588,18 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                 {
                     _ = reservedTraderThings.Remove(reservedCount);
                 }
-                ReduceRequiredCargoFor(thing, thingCount!.Count);
+                // Hauling treats same-def stacks as fungible (see ReconcileReservation), so this
+                // exact stack's reservation can already have been released even though it was
+                // never touched - the deal's need for it having been covered by other stock hauled
+                // instead. In that case the shuttle's required cargo no longer has anything left
+                // to reduce for this def, and destroying this now-uncommitted leftover has no
+                // bearing on the deal.
+                actualShortfall = ReduceRequiredCargoFor(thing, thingCount!.Count);
                 CancelHaulingJobFor(thing);
             }
         }
 
-        if (!removed)
+        if (!removed || !actualShortfall)
         {
             return;
         }
@@ -601,7 +609,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         SendSoldItemLostLetter();
     }
 
-    private void ReduceRequiredCargoFor(Thing thing, int count)
+    private bool ReduceRequiredCargoFor(Thing thing, int count)
     {
         var leftToTakeOff = count;
         var compTradeShuttle = toTraderTransportShip!.shipThing.TryGetComp<CompTradeShuttle>();
@@ -619,9 +627,10 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         if (!reduced)
         {
             RealisticOrbitalTradeMod.Instance.LogWarning(
-                $"Destroyed {thing} was tracked as sold to the trader, but no matching required-cargo entry was found to reduce."
+                $"Destroyed {thing} was tracked as sold to the trader, but no matching required-cargo entry was found to reduce. The deal's need for it was likely already covered by other stock, so this isn't treated as an actual loss."
             );
         }
+        return reduced;
     }
 
     private void CancelHaulingJobFor(Thing thing)
