@@ -175,7 +175,7 @@ internal static class Rimworld_CompTransporter_SubtractFromToLoadList
         IEnumerable<CodeInstruction> instructions
     )
     {
-        var codeMatcher = new CodeMatcher(instructions);
+        var codeMatcher = new CodeMatcher(Utils.WidenShortBranches(instructions));
 
         _ = codeMatcher.SearchForward(i =>
             i.opcode == OpCodes.Call
@@ -199,7 +199,7 @@ internal static class Rimworld_CompTransporter_SubtractFromToLoadList
             // call patch method (HideFinishedMessageForTradeShuttle)
             new(OpCodes.Call, _methodHideFinishedMessageForTradeShuttle),
             // if HideFinishedMessageForTradeShuttle returns true, skip showing message
-            new(OpCodes.Brtrue_S, endLabel),
+            new(OpCodes.Brtrue, endLabel),
         ]);
 
         return codeMatcher.Instructions();
