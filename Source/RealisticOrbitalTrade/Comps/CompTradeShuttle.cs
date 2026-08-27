@@ -27,6 +27,15 @@ internal class CompTradeShuttle : ThingComp
     // within a few seconds by the next tick, same as everything else CheckAutoload derives.
     internal bool missingRequiredItems;
 
+    // Same recomputation caveat as missingRequiredItems. True when a requirement's remaining
+    // colony stock (excluding anything already split off and in flight to this transporter, which
+    // keeps being delivered regardless of forbidding - see JobDriver_HaulMultipleToTransporter's
+    // ignoreForbidden) is only enough to cover it once forbidden items are counted in - i.e. the
+    // player has enough of the item, but has forbidden so much of it that colonists won't actually
+    // haul what's left. Distinct from missingRequiredItems, which fires when the item can't be
+    // found at all regardless of forbidden status.
+    internal bool requiredItemsForbidden;
+
     internal Action<int>? extendDepartureTimeAction;
     internal int timesBoughtMoreTime;
 
@@ -92,7 +101,7 @@ internal class CompTradeShuttle : ThingComp
         {
             DrawAttentionOverlay(RenegotiationRequiredOverlayMat);
         }
-        else if (missingRequiredItems)
+        else if (missingRequiredItems || requiredItemsForbidden)
         {
             DrawAttentionOverlay(MissingRequiredItemsOverlayMat);
         }
@@ -177,6 +186,15 @@ internal class CompTradeShuttle : ThingComp
 #endif
             stringBuilder.AppendInNewLine(
                 "RealisticOrbitalTrade.RequiredItemsMissingInspectString".Translate()
+            );
+        }
+        else if (requiredItemsForbidden)
+        {
+#if v1_6_OR_GREATER
+            _ =
+#endif
+            stringBuilder.AppendInNewLine(
+                "RealisticOrbitalTrade.RequiredItemsForbiddenInspectString".Translate()
             );
         }
 
@@ -271,7 +289,11 @@ internal class CompTradeShuttle : ThingComp
 
     private static readonly List<ThingDefCountWithRequirements> tmpRequiredSpecificItems = [];
     private static readonly List<Thing> tmpAllSendableItems = [];
+    private static readonly List<Thing> tmpColonySendableItems = [];
+    private static readonly List<Thing> tmpCarriedSendableItems = [];
     private static readonly List<ThingDefCount> tmpRequiredGenericItems = [];
+
+    private static bool IsForbiddenToPlayer(Thing thing) => thing.IsForbidden(Faction.OfPlayer);
 
     internal void CheckAutoload()
     {
@@ -300,8 +322,8 @@ internal class CompTradeShuttle : ThingComp
 
         CalculateRemainingRequiredItems();
 
-        tmpAllSendableItems.Clear();
-        tmpAllSendableItems.AddRange(tradeAgreement.ColonyThingsTraderWillingToBuy());
+        tmpColonySendableItems.Clear();
+        tmpColonySendableItems.AddRange(tradeAgreement.ColonyThingsTraderWillingToBuy());
 
         // Vanilla's TransporterUtility.ThingsBeingHauledTo only recognizes pawns running its own
         // JobDriver_HaulToTransporter - a pawn running this mod's own
@@ -311,12 +333,17 @@ internal class CompTradeShuttle : ThingComp
         // numberOfMatches below, clamping `count` under the true remaining requirement while a
         // haul was still in flight - see Utils.ThingsCarriedTowardTransporter, the same helper
         // TradeAgreement.CountOfMatchingThingsInFlightToTrader already uses for this reason.
+        tmpCarriedSendableItems.Clear();
         foreach (var transporter in Shuttle.TransportersInGroup)
         {
-            tmpAllSendableItems.AddRange(
+            tmpCarriedSendableItems.AddRange(
                 Utils.ThingsCarriedTowardTransporter(transporter, parent.Map)
             );
         }
+
+        tmpAllSendableItems.Clear();
+        tmpAllSendableItems.AddRange(tmpColonySendableItems);
+        tmpAllSendableItems.AddRange(tmpCarriedSendableItems);
 
         // What's already been split off and promised to this transporter by an in-flight haul
         // (this mod's own bulk driver or vanilla's single-item one) - excluding: null since
@@ -349,6 +376,19 @@ internal class CompTradeShuttle : ThingComp
         missingRequiredItems =
             AnyRequiredItemMissing(tmpRequiredSpecificItems, tmpAllSendableItems)
             || AnyGenericRequiredItemMissing(tmpRequiredGenericItems, tmpAllSendableItems);
+        requiredItemsForbidden =
+            AnyRequiredItemForbidden(
+                tmpRequiredSpecificItems,
+                tmpColonySendableItems,
+                tmpCarriedSendableItems,
+                IsForbiddenToPlayer
+            )
+            || AnyGenericRequiredItemForbidden(
+                tmpRequiredGenericItems,
+                tmpColonySendableItems,
+                tmpCarriedSendableItems,
+                IsForbiddenToPlayer
+            );
 
         foreach (var requiredItem in tmpRequiredSpecificItems)
         {
@@ -463,6 +503,128 @@ internal class CompTradeShuttle : ThingComp
                 }
             }
             if (numberOfMatches < requiredItem.Count)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Whether any of <paramref name="remainingRequiredItems"/> has enough matching stock across
+    /// <paramref name="colonyItems"/> plus <paramref name="inFlightItems"/> to cover it in total,
+    /// but not enough once forbidden items in <paramref name="colonyItems"/> are excluded -
+    /// i.e. the item exists in sufficient quantity, but too much of what's left on the map is
+    /// forbidden for a colonist to ever pick up. <paramref name="inFlightItems"/> (already split
+    /// off and physically being hauled toward the transporter) always counts toward the
+    /// requirement regardless of forbidden status, since <see
+    /// cref="JobDriver_HaulMultipleToTransporter"/> hauls with <c>job.ignoreForbidden</c> set and
+    /// keeps delivering it even if it's forbidden after being picked up - the same behavior
+    /// vanilla's own single-item <c>JobDriver_HaulToTransporter</c> uses for shuttle loading.
+    /// <paramref name="isForbidden"/> is injected (rather than calling <c>Thing.IsForbidden</c>
+    /// directly) so this can be unit tested without a live map.
+    /// </summary>
+    internal static bool AnyRequiredItemForbidden(
+        IEnumerable<ThingDefCountWithRequirements> remainingRequiredItems,
+        IEnumerable<Thing> colonyItems,
+        IEnumerable<Thing> inFlightItems,
+        Func<Thing, bool> isForbidden
+    )
+    {
+        foreach (var requiredItem in remainingRequiredItems)
+        {
+            if (requiredItem.count <= 0)
+            {
+                continue;
+            }
+
+            var inFlightMatches = 0;
+            foreach (var inFlightItem in inFlightItems)
+            {
+                if (requiredItem.Matches(inFlightItem))
+                {
+                    inFlightMatches += inFlightItem.stackCount;
+                }
+            }
+
+            var stillNeeded = requiredItem.count - inFlightMatches;
+            if (stillNeeded <= 0)
+            {
+                continue;
+            }
+
+            var totalColonyMatches = 0;
+            var availableColonyMatches = 0;
+            foreach (var colonyItem in colonyItems)
+            {
+                if (!requiredItem.Matches(colonyItem))
+                {
+                    continue;
+                }
+                totalColonyMatches += colonyItem.stackCount;
+                if (!isForbidden(colonyItem))
+                {
+                    availableColonyMatches += colonyItem.stackCount;
+                }
+            }
+
+            if (totalColonyMatches >= stillNeeded && availableColonyMatches < stillNeeded)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Same check as <see cref="AnyRequiredItemForbidden"/>, for the plain ThingDef-counted
+    /// requirements vanilla's own <c>CompShuttle.requiredItems</c> tracks, matched by def alone.
+    /// </summary>
+    internal static bool AnyGenericRequiredItemForbidden(
+        IEnumerable<ThingDefCount> remainingRequiredItems,
+        IEnumerable<Thing> colonyItems,
+        IEnumerable<Thing> inFlightItems,
+        Func<Thing, bool> isForbidden
+    )
+    {
+        foreach (var requiredItem in remainingRequiredItems)
+        {
+            if (requiredItem.Count <= 0)
+            {
+                continue;
+            }
+
+            var inFlightMatches = 0;
+            foreach (var inFlightItem in inFlightItems)
+            {
+                if (inFlightItem.def == requiredItem.ThingDef)
+                {
+                    inFlightMatches += inFlightItem.stackCount;
+                }
+            }
+
+            var stillNeeded = requiredItem.Count - inFlightMatches;
+            if (stillNeeded <= 0)
+            {
+                continue;
+            }
+
+            var totalColonyMatches = 0;
+            var availableColonyMatches = 0;
+            foreach (var colonyItem in colonyItems)
+            {
+                if (colonyItem.def != requiredItem.ThingDef)
+                {
+                    continue;
+                }
+                totalColonyMatches += colonyItem.stackCount;
+                if (!isForbidden(colonyItem))
+                {
+                    availableColonyMatches += colonyItem.stackCount;
+                }
+            }
+
+            if (totalColonyMatches >= stillNeeded && availableColonyMatches < stillNeeded)
             {
                 return true;
             }

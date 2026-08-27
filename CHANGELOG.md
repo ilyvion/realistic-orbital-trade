@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - When a trade required several specific items that shared a base item type but differed in material or quality (e.g. several different tuques), the shuttle's 'To load' list and required-cargo summary would only ever show one of them at a time instead of all of them together, forcing a separate hauling trip for each one in turn. They're now all listed and haulable together, so multiple different variants of the same item can be picked up and carried in a single trip.
+- A trade shuttle now shows the same pulsing warning icon and inspect string as a genuinely missing required item when a required item is present in the colony but too much of it is forbidden for colonists to actually haul it.
 
 ## [0.11.2] - 2026-08-11
 

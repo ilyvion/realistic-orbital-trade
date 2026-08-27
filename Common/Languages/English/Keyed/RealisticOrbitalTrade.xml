@@ -83,6 +83,7 @@
     <RealisticOrbitalTrade.SoldItemLostLetterLabel>Sold trade goods lost</RealisticOrbitalTrade.SoldItemLostLetterLabel>
     <RealisticOrbitalTrade.SoldItemLostLetterText>An item, colonist or other creature already sold to {0} was lost before it could be delivered. The trade is now unbalanced and its shuttle won't launch until you renegotiate it.</RealisticOrbitalTrade.SoldItemLostLetterText>
     <RealisticOrbitalTrade.RequiredItemsMissingInspectString>One or more required items can't currently be found anywhere in the colony (consumed, worn, stolen, etc.). Loading cannot finish until they turn up. You can also renegotiate to remove the missing items from the trade.</RealisticOrbitalTrade.RequiredItemsMissingInspectString>
+    <RealisticOrbitalTrade.RequiredItemsForbiddenInspectString>One or more required items are available in the colony, but are marked forbidden, so colonists can't haul them onto the shuttle. Unforbid enough of them to continue loading, or renegotiate to remove them from the trade.</RealisticOrbitalTrade.RequiredItemsForbiddenInspectString>
     <RealisticOrbitalTrade.BuyMoreTime>Buy more time ({0}, {1})</RealisticOrbitalTrade.BuyMoreTime>
     <RealisticOrbitalTrade.ConfirmBuyMoreTime>Pay {1} to extend this trade shuttle's departure timer by {0}?</RealisticOrbitalTrade.ConfirmBuyMoreTime>
     <RealisticOrbitalTrade.BoughtMoreTime>Paid {1} to extend the trade shuttle's departure timer by {0}.</RealisticOrbitalTrade.BoughtMoreTime>
