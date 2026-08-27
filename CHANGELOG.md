@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.3] - 2026-08-27
+
 ### Fixed
 
 - When a trade required several specific items that shared a base item type but differed in material or quality (e.g. several different tuques), the shuttle's 'To load' list and required-cargo summary would only ever show one of them at a time instead of all of them together, forcing a separate hauling trip for each one in turn. They're now all listed and haulable together, so multiple different variants of the same item can be picked up and carried in a single trip.
@@ -204,7 +206,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.11.2...HEAD
+[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.11.3...HEAD
+[0.11.3]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.11.2..v0.11.3
 [0.11.2]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.11.1..v0.11.2
 [0.11.1]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.11.0..v0.11.1
 [0.11.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.10.2..v0.11.0
