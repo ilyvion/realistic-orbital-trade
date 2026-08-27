@@ -138,6 +138,35 @@ internal static class UpdateToLoadListTests
         Assert.That(existing.things.Count).Is.EqualTo(2);
     }
 
+    // Regression guard: FindExistingToLoadEntry used to defer to vanilla's
+    // TransferableMatchingDesperate, whose third tier matches by ThingDef alone once neither
+    // reference-containment nor TransferAsOne (stuff/quality/hit-points aware) finds a match. Two
+    // required items sharing a def but differing in stuff (e.g. a cloth tuque and a muskox wool
+    // tuque, both required by the same trade) would hit that fallback and silently fold into a
+    // single leftToLoad row - the row that lost only ever showed up in "To load" again once the
+    // one that won was fully hauled and its requirement dropped to zero, forcing one hauling trip
+    // per distinct item instead of batching them together.
+    [Test]
+    public static void UpdateToLoadListDoesNotMergeDifferentStuffIntoTheSameRow()
+    {
+        var apparelDef = RimWorld.ThingDefOf.Apparel_Tuque;
+        var clothTuque = NewThing(apparelDef, 1);
+        clothTuque.SetStuffDirect(RimWorld.ThingDefOf.Cloth);
+        var existing = NewTransferable(clothTuque, 1);
+        List<TransferableOneWay> leftToLoad = [existing];
+
+        var steelTuque = NewThing(apparelDef, 1);
+        steelTuque.SetStuffDirect(RimWorld.ThingDefOf.Steel);
+        var candidate = new TransferableOneWay();
+        candidate.things.Add(steelTuque);
+
+        CompTradeShuttle.UpdateToLoadList(leftToLoad, candidate, 1, NoCommitments);
+
+        Assert.That(leftToLoad.Count).Is.EqualTo(2);
+        Assert.That(existing.CountToTransfer).Is.EqualTo(1);
+        Assert.That(leftToLoad[1].CountToTransfer).Is.EqualTo(1);
+    }
+
     [Test]
     public static void UpdateToLoadListAddsANewEntryWhenNothingMatchesYet()
     {

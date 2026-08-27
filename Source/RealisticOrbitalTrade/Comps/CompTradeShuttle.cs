@@ -510,6 +510,48 @@ internal class CompTradeShuttle : ThingComp
         return remaining;
     }
 
+    // Deliberately narrower than JobDriver_HaulMultipleToTransporter.FindCommittedTransferable:
+    // that one falls all the way back to TransferableMatchingDesperate's third tier, which matches
+    // by ThingDef alone once neither reference-containment nor TransferAsOne (quality/stuff/hit
+    // points aware) match anything - fine for attributing an already-split, already-committed
+    // carry back to its row (see that method's own doc comment), but wrong here: every call into
+    // UpdateToLoadList is folding a freshly-built row for one specific requiredItem bucket (def +
+    // stuff + quality, see ThingDefCountWithRequirements.Matches) into leftToLoad, and the
+    // def-only fallback would silently merge two different quality/stuff buckets of the same
+    // ThingDef (e.g. two tuques of different material or quality) into a single row the moment the
+    // second one's autoload tick runs. That capped the merged row's CountToTransfer at whichever
+    // requirement happened to be processed last and left every other quality/stuff variant with no
+    // row of its own to ever be hauled from - "To load" showed one tuque while several more sat
+    // right there unpicked, each requiring its own load-then-recompute cycle to eventually surface.
+    internal static TransferableOneWay? FindExistingToLoadEntry(
+        Thing thing,
+        List<TransferableOneWay> leftToLoad
+    )
+    {
+        foreach (var candidate in leftToLoad)
+        {
+            if (candidate.HasAnyThing && candidate.things.Contains(thing))
+            {
+                return candidate;
+            }
+        }
+        foreach (var candidate in leftToLoad)
+        {
+            if (
+                candidate.HasAnyThing
+                && TransferableUtility.TransferAsOne(
+                    thing,
+                    candidate.AnyThing,
+                    TransferAsOneMode.PodsOrCaravanPacking
+                )
+            )
+            {
+                return candidate;
+            }
+        }
+        return null;
+    }
+
     // CalculateRemainingRequiredItems always reports the *full* amount still owed, not merely
     // what's newly become available since the last run - CompTick re-runs CheckAutoload every
     // ~2 seconds while autoload is on, so an existing to-load entry must be corrected to that
@@ -525,23 +567,10 @@ internal class CompTradeShuttle : ThingComp
         Dictionary<TransferableOneWay, int> committed
     )
     {
-        // Must resolve the existing entry the same way ComputeCommittedCounts does (via
-        // FindCommittedTransferable/TransferableMatchingDesperate on every candidate thing), not
-        // vanilla's stricter TransferableMatching against just AnyThing - the two can disagree
-        // (e.g. a split-off thing's hit points have drifted enough that vanilla's TransferAsOne no
-        // longer considers it the same stack as the entry's AnyThing, even though this mod's own
-        // requiredItem.Matches still does). When they disagree, this would create a second,
-        // duplicate leftToLoad entry for the same requirement instead of updating the original -
-        // splitting CountToTransfer updates and commitment tracking across two different rows for
-        // the same item, which is exactly what let committed counts sum higher than the entry
-        // Notify_Starting was actually reading CountToTransfer from.
         TransferableOneWay? existing = null;
         foreach (var thing in transferableOneWay.things)
         {
-            existing = JobDriver_HaulMultipleToTransporter.FindCommittedTransferable(
-                thing,
-                leftToLoad
-            );
+            existing = FindExistingToLoadEntry(thing, leftToLoad);
             if (existing != null)
             {
                 break;

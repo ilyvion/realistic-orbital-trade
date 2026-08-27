@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- When a trade required several specific items that shared a base item type but differed in material or quality (e.g. several different tuques), the shuttle's 'To load' list and required-cargo summary would only ever show one of them at a time instead of all of them together, forcing a separate hauling trip for each one in turn. They're now all listed and haulable together, so multiple different variants of the same item can be picked up and carried in a single trip.
+
 ## [0.11.2] - 2026-08-11
 
 ### Changed
