@@ -13,7 +13,11 @@ internal class CompTradeShuttle : ThingComp
         ShaderDatabase.MetaOverlay
     );
     private static readonly Material MissingRequiredItemsOverlayMat = MaterialPool.MatFrom(
-        "UI/Overlays/ROT_TradeIssue",
+        "UI/Overlays/ROT_TradeMissing",
+        ShaderDatabase.MetaOverlay
+    );
+    private static readonly Material TradeForbiddenOverlayMat = MaterialPool.MatFrom(
+        "UI/Overlays/ROT_TradeForbidden",
         ShaderDatabase.MetaOverlay
     );
 
@@ -101,7 +105,11 @@ internal class CompTradeShuttle : ThingComp
         {
             DrawAttentionOverlay(RenegotiationRequiredOverlayMat);
         }
-        else if (missingRequiredItems || requiredItemsForbidden)
+        else if (requiredItemsForbidden)
+        {
+            DrawAttentionOverlay(TradeForbiddenOverlayMat);
+        }
+        else if (missingRequiredItems)
         {
             DrawAttentionOverlay(MissingRequiredItemsOverlayMat);
         }

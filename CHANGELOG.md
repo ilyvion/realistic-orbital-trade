@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- The warning icon shown when an item is missing was changed to make it more visually specific.
+- A trade shuttle now shows a distinct warning icon when a required item is present but forbidden, instead of sharing the same icon used for a missing item.
+
 ### Fixed
 
 - Selling several identical items of the same type, material and quality only showed and hauled one of them at a time, forcing a separate hauling trip for each instead of loading them all together in one trip.

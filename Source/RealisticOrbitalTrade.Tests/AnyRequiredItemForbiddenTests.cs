@@ -6,7 +6,7 @@ namespace RealisticOrbitalTrade.Tests;
 // Regression/coverage guard for forbidden-items detection: CompTradeShuttle.CheckAutoload must
 // distinguish "enough of the item exists, some of it is just forbidden" (fine, as long as the
 // non-forbidden remainder still covers the requirement) from "so much of it is forbidden that
-// colonists can't actually haul enough" (should surface the ROT_TradeIssue overlay), and must never
+// colonists can't actually haul enough" (should surface the ROT_TradeForbidden overlay), and must never
 // penalize a requirement for stock that's already been split off and is physically in flight toward
 // the transporter - that keeps getting delivered regardless of forbidden status.
 [TestSuite]

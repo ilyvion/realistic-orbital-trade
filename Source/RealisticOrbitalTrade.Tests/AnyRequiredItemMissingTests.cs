@@ -6,7 +6,7 @@ namespace RealisticOrbitalTrade.Tests;
 // Regression/coverage guard for missing-items detection: CompTradeShuttle.CheckAutoload must
 // distinguish "still needed but not yet hauled" (sendableItems already covers the requirement,
 // via colony stock or an in-flight haul) from "genuinely can't be found anywhere" (consumed,
-// worn, hidden away, etc.), since only the latter should surface the ROT_TradeIssue overlay.
+// worn, hidden away, etc.), since only the latter should surface the ROT_TradeMissing overlay.
 [TestSuite]
 internal static class AnyRequiredItemMissingTests
 {

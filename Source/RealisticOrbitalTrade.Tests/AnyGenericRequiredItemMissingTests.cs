@@ -5,7 +5,7 @@ namespace RealisticOrbitalTrade.Tests;
 
 // Regression guard for the bug where a shortfall in Shuttle's own plain ThingDef-counted
 // requiredItems (wood, steel, meals, etc. - as opposed to this mod's own per-instance-tracked
-// requiredSpecificItems, covered by AnyRequiredItemMissingTests) never surfaced the ROT_TradeIssue
+// requiredSpecificItems, covered by AnyRequiredItemMissingTests) never surfaced the ROT_TradeMissing
 // overlay: CompTradeShuttle.CheckAutoload only ever ran AnyRequiredItemMissing against
 // requiredSpecificItems, so a def-counted requirement that became genuinely unfindable (e.g. a
 // required stack picked up into a non-hauling colonist's inventory) was silently never flagged.
