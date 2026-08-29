@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Selling several identical items of the same type, material and quality only showed and hauled one of them at a time, forcing a separate hauling trip for each instead of loading them all together in one trip.
+
 ## [0.11.3] - 2026-08-27
 
 ### Fixed

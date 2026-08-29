@@ -261,21 +261,59 @@ internal static class Utils
         )
         {
             var thing = thingCount.thing.GetInnerIfMinified();
-            compTradeShuttle.requiredSpecificItems.Add(
-                new ThingDefCountWithRequirements
-                {
-                    def = thing.def,
-                    stuffDef = thing.Stuff,
-                    isInnerThing = hasInnerThing,
-                    count = thingCount.Count,
-                    healthAffectsPrice = healthAffectsPrice,
-                    hitPoints = thing.HitPoints,
-                    maxHitPoints = thing.MaxHitPoints,
-                    hasQuality = qualityCategory.HasValue,
-                    quality = qualityCategory ?? QualityCategory.Normal,
-                    requiredThing = thing is GeneSetHolderBase ? thing : null,
-                }
-            );
+            var requiredThing = thing is GeneSetHolderBase ? thing : null;
+
+            // A requiredThing-tracked entry (genepack/xenogerm) needs its own row per exact
+            // instance - Matches() keys those off reference identity, so merging would collapse
+            // distinct genepacks into one row. Every other entry only distinguishes by
+            // def/stuff/quality/health, and several sold items can share all of those (e.g.
+            // several identical-quality tuques) - without merging, each becomes its own
+            // count-1 entry that all match the same physical stock, and CheckAutoload's
+            // UpdateToLoadList (which corrects a matching "To load" row to whichever single
+            // entry it's currently processing, rather than summing across entries sharing that
+            // row) then caps the row at 1 instead of the true combined total, forcing a separate
+            // hauling trip per entry instead of one trip for the lot.
+            var existingIndex =
+                requiredThing == null
+                    ? compTradeShuttle.requiredSpecificItems.FindIndex(t =>
+                        t.requiredThing == null
+                        && t.def == thing.def
+                        && t.stuffDef == thing.Stuff
+                        && t.isInnerThing == hasInnerThing
+                        && t.healthAffectsPrice == healthAffectsPrice
+                        && t.hitPoints == thing.HitPoints
+                        && t.maxHitPoints == thing.MaxHitPoints
+                        && t.hasQuality == qualityCategory.HasValue
+                        && t.quality == (qualityCategory ?? QualityCategory.Normal)
+                    )
+                    : -1;
+            if (existingIndex >= 0)
+            {
+                compTradeShuttle.requiredSpecificItems[existingIndex] = compTradeShuttle
+                    .requiredSpecificItems[existingIndex]
+                    .WithCount(
+                        compTradeShuttle.requiredSpecificItems[existingIndex].count
+                            + thingCount.Count
+                    );
+            }
+            else
+            {
+                compTradeShuttle.requiredSpecificItems.Add(
+                    new ThingDefCountWithRequirements
+                    {
+                        def = thing.def,
+                        stuffDef = thing.Stuff,
+                        isInnerThing = hasInnerThing,
+                        count = thingCount.Count,
+                        healthAffectsPrice = healthAffectsPrice,
+                        hitPoints = thing.HitPoints,
+                        maxHitPoints = thing.MaxHitPoints,
+                        hasQuality = qualityCategory.HasValue,
+                        quality = qualityCategory ?? QualityCategory.Normal,
+                        requiredThing = requiredThing,
+                    }
+                );
+            }
         }
         else
         {
