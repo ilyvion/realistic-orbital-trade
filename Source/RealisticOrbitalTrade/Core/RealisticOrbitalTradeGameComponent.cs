@@ -9,10 +9,15 @@ internal enum Standing
     Forgiven,
 }
 
-#pragma warning disable CS9113 // Parameter is unread.
-internal class RealisticOrbitalTradeGameComponent(Game _game) : GameComponent
-#pragma warning restore CS9113 // Parameter is unread.
+internal class RealisticOrbitalTradeGameComponent : GameComponent
 {
+#pragma warning disable IDE0060 // Remove unused parameter
+    public RealisticOrbitalTradeGameComponent(Game game)
+#pragma warning restore IDE0060 // Remove unused parameter
+    {
+        Created?.Invoke();
+    }
+
     public static RealisticOrbitalTradeGameComponent Current =>
         VerseCurrent.Game.GetComponent<RealisticOrbitalTradeGameComponent>();
     private int _nextTradeID;
@@ -85,13 +90,44 @@ internal class RealisticOrbitalTradeGameComponent(Game _game) : GameComponent
         return tradeAgreement;
     }
 
-    public void EndTradeAgreement(TradeAgreement tradeAgreement)
+    /// <summary>
+    /// Fired whenever a trade agreement is ended, once its outcome (delivered successfully, or
+    /// cancelled/failed) is known - see <see cref="EndTradeAgreement"/>'s <c>successful</c>
+    /// parameter. Third-party integrations that grant a reward for completing an orbital trade
+    /// (e.g. Social Experience from Trade) can subscribe to this to defer that reward until
+    /// delivery actually succeeds, instead of granting it the moment the trade dialog is accepted.
+    /// </summary>
+    public static event Action<TradeAgreement, bool>? TradeAgreementEnded;
+
+    /// <summary>
+    /// Fired once from this type's constructor whenever a new instance is created - which
+    /// happens exactly once per <see cref="Game"/> session, for a freshly started game and a
+    /// loaded one alike. Integrations that hold their own per-save state in static fields
+    /// instead of registering a <see cref="GameComponent"/> of their own (see
+    /// <see cref="ExposeDataExtra"/>) should subscribe here to reset that state before this
+    /// component's <see cref="ExposeData"/> (if any - a new game triggers no Scribe pass) has a
+    /// chance to reload it, so state left over from a previous session isn't carried into a new
+    /// one.
+    /// </summary>
+    public static event Action? Created;
+
+    /// <summary>
+    /// Fired from within <see cref="ExposeData"/>, after this component's own fields have been
+    /// scribed. Integrations that need to persist their own per-save state can Scribe it here,
+    /// nested under this component's node, instead of registering a <see cref="GameComponent"/>
+    /// of their own - a type supplied by another mod's assembly that, once that mod is removed,
+    /// causes an error when loading any save made while it was still active.
+    /// </summary>
+    public static event Action? ExposeDataExtra;
+
+    public void EndTradeAgreement(TradeAgreement tradeAgreement, bool successful = false)
     {
         RealisticOrbitalTradeMod.Instance.LogDevMessage(() =>
-            $"Ending trade agreement with {tradeAgreement.tradeShip} using {tradeAgreement.negotiator}"
+            $"Ending trade agreement with {tradeAgreement.tradeShip} using {tradeAgreement.negotiator} (successful: {successful})"
         );
         tradeAgreement.tradeShip.GetData().activeTradeAgreement = null;
         _ = _tradeAgreements.Remove(tradeAgreement);
+        TradeAgreementEnded?.Invoke(tradeAgreement, successful);
     }
 
     public override void ExposeData()
@@ -102,6 +138,8 @@ internal class RealisticOrbitalTradeGameComponent(Game _game) : GameComponent
         Scribe_Collections.Look(ref _tradeAgreements, "tradeAgreements", LookMode.Deep);
         Scribe_Values.Look(ref _standing, "standing");
         Scribe_References.Look(ref _amendsQuest, "amendsQuest");
+
+        ExposeDataExtra?.Invoke();
 
         if (Scribe.mode == LoadSaveMode.LoadingVars)
         {

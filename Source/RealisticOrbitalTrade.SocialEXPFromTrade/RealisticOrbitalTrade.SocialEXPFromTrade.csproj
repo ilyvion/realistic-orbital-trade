@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <UseLaboratory>true</UseLaboratory>
+        <RootNamespace>RealisticOrbitalTrade.SocialEXPFromTrade</RootNamespace>
+        <AssemblyName>RealisticOrbitalTrade.SocialEXPFromTrade</AssemblyName>
+        <OutputPath>../../Integrations/SocialEXPFromTrade/$(RimWorldVersion)/Assemblies</OutputPath>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\RealisticOrbitalTrade\RealisticOrbitalTrade.csproj">
+            <CopyLocal>False</CopyLocal>
+            <Private>false</Private>
+        </ProjectReference>
+        <Reference Include="SocialEXPFromTrade">
+            <HintPath>$(RimWorldSteamWorkshopFolderPath)\3400608063\$(RimWorldVersion)\Assemblies\SocialEXPFromTrade.dll</HintPath>
+            <CopyLocal>False</CopyLocal>
+            <Private>false</Private>
+        </Reference>
+    </ItemGroup>
+    <ItemGroup></ItemGroup>
+</Project>

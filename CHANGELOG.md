@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added an integration with Social Experience from Trade: the social experience it grants for a trade is now held back until the trade ship's delivery actually finishes, instead of being granted the instant a deal is accepted. Without this, a trade could be accepted and immediately cancelled to farm experience without ever completing a real delivery.
+
 ## [0.11.4] - 2026-08-29
 
 ### Changed

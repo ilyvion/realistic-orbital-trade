@@ -6,6 +6,7 @@
         <li IfModActive="zeracronius.dynamictradeinterface"
             >Integrations/DynamicTradeInterface/1.4</li>
         <li IfModActive="supes.autoseller.core">Integrations/AutoSeller/1.4</li>
+        <li IfModActive="krelinos.socialexpfromtrade">Integrations/SocialEXPFromTrade/1.4</li>
     </v1.4>
     <v1.5>
         <li>Common</li>
@@ -15,6 +16,7 @@
         <li IfModActive="zeracronius.dynamictradeinterface"
             >Integrations/DynamicTradeInterface/1.5</li>
         <li IfModActive="supes.autoseller.core">Integrations/AutoSeller/1.5</li>
+        <li IfModActive="krelinos.socialexpfromtrade">Integrations/SocialEXPFromTrade/1.5</li>
     </v1.5>
     <v1.6>
         <li>Common</li>
@@ -24,5 +26,6 @@
         <li IfModActive="zeracronius.dynamictradeinterface"
             >Integrations/DynamicTradeInterface/1.6</li>
         <li IfModActive="supes.autoseller.core">Integrations/AutoSeller/1.6</li>
+        <li IfModActive="krelinos.socialexpfromtrade">Integrations/SocialEXPFromTrade/1.6</li>
     </v1.6>
 </loadFolders>

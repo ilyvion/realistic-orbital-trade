@@ -211,7 +211,10 @@ internal class QuestNode_Root_TradeShipTransportShip : QuestNode
                                 text: "[tradeSuccessLetterText]",
                                 label: "[tradeSuccessLetterLabel]"
                             );
-                            _ = quest.EndActiveTradeShipTradeAgreement(tradeAgreement);
+                            _ = quest.EndActiveTradeShipTradeAgreement(
+                                tradeAgreement,
+                                successful: true
+                            );
                             _ = quest.End(
                                 QuestEndOutcome.Success,
                                 signalListenMode: QuestPart.SignalListenMode.OngoingOnly

@@ -8,6 +8,8 @@ internal class QuestPart_EndActiveTradeShipTradeAgreement : QuestPart
 
     public TradeAgreement? tradeAgreement;
 
+    public bool successful;
+
     public override void Notify_QuestSignalReceived(Signal signal)
     {
         base.Notify_QuestSignalReceived(signal);
@@ -20,7 +22,10 @@ internal class QuestPart_EndActiveTradeShipTradeAgreement : QuestPart
                 );
                 return;
             }
-            RealisticOrbitalTradeGameComponent.Current.EndTradeAgreement(tradeAgreement);
+            RealisticOrbitalTradeGameComponent.Current.EndTradeAgreement(
+                tradeAgreement,
+                successful
+            );
         }
     }
 
@@ -29,6 +34,7 @@ internal class QuestPart_EndActiveTradeShipTradeAgreement : QuestPart
         base.ExposeData();
         Scribe_Values.Look(ref inSignal, "inSignal");
         Scribe_References.Look(ref tradeAgreement, "tradeAgreement");
+        Scribe_Values.Look(ref successful, "successful", false);
     }
 
     public override void Cleanup()
@@ -43,13 +49,15 @@ internal static class QuestGen_EndActiveTradeShipTradeAgreement
     public static QuestPart_EndActiveTradeShipTradeAgreement EndActiveTradeShipTradeAgreement(
         this Quest quest,
         TradeAgreement tradeAgreement,
-        string? inSignal = null
+        string? inSignal = null,
+        bool successful = false
     )
     {
         QuestPart_EndActiveTradeShipTradeAgreement questPart = new()
         {
             inSignal = inSignal ?? QuestGen.slate.Get<string>("inSignal"),
             tradeAgreement = tradeAgreement,
+            successful = successful,
         };
         quest.AddPart(questPart);
         return questPart;

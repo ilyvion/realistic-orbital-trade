@@ -2,6 +2,7 @@
 [assembly: InternalsVisibleTo("RealisticOrbitalTrade.WeHadATrader")]
 [assembly: InternalsVisibleTo("RealisticOrbitalTrade.DynamicTradeInterface")]
 [assembly: InternalsVisibleTo("RealisticOrbitalTrade.AutoSeller")]
+[assembly: InternalsVisibleTo("RealisticOrbitalTrade.SocialEXPFromTrade")]
 [assembly: InternalsVisibleTo("RealisticOrbitalTrade.Tests")]
 
 namespace RealisticOrbitalTrade;
