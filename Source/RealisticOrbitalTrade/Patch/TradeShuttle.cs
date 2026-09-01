@@ -34,6 +34,45 @@ internal static class Rimworld_CompShuttle_CheckAutoload_SpecificItems
     }
 }
 
+// CompShuttle.CheckAutoload rebuilds Transporter.leftToLoad from scratch every autoload tick,
+// via TransporterUtility.AllSendablePawns -> CaravanFormingUtility.AllSendablePawns, which only
+// scans map.mapPawns.AllPawnsSpawned. A required animal currently being hand-led to the shuttle
+// by vanilla's own JobDriver_HaulToTransporter is despawned into its handler's carryTracker for
+// the whole walk there, so it's invisible to that scan - the rebuild then drops its "to load"
+// row entirely (and with it, a whole merged entry like "Husky x2" once only one of several
+// same-kind animals is still in transit) even though the animal is still being correctly
+// delivered. Adding it back here mirrors what Utils.ThingsCarriedTowardTransporter already does
+// for this mod's own item-hauling requirement checks.
+[HarmonyPatch(typeof(TransporterUtility), nameof(TransporterUtility.AllSendablePawns))]
+internal static class Rimworld_TransporterUtility_AllSendablePawns_CarriedPawns
+{
+    internal static void Postfix(
+        List<CompTransporter> transporters,
+        Map map,
+        ref IEnumerable<Pawn> __result
+    ) => __result = __result.Concat(CarriedPawnsEnRoute(transporters, map));
+
+    private static IEnumerable<Pawn> CarriedPawnsEnRoute(
+        List<CompTransporter> transporters,
+        Map map
+    )
+    {
+        var shuttle = transporters[0].parent.TryGetComp<CompShuttle>();
+        foreach (var pawn in map.mapPawns.AllPawnsSpawned)
+        {
+            if (
+                pawn.jobs.curDriver is JobDriver_HaulToTransporter driver
+                && transporters.Contains(driver.Transporter)
+                && pawn.carryTracker.CarriedThing is Pawn carried
+                && (shuttle == null || shuttle.IsRequired(carried) || shuttle.IsAllowed(carried))
+            )
+            {
+                yield return carried;
+            }
+        }
+    }
+}
+
 [HarmonyPatch(typeof(CompShuttle))]
 [HarmonyPatch(nameof(CompShuttle.RequiredThingsLabel), MethodType.Getter)]
 internal static class Rimworld_CompShuttle_RequiredThingsLabel
