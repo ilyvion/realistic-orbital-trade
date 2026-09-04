@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-09-04
+
 ### Added
 
 - Added an integration with Social Experience from Trade: the social experience it grants for a trade is now held back until the trade ship's delivery actually finishes, instead of being granted the instant a deal is accepted. Without this, a trade could be accepted and immediately cancelled to farm experience without ever completing a real delivery.
@@ -225,7 +227,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.11.4...HEAD
+[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.12.0...HEAD
+[0.12.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.11.4..v0.12.0
 [0.11.4]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.11.3..v0.11.4
 [0.11.3]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.11.2..v0.11.3
 [0.11.2]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.11.1..v0.11.2

@@ -16,7 +16,7 @@
         <li>1.5</li>
         <li>1.4</li>
     </supportedVersions>
-    <modVersion IgnoreIfNoMatchingField="True">0.11.4</modVersion>
+    <modVersion IgnoreIfNoMatchingField="True">0.12.0</modVersion>
     <modDependencies>
         <li>
             <packageId>brrainz.harmony</packageId>
