@@ -186,6 +186,20 @@ internal class CompTradeShuttle : ThingComp
             stringBuilder.AppendInNewLine(
                 "RealisticOrbitalTrade.RenegotiationRequiredInspectString".Translate()
             );
+            if (tradeAgreement.lostSoldItems.Count > 0)
+            {
+#if v1_6_OR_GREATER
+                _ =
+#endif
+                stringBuilder.AppendInNewLine(
+                    "RealisticOrbitalTrade.MissingSoldItemsLabel".Translate()
+                        + ": "
+                        + tradeAgreement
+                            .lostSoldItems.Select(r => r.Label)
+                            .ToCommaList()
+                            .CapitalizeFirst()
+                );
+            }
         }
         else if (missingRequiredItems)
         {

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- When an item, colonist or other creature already sold to a trader is lost before delivery, the letter now names the specific thing that was lost. The trade shuttle's inspect string and its Contents tab now also list exactly what's missing from the deal, instead of just saying something was.
+
 ## [0.12.0] - 2026-09-04
 
 ### Added

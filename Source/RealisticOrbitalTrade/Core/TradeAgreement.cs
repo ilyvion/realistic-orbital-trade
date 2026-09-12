@@ -104,6 +104,15 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
     // silently failed to find anything to protect.
     public List<ThingCountClass> reservedTraderThings = [];
 
+    // Snapshots of sold-to-trader things/pawns lost before delivery (see
+    // Notify_OwnThingDestroyed), kept purely for display - CompTradeShuttle's inspect string and
+    // the shuttle's contents tab use this to tell the player what's actually missing instead of
+    // just that "something" is. Cleared once a renegotiation rebalances the deal (see
+    // ApplyRenegotiation). Left empty (rather than populated with a generic placeholder) when a
+    // loss is only discovered on load, since PruneDestroyedSoldItems no longer has the destroyed
+    // thing/pawn's reference to describe it from.
+    public List<LostTradeItemRecord> lostSoldItems = [];
+
     public TransportShip? toTraderTransportShip;
 
     [Obsolete]
@@ -361,6 +370,8 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         Scribe_Collections.Look(ref pawnsSoldToTrader, "pawnsSoldToTrader", LookMode.Reference);
         Scribe_Collections.Look(ref reservedTraderThings, "reservedTraderThings", LookMode.Deep);
         reservedTraderThings ??= [];
+        Scribe_Collections.Look(ref lostSoldItems, "lostSoldItems", LookMode.Deep);
+        lostSoldItems ??= [];
         Scribe_References.Look(ref toTraderTransportShip, "toTraderTransportShip");
 
         Scribe_Deep.Look(ref tradeDeliveryMethod, "tradeDeliveryMethod");
@@ -478,7 +489,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
             $"Trade agreement {GetUniqueLoadID()} had one or more sold-to-trader entries whose thing/pawn no longer exists (destroyed before the game was saved). Removed them and rebuilt the shuttle's required cargo to match; the trade may still require renegotiation to rebalance."
         );
         RenegotiationRequired = true;
-        SendSoldItemLostLetter();
+        SendSoldItemsLostOnLoadLetter();
     }
 
     public static void Notify_ThingDestroyed(Thing thing)
@@ -566,6 +577,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
 
         bool removed;
         var actualShortfall = false;
+        LostTradeItemRecord? lostItem = null;
         if (thing is Pawn pawn)
         {
             removed = pawnsSoldToTrader.Remove(pawn);
@@ -574,6 +586,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                 _ = toTraderTransportShip.ShuttleComp.requiredPawns.Remove(pawn);
                 CancelHaulingJobFor(pawn);
                 actualShortfall = true;
+                lostItem = LostTradeItemRecord.ForPawn(pawn);
             }
         }
         else
@@ -596,6 +609,12 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                 // bearing on the deal.
                 actualShortfall = ReduceRequiredCargoFor(thing, thingCount!.Count);
                 CancelHaulingJobFor(thing);
+                if (actualShortfall)
+                {
+                    // thing.stackCount is already zeroed by the time this postfix runs (see
+                    // Thing.Destroy), so the lost amount has to come from the sale record instead.
+                    lostItem = LostTradeItemRecord.ForThing(thing, thingCount.Count);
+                }
             }
         }
 
@@ -604,9 +623,10 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
             return;
         }
 
+        LostTradeItemRecord.AddOrMerge(lostSoldItems, lostItem!);
         RenegotiationRequired = true;
         toTraderTransportShip.shipThing.TryGetComp<CompTradeShuttle>()?.CheckAutoload();
-        SendSoldItemLostLetter();
+        SendSoldItemLostLetter(lostItem!.Label);
     }
 
     private bool ReduceRequiredCargoFor(Thing thing, int count)
@@ -655,14 +675,33 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         }
     }
 
-    private void SendSoldItemLostLetter()
+    private void SendSoldItemLostLetter(string itemDescription)
     {
         RealisticOrbitalTradeMod.Instance.LogDevMessage(
             "Sending sold item lost letter\n" + StackTraceUtility.ExtractStackTrace()
         );
         Find.LetterStack.ReceiveLetter(
             "RealisticOrbitalTrade.SoldItemLostLetterLabel".Translate(),
-            "RealisticOrbitalTrade.SoldItemLostLetterText".Translate(tradeShip.TraderName),
+            "RealisticOrbitalTrade.SoldItemLostLetterText".Translate(
+                itemDescription,
+                tradeShip.TraderName
+            ),
+            LetterDefOf.NegativeEvent,
+            toTraderTransportShip?.shipThing
+        );
+    }
+
+    // Used instead of SendSoldItemLostLetter when a loss is only discovered on load
+    // (PruneDestroyedSoldItems): the destroyed thing/pawn's reference is already gone by then, so
+    // there's nothing to describe it with.
+    private void SendSoldItemsLostOnLoadLetter()
+    {
+        RealisticOrbitalTradeMod.Instance.LogDevMessage(
+            "Sending sold item(s) lost (on load) letter\n" + StackTraceUtility.ExtractStackTrace()
+        );
+        Find.LetterStack.ReceiveLetter(
+            "RealisticOrbitalTrade.SoldItemLostLetterLabel".Translate(),
+            "RealisticOrbitalTrade.SoldItemsLostOnLoadLetterText".Translate(tradeShip.TraderName),
             LetterDefOf.NegativeEvent,
             toTraderTransportShip?.shipThing
         );
@@ -1309,6 +1348,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         // A completed renegotiation rebuilds the deal from what's currently physically available,
         // so it inherently re-balances a trade that a destroyed sold item put into discrepancy.
         RenegotiationRequired = false;
+        lostSoldItems.Clear();
 
         // Immediately re-evaluate the auto-load list on the shuttle
         toTraderCompShuttle.CheckAutoload();
@@ -1328,5 +1368,87 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         var countToTransfer = Math.Min(leftToTransfer, stackCount);
         var remainingToTransfer = leftToTransfer - countToTransfer;
         return (countToTransfer, remainingToTransfer, remainingToTransfer <= 0);
+    }
+
+    /// <summary>
+    /// A savegame-safe snapshot of a single sold-to-trader thing/pawn lost before delivery,
+    /// captured at the moment of loss (see <see cref="Notify_OwnThingDestroyed"/>). Kept purely
+    /// for display in <see cref="CompTradeShuttle.CompInspectStringExtra"/> and the
+    /// shuttle's contents tab - the real <see cref="Thing"/>/<see cref="Pawn"/> reference can't be
+    /// used for that once destroyed (its stackCount is already zeroed by the time this runs, see
+    /// <see cref="Notify_OwnThingDestroyed"/>'s remark, and a Scribe reference to it resolves to
+    /// null on reload).
+    /// </summary>
+    internal class LostTradeItemRecord : IExposable
+    {
+        public ThingDef? def;
+        public ThingDef? stuffDef;
+        public bool hasQuality;
+        public QualityCategory quality;
+        public string? pawnLabel;
+        public int count = 1;
+
+        public string Label =>
+            pawnLabel
+            ?? (
+                GenLabel.ThingLabel(def, stuffDef, count)
+                + (hasQuality ? $" ({quality.GetLabel()})" : string.Empty)
+            );
+
+        public void ExposeData()
+        {
+            Scribe_Defs.Look(ref def, "def");
+            Scribe_Defs.Look(ref stuffDef, "stuffDef");
+            Scribe_Values.Look(ref hasQuality, "hasQuality");
+            Scribe_Values.Look(ref quality, "quality");
+            Scribe_Values.Look(ref pawnLabel, "pawnLabel");
+            Scribe_Values.Look(ref count, "count", 1);
+        }
+
+        internal static LostTradeItemRecord ForThing(Thing thing, int count)
+        {
+            var hasQuality = QualityUtility.TryGetQuality(thing, out var quality);
+            return new()
+            {
+                def = thing.def,
+                stuffDef = thing.Stuff,
+                hasQuality = hasQuality,
+                quality = quality,
+                count = count,
+            };
+        }
+
+        internal static LostTradeItemRecord ForPawn(Pawn pawn) =>
+            new() { pawnLabel = pawn.LabelShortCap };
+
+        /// <summary>
+        /// Adds <paramref name="record"/> to <paramref name="records"/>, merging its count into a
+        /// matching existing entry (same def/stuff/quality bucket) if one is already present.
+        /// Pawn records (<see cref="pawnLabel"/> set) are never merged into each other - two
+        /// different pawns can share a label, and folding them into one counted entry would
+        /// misrepresent them as a single stack.
+        /// </summary>
+        internal static void AddOrMerge(
+            List<LostTradeItemRecord> records,
+            LostTradeItemRecord record
+        )
+        {
+            if (record.pawnLabel == null)
+            {
+                var existing = records.FirstOrDefault(r =>
+                    r.pawnLabel == null
+                    && r.def == record.def
+                    && r.stuffDef == record.stuffDef
+                    && r.hasQuality == record.hasQuality
+                    && r.quality == record.quality
+                );
+                if (existing != null)
+                {
+                    existing.count += record.count;
+                    return;
+                }
+            }
+            records.Add(record);
+        }
     }
 }
