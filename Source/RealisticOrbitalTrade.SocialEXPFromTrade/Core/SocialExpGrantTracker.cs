@@ -111,6 +111,14 @@ internal static class SocialExpGrantTracker
 
         if (Scribe.mode == LoadSaveMode.PostLoadInit)
         {
+            // A save from before this integration persisted anything here has no
+            // "socialExpPendingAgreements" node etc. to read, which makes Scribe_Collections.Look
+            // set these to null rather than leave them at their pre-existing empty-list default.
+            _tmpAgreements ??= [];
+            _tmpBuyValues ??= [];
+            _tmpSellValues ??= [];
+            _tmpInspired ??= [];
+
             _pending.Clear();
             for (var i = 0; i < _tmpAgreements.Count; i++)
             {

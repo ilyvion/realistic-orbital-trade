@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - When an item, colonist or other creature already sold to a trader is lost before delivery, the letter now names the specific thing that was lost. The trade shuttle's inspect string and its Contents tab now also list exactly what's missing from the deal, instead of just saying something was.
 - Reopening a trade to renegotiate after losing sold items now immediately explains what was lost and how much the silver you owe changed to compensate, instead of leaving you to notice the adjustment on your own.
 
+### Fixed
+
+- Fixed a crash on the first load of a save after enabling the Social Experience from Trade integration, which happened whenever that save had no orbital trade data saved for it yet.
+
 ## [0.12.0] - 2026-09-04
 
 ### Added
