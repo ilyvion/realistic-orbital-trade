@@ -104,6 +104,13 @@ internal static class Utils
     public static List<Tradeable>? RenegotiationOriginalTradeables { get; internal set; }
 
     /// <summary>
+    /// Set once <see cref="ExplainLostSoldItemsIfNeeded"/> has shown its explanation dialog for
+    /// the renegotiation currently in progress, so a second <c>AddAllTradeables</c> call doesn't
+    /// pop it again.
+    /// </summary>
+    private static bool RenegotiationLossExplanationShown { get; set; }
+
+    /// <summary>
     /// Set alongside <see cref="RenegotiatingAgreement"/> when the reopened trade dialog was
     /// triggered automatically because the trader is leaving with the shuttle only partially
     /// loaded (see <see cref="TryBeginDepartureRenegotiation"/>), rather than by the player
@@ -135,6 +142,7 @@ internal static class Utils
     {
         RenegotiatingAgreement = tradeAgreement;
         RenegotiationOriginalTradeables = null;
+        RenegotiationLossExplanationShown = false;
         RenegotiatingBecauseDeparting = false;
         DepartureRenegotiationCancelConfirmed = false;
         DepartureRenegotiationFailedSignal = null;
@@ -144,10 +152,82 @@ internal static class Utils
     {
         RenegotiatingAgreement = null;
         RenegotiationOriginalTradeables = null;
+        RenegotiationLossExplanationShown = false;
         RenegotiatingBecauseDeparting = false;
         DepartureRenegotiationCancelConfirmed = false;
         DepartureRenegotiationFailedSignal = null;
     }
+
+    /// <summary>
+    /// Shows a one-time explanation dialog, right as a renegotiation's trade dialog opens, when
+    /// the renegotiation was triggered by one or more sold-to-trader things/pawns having been
+    /// lost before delivery (see <see cref="TradeAgreement.lostSoldItems"/>). Lists what was lost
+    /// and how much the deal's silver was automatically adjusted to compensate - neither is
+    /// otherwise obvious from the trade dialog alone, since the adjustment already happens
+    /// silently via <see cref="TradeDeal.UpdateCurrencyCount"/>.
+    /// </summary>
+    internal static void ExplainLostSoldItemsIfNeeded(
+        TradeAgreement tradeAgreement,
+        TradeDeal tradeDeal
+    )
+    {
+        if (
+            RenegotiationLossExplanationShown
+            || RenegotiatingAgreement != tradeAgreement
+            || tradeAgreement.lostSoldItems.Count == 0
+            || RenegotiationOriginalTradeables == null
+        )
+        {
+            return;
+        }
+        RenegotiationLossExplanationShown = true;
+
+        // Forces the same auto-balance vanilla's Dialog_Trade.DoWindowContents runs every frame
+        // (TradeDeal.UpdateCurrencyCount) to happen now, so the compensating silver change can be
+        // read off immediately instead of waiting a frame for the dialog to draw itself once.
+        tradeDeal.UpdateCurrencyCount();
+
+        var currencyChange = TradeAgreement
+            .ComputeRenegotiationChanges(RenegotiationOriginalTradeables, tradeDeal.AllTradeables)
+            .FirstOrDefault(change => change.tradeable.IsCurrency);
+
+        var text = LostSoldItemsExplanationKey(currencyChange)
+            .Translate(
+                BuildLostSoldItemsBulletList(tradeAgreement.lostSoldItems),
+                tradeAgreement.tradeShip.TraderName,
+                currencyChange.amount
+            );
+
+        Find.WindowStack.Add(
+            new Dialog_MessageBox(
+                text,
+                title: "RealisticOrbitalTrade.RenegotiationLostItemsExplanationTitle".Translate()
+            )
+        );
+    }
+
+    internal static string BuildLostSoldItemsBulletList(
+        IEnumerable<TradeAgreement.LostTradeItemRecord> lostSoldItems
+    ) => string.Join("\n", lostSoldItems.Select(record => "- " + record.Label));
+
+    /// <summary>
+    /// Picks which translation key <see cref="ExplainLostSoldItemsIfNeeded"/> shows, based on
+    /// which way (if any) <paramref name="currencyChange"/> - the currency entry from
+    /// <see cref="TradeAgreement.ComputeRenegotiationChanges"/>, or its default if none was found
+    /// - moved the deal's silver to compensate for the loss.
+    /// </summary>
+    internal static string LostSoldItemsExplanationKey(
+        (
+            TradeAgreement.TransferDirection direction,
+            Tradeable? tradeable,
+            int amount
+        ) currencyChange
+    ) =>
+        currencyChange.tradeable == null || currencyChange.amount == 0
+            ? "RealisticOrbitalTrade.RenegotiationLostItemsNoCurrencyChangeText"
+        : currencyChange.direction == TradeAgreement.TransferDirection.ToTrader
+            ? "RealisticOrbitalTrade.RenegotiationLostItemsIncreasedOwedText"
+        : "RealisticOrbitalTrade.RenegotiationLostItemsDecreasedOwedText";
 
     /// <summary>
     /// Called when the trade shuttle's departure timer expires with the shuttle only partially

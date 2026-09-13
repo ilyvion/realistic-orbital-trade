@@ -32,5 +32,7 @@ internal static class Rimworld_TradeDeal_AddAllTradeables
         }
 
         tradeAgreement.MergeAgreedTradeablesInto(__instance.AllTradeables);
+
+        Utils.ExplainLostSoldItemsIfNeeded(tradeAgreement, __instance);
     }
 }
