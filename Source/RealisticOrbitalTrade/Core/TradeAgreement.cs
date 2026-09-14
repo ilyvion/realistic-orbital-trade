@@ -601,6 +601,19 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                 {
                     _ = reservedTraderThings.Remove(reservedCount);
                 }
+                CancelHaulingJobFor(thing);
+
+                if (TrySubstituteFor(thing, thingCount!.Count))
+                {
+                    // Required cargo is left untouched - the substitute's count was already
+                    // covered by it, see TrySubstituteFor - so autoload just needs re-running to
+                    // pick up the newly-recorded stack(s) instead of the destroyed one.
+                    toTraderTransportShip
+                        .shipThing.TryGetComp<CompTradeShuttle>()
+                        ?.CheckAutoload();
+                    return;
+                }
+
                 // Hauling treats same-def stacks as fungible (see ReconcileReservation), so this
                 // exact stack's reservation can already have been released even though it was
                 // never touched - the deal's need for it having been covered by other stock hauled
@@ -608,7 +621,6 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                 // to reduce for this def, and destroying this now-uncommitted leftover has no
                 // bearing on the deal.
                 actualShortfall = ReduceRequiredCargoFor(thing, thingCount!.Count);
-                CancelHaulingJobFor(thing);
                 if (actualShortfall)
                 {
                     // thing.stackCount is already zeroed by the time this postfix runs (see
@@ -627,6 +639,115 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         RenegotiationRequired = true;
         toTraderTransportShip.shipThing.TryGetComp<CompTradeShuttle>()?.CheckAutoload();
         SendSoldItemLostLetter(lostItem!.Label);
+    }
+
+    // Fungible required cargo (plain stackables, or quality/health-tracked items matched by
+    // ThingDefCountWithRequirements.Matches's def+stuff+quality/hitpoints bucket) doesn't need the
+    // specific Thing that was sold - only enough of a matching stack. If the colony still holds
+    // enough spare (not already sold-and-reserved through this trade) stock to cover the
+    // requirement without thing, losing it isn't a real shortfall - AllocateSubstitutes picks
+    // replacement stack(s) to record as sold in thing's place. A requiredThing-pinned entry
+    // (genepacks/xenogerms) only ever matches that exact, now-destroyed reference, so this
+    // naturally reports those as unsubstitutable without special-casing them.
+    //
+    // Candidates are capped to each stack's spare capacity (stackCount minus whatever's already
+    // reserved against that same reference via ReservedCountFor) so a substitute can never
+    // double-claim stock this trade already committed elsewhere. Stock already physically split
+    // off and in transit toward the shuttle (Utils.ThingsCarriedTowardTransporter) is excluded
+    // entirely rather than capped: it's always a fragment of an already-recorded sale, and
+    // reservedTraderThings never gets updated to point at that split-off reference (see
+    // ReconcileReservation), so there'd be no way to tell how much of it is actually spare.
+    private bool TrySubstituteFor(Thing thing, int lostCount)
+    {
+        var compTradeShuttle = toTraderTransportShip!.shipThing.TryGetComp<CompTradeShuttle>();
+        var sendableItems = ColonyThingsTraderWillingToBuy()
+            .Select(candidate =>
+                (candidate, spareCount: candidate.stackCount - ReservedCountFor(candidate))
+            );
+
+        var allocation = AllocateSubstitutes(
+            thing,
+            lostCount,
+            compTradeShuttle.requiredSpecificItems,
+            toTraderTransportShip.ShuttleComp.requiredItems,
+            sendableItems
+        );
+        if (allocation == null)
+        {
+            return false;
+        }
+
+        foreach (var (candidate, count) in allocation)
+        {
+            var existing = thingsSoldToTrader.FirstOrDefault(t => t.thing == candidate);
+            if (existing != null)
+            {
+                existing.Count += count;
+            }
+            else
+            {
+                thingsSoldToTrader.Add(new(candidate, count));
+            }
+            AddReservation(candidate, count);
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Picks replacement stack(s) from <paramref name="sendableItems"/> to cover
+    /// <paramref name="lostCount"/> units of <paramref name="thing"/>'s fungibility bucket (see
+    /// <see cref="TrySubstituteFor"/>), greedily taking from each candidate's spare (unreserved)
+    /// count - skipping <paramref name="thing"/> itself, whose stackCount is already zeroed by the
+    /// time this runs - until covered. Returns <see langword="null"/> if no matching required-cargo
+    /// entry exists or the matching spare stock isn't enough to cover the loss.
+    /// </summary>
+    internal static List<(Thing candidate, int count)>? AllocateSubstitutes(
+        Thing thing,
+        int lostCount,
+        List<ThingDefCountWithRequirements> requiredSpecificItems,
+        List<ThingDefCount> requiredItems,
+        IEnumerable<(Thing candidate, int spareCount)> sendableItems
+    )
+    {
+        Func<Thing, bool> matches;
+        if (thing.HasRequirements())
+        {
+            var requiredItem = requiredSpecificItems.FirstOrDefault(t => t.Matches(thing));
+            if (requiredItem == null)
+            {
+                return null;
+            }
+            matches = requiredItem.Matches;
+        }
+        else
+        {
+            var requiredGeneric = requiredItems.FirstOrDefault(t => t.ThingDef == thing.def);
+            if (requiredGeneric == null)
+            {
+                return null;
+            }
+            matches = candidate => candidate.def == thing.def;
+        }
+
+        List<(Thing candidate, int count)> allocation = [];
+        var remaining = lostCount;
+        foreach (var (candidate, spareCount) in sendableItems)
+        {
+            if (remaining <= 0)
+            {
+                break;
+            }
+            if (candidate == thing || spareCount <= 0 || !matches(candidate))
+            {
+                continue;
+            }
+
+            var take = Math.Min(spareCount, remaining);
+            allocation.Add((candidate, take));
+            remaining -= take;
+        }
+
+        return remaining <= 0 ? allocation : null;
     }
 
     private bool ReduceRequiredCargoFor(Thing thing, int count)

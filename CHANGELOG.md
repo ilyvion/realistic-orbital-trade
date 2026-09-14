@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - When an item, colonist or other creature already sold to a trader is lost before delivery, the letter now names the specific thing that was lost. The trade shuttle's inspect string and its Contents tab now also list exactly what's missing from the deal, instead of just saying something was.
 - Reopening a trade to renegotiate after losing sold items now immediately explains what was lost and how much the silver you owe changed to compensate, instead of leaving you to notice the adjustment on your own.
+- Losing a sold item that's still available elsewhere in the colony (e.g. one packaged meal out of a larger batch) no longer forces a renegotiation. The shuttle now substitutes an equivalent item from your remaining stock instead, so renegotiation is only required when the loss can't be made up automatically.
 
 ### Fixed
 
