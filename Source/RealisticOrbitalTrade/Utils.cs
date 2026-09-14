@@ -195,7 +195,7 @@ internal static class Utils
             .Translate(
                 BuildLostSoldItemsBulletList(tradeAgreement.lostSoldItems),
                 tradeAgreement.tradeShip.TraderName,
-                currencyChange.amount
+                Math.Abs(currencyChange.amount)
             );
 
         Find.WindowStack.Add(
@@ -225,7 +225,15 @@ internal static class Utils
     ) =>
         currencyChange.tradeable == null || currencyChange.amount == 0
             ? "RealisticOrbitalTrade.RenegotiationLostItemsNoCurrencyChangeText"
-        : currencyChange.direction == TradeAgreement.TransferDirection.ToTrader
+        // ComputeRenegotiationChanges' amount is negated relative to raw CountToTransfer for a
+        // ToTrader change but not for a ToPlayer one (see its own "negative: colony gets less;
+        // positive: trader gets less" comment), so whether the amount owed to the trader went up
+        // or down flips along with direction rather than following the amount's sign alone.
+        : (
+            currencyChange.direction == TradeAgreement.TransferDirection.ToTrader
+                ? currencyChange.amount
+                : -currencyChange.amount
+        ) > 0
             ? "RealisticOrbitalTrade.RenegotiationLostItemsIncreasedOwedText"
         : "RealisticOrbitalTrade.RenegotiationLostItemsDecreasedOwedText";
 

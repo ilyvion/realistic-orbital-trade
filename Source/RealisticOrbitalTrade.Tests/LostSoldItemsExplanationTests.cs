@@ -92,4 +92,36 @@ internal static class LostSoldItemsExplanationTests
             .That(key)
             .Is.EqualTo("RealisticOrbitalTrade.RenegotiationLostItemsDecreasedOwedText");
     }
+
+    // Regression case: the trader was already sending the colony silver (ToPlayer), and losing a
+    // sold item shrinks that amount rather than growing it - a negative ToPlayer amount still
+    // means the colony ends up owing more, not less, even though ToTrader/a positive amount is
+    // the more common "owes more" shape.
+    [Test]
+    public static void ExplanationKeyIsIncreasedOwedWhenLessSilverNowFlowsFromTheTrader()
+    {
+        var currency = NewCurrencyTradeable(69);
+
+        var key = Utils.LostSoldItemsExplanationKey(
+            (TradeAgreement.TransferDirection.ToPlayer, currency, -16)
+        );
+
+        Assert
+            .That(key)
+            .Is.EqualTo("RealisticOrbitalTrade.RenegotiationLostItemsIncreasedOwedText");
+    }
+
+    [Test]
+    public static void ExplanationKeyIsDecreasedOwedWhenLessSilverNowFlowsToTheTraderNegativeAmount()
+    {
+        var currency = NewCurrencyTradeable(-69);
+
+        var key = Utils.LostSoldItemsExplanationKey(
+            (TradeAgreement.TransferDirection.ToTrader, currency, -16)
+        );
+
+        Assert
+            .That(key)
+            .Is.EqualTo("RealisticOrbitalTrade.RenegotiationLostItemsDecreasedOwedText");
+    }
 }
