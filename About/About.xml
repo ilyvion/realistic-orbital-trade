@@ -44,4 +44,9 @@
         <li>zeracronius.dynamictradeinterface</li>
         <li>Supes.AutoSeller.Core</li>
     </loadAfter>
+    <incompatibleWith>
+        <!-- Lets pawns and animals riding in the shuttle consume things like food and drugs from
+             it, which interferes with our own tracking of the shuttle's contents. -->
+        <li>eclair155.comfortablevehicles</li>
+    </incompatibleWith>
 </ModMetaData>

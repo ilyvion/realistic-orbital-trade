@@ -41,6 +41,10 @@ Mod compatibility is probably generally good, but there might be issues with mod
 
 - [Call a trader](https://steamcommunity.com/sharedfiles/filedetails/?id=2784149999) — Reported to work by another player if the 'Absolute Cost Range' values (both numbers) in the mod settings are set to zero.
 
+### Known incompatibilities
+
+- [Comfortable Vehicles](https://steamcommunity.com/sharedfiles/filedetails/?id=3677424409) — Lets pawns and animals riding in the shuttle consume things like food and drugs from it, which interferes with our own tracking of the shuttle's contents.
+
 ## Troubleshooting
 
 ### My colonists won't load certain items onto the shuttle
