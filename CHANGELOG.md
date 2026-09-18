@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.1] - 2026-09-18
+
 ### Changed
 
 - When an item, colonist or other creature already sold to a trader is lost before delivery, the letter now names the specific thing that was lost. The trade shuttle's inspect string and its Contents tab now also list exactly what's missing from the deal, instead of just saying something was.
@@ -237,7 +239,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.12.0...HEAD
+[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.12.1...HEAD
+[0.12.1]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.12.0..v0.12.1
 [0.12.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.11.4..v0.12.0
 [0.11.4]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.11.3..v0.11.4
 [0.11.3]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.11.2..v0.11.3
