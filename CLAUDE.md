@@ -18,12 +18,15 @@ Replaces vanilla's instant orbital trading with a physical flow: accepting a dea
 
 ## Writing end-to-end trade tests
 
-`Source/RealisticOrbitalTrade.Tests/OrbitalTradeEndToEndTests.cs` is the reference; its `TradeScene` helper builds the colony and trader.
+`Source/RealisticOrbitalTrade.Tests/TradeScene.cs` is the shared harness: it builds the colony and trader, sells goods through the real dialog (`SellAndWaitForCompletion`), and makes the assertions every finished sale shares (`ExpectSaleCompleted`). `OrbitalTradeEndToEndTests.cs` (one shuttle) and `MultiShuttleEndToEndTests.cs` (sale split across shuttles) are the references; a new test places goods, sells, and adds only its own assertions. Extend `TradeScene` rather than copying setup into a fixture.
 
 - **Drive the real path.** Call `TradeShip.TryOpenComms`, take the `TradeSession.deal` tradeables, `ForceTo` a negative count to sell, then `deal.TryExecute`. Setting fields on `TradeAgreement` directly skips the patches under test.
 - **Advance time with `Find.TickManager.DoSingleTick()`** in a coroutine (`IEnumerator` test), ticking a batch and then `yield return null`. Loop on a condition (`quest.State`, shuttle spawned) with a tick timeout instead of a fixed tick count.
 - **Scene needs:** a home area around the beacon, a powered `OrbitalTradeBeacon` (`CompPowerTrader.PowerOn = true`), goods placed near it, and colonists whose timetable is `Anything` for all 24 hours, so they haul without waiting for work hours.
 - **Override settings for the test** (`Settings._useMinimumTradeThreshold = false`, `_deliverItemsViaDropPod = false`, `_activeTradePausesDepartureTimer = false`) and restore them in `Dispose`.
+- **Generate colonists that can trade and haul.** A random colonist can have the price-improvement stat disabled, which logs an error and fails the test; `TradeScene` regenerates until the colonist can negotiate and haul.
+- **Make a sale heavy by lowering the shuttle capacity** (`TradeScene.LimitShuttleCapacity`) instead of selling a heavy item: shuttles carry 2000 kg, so 1 kg items like uranium would need thousands of hauling trips. `Dispose` restores the capacity.
+- **Tests share one world and map.** DevTools regenerates them only for a fixture with custom generation settings, so `TradeScene.Dispose` puts back everything a test touched (quests, letters, home area, items, shuttles, pawns, settings, shuttle capacity). Anything new a test changes on the shared state goes into `Dispose` too.
 - **Any `Log.Warning`/`Log.Error` fails the test**, including ones from cleanup. `Dispose` must only end quests that are `QuestState.Ongoing`; ending a finished quest logs `Tried to resolve a historical quest`.
 - **Assert on things, not counters:**
     - `TradeShip.CountHeldOf` doesn't include stacks added by `QuestPart_TransferItemsToTrader`; sum `TradeShip.Goods` stack counts by def instead.
