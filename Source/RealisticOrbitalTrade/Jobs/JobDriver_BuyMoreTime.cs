@@ -22,7 +22,9 @@ internal class JobDriver_BuyMoreTime : JobDriver
         buyMoreTime.initAction = () =>
         {
             var compTradeShuttle = CompTradeShuttle;
-            var extendDepartureTimeAction = compTradeShuttle?.extendDepartureTimeAction;
+            var extendDepartureTimeAction = compTradeShuttle
+                ?.PrimaryShuttle
+                .extendDepartureTimeAction;
             if (compTradeShuttle?.tradeAgreement == null || extendDepartureTimeAction == null)
             {
                 RealisticOrbitalTradeMod.Instance.LogError(
@@ -70,7 +72,7 @@ internal class JobDriver_BuyMoreTime : JobDriver
                             Utils.IsBuyingMoreTime = false;
                         }
                         extendDepartureTimeAction(ticks);
-                        compTradeShuttle.timesBoughtMoreTime++;
+                        compTradeShuttle.PrimaryShuttle.timesBoughtMoreTime++;
                         Messages.Message(
                             "RealisticOrbitalTrade.BoughtMoreTime".Translate(
                                 ticks.ToStringTicksToPeriod(),

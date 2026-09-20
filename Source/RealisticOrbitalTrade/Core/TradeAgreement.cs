@@ -55,11 +55,14 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
             return 0;
         }
 
-        var compTransporter = toTraderTransportShip.TransporterComp;
         var map = tradeShip.Map;
 
-        var notAlreadyCounted = compTransporter
-            .innerContainer.Concat(Utils.ThingsCarriedTowardTransporter(compTransporter, map))
+        var notAlreadyCounted = ToTraderTransportShips
+            .SelectMany(ship =>
+                ship.TransporterComp.innerContainer.Concat(
+                    Utils.ThingsCarriedTowardTransporter(ship.TransporterComp, map)
+                )
+            )
             .Where(thing => !tradeable.thingsColony.Contains(thing));
 
         return SumMatchingStackCounts(tradeable, notAlreadyCounted);
@@ -113,7 +116,54 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
     // thing/pawn's reference to describe it from.
     public List<LostTradeItemRecord> lostSoldItems = [];
 
+    /// <summary>
+    /// The shuttle every sold pawn boards, and the one whose quest parts drive the trade's
+    /// timer - the only to-trader shuttle in trades made before a sale could span several.
+    /// </summary>
     public TransportShip? toTraderTransportShip;
+
+    /// <summary>
+    /// The shuttles beyond <see cref="toTraderTransportShip"/> a sale too heavy for one shuttle is
+    /// divided across; empty for a single-shuttle trade (including every trade saved before
+    /// multi-shuttle trades existed).
+    /// </summary>
+    public List<TransportShip> additionalToTraderTransportShips = [];
+
+    /// <summary>
+    /// Latched once every to-trader shuttle has been loaded to satisfaction - only then are they
+    /// allowed to take off, all together. Unused for a single-shuttle trade.
+    /// </summary>
+    public bool toTraderDepartureCleared;
+
+    /// <summary>
+    /// Quest signal sent when <see cref="toTraderDepartureCleared"/> latches; null for a
+    /// single-shuttle trade.
+    /// </summary>
+    public string? toTraderShuttlesLoadedSignal;
+
+    /// <summary>
+    /// Every to-trader shuttle, <see cref="toTraderTransportShip"/> first.
+    /// </summary>
+    internal IEnumerable<TransportShip> ToTraderTransportShips
+    {
+        get
+        {
+            if (toTraderTransportShip == null)
+            {
+                yield break;
+            }
+            yield return toTraderTransportShip;
+            foreach (var ship in additionalToTraderTransportShips)
+            {
+                yield return ship;
+            }
+        }
+    }
+
+    private IEnumerable<CompTradeShuttle> ToTraderTradeShuttleComps =>
+        ToTraderTransportShips
+            .Select(ship => ship.shipThing.TryGetComp<CompTradeShuttle>())
+            .Where(comp => comp != null);
 
     [Obsolete]
     public TransportShip? toPlayerTransportShip;
@@ -292,7 +342,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         var tradeables = AllTradeables;
         ClampSoldTradeablesToLoaded(
             tradeables,
-            toTraderTransportShip!.TransporterComp.innerContainer
+            ToTraderTransportShips.SelectMany(ship => ship.TransporterComp.innerContainer)
         );
         return tradeables;
     }
@@ -373,6 +423,14 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         Scribe_Collections.Look(ref lostSoldItems, "lostSoldItems", LookMode.Deep);
         lostSoldItems ??= [];
         Scribe_References.Look(ref toTraderTransportShip, "toTraderTransportShip");
+        Scribe_Collections.Look(
+            ref additionalToTraderTransportShips,
+            "additionalToTraderTransportShips",
+            LookMode.Reference
+        );
+        additionalToTraderTransportShips ??= [];
+        Scribe_Values.Look(ref toTraderDepartureCleared, "toTraderDepartureCleared", false);
+        Scribe_Values.Look(ref toTraderShuttlesLoadedSignal, "toTraderShuttlesLoadedSignal");
 
         Scribe_Deep.Look(ref tradeDeliveryMethod, "tradeDeliveryMethod");
 
@@ -380,6 +438,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         Scribe_References.Look(ref toPlayerTransportShip, "toPlayerTransportShip");
         if (Scribe.mode == LoadSaveMode.PostLoadInit)
         {
+            _ = additionalToTraderTransportShips.RemoveAll(ship => ship == null);
             if (toPlayerTransportShip != null)
             {
                 tradeDeliveryMethod = new TradeDeliveryMethod_TransportShip(toPlayerTransportShip);
@@ -467,16 +526,18 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
 
         if (toTraderTransportShip is { } transportShip)
         {
-            // QuestNode_Root_TradeShipTransportShip aliases requiredPawns directly to
-            // pawnsSoldToTrader at deal creation, so live pawn removals
-            // (Notify_OwnThingDestroyed) stay in sync automatically. Scribe reconstructs each
-            // list independently on load, breaking that aliasing - re-establish it.
-            transportShip.ShuttleComp.requiredPawns = pawnsSoldToTrader;
+            // A single shuttle has its requiredPawns aliased directly to pawnsSoldToTrader at deal
+            // creation, so live pawn removals (Notify_OwnThingDestroyed) stay in sync
+            // automatically. Scribe reconstructs each list independently on load, breaking that
+            // aliasing - re-establish it. With several shuttles each keeps its own list of pawns.
+            if (additionalToTraderTransportShips.Count == 0)
+            {
+                transportShip.ShuttleComp.requiredPawns = pawnsSoldToTrader;
+            }
 
             if (lostAnything)
             {
-                var compTradeShuttle = transportShip.shipThing.TryGetComp<CompTradeShuttle>();
-                Utils.RebuildRequiredCargo(this, compTradeShuttle, transportShip.ShuttleComp);
+                Utils.RebuildRequiredCargo(this);
             }
         }
 
@@ -559,7 +620,10 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         );
         if (survivingReservation != null)
         {
-            survivingReservation.Count += absorbedReservation.Count;
+            survivingReservation.Count = Math.Min(
+                survivingThing.stackCount,
+                survivingReservation.Count + absorbedReservation.Count
+            );
         }
         else
         {
@@ -583,7 +647,10 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
             removed = pawnsSoldToTrader.Remove(pawn);
             if (removed)
             {
-                _ = toTraderTransportShip.ShuttleComp.requiredPawns.Remove(pawn);
+                foreach (var ship in ToTraderTransportShips)
+                {
+                    _ = ship.ShuttleComp.requiredPawns.Remove(pawn);
+                }
                 CancelHaulingJobFor(pawn);
                 actualShortfall = true;
                 lostItem = LostTradeItemRecord.ForPawn(pawn);
@@ -608,9 +675,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                     // Required cargo is left untouched - the substitute's count was already
                     // covered by it, see TrySubstituteFor - so autoload just needs re-running to
                     // pick up the newly-recorded stack(s) instead of the destroyed one.
-                    toTraderTransportShip
-                        .shipThing.TryGetComp<CompTradeShuttle>()
-                        ?.CheckAutoload();
+                    CheckAutoloadOnAllShuttles();
                     return;
                 }
 
@@ -637,7 +702,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
 
         LostTradeItemRecord.AddOrMerge(lostSoldItems, lostItem!);
         RenegotiationRequired = true;
-        toTraderTransportShip.shipThing.TryGetComp<CompTradeShuttle>()?.CheckAutoload();
+        CheckAutoloadOnAllShuttles();
         SendSoldItemLostLetter(lostItem!.Label);
     }
 
@@ -659,7 +724,6 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
     // ReconcileReservation), so there'd be no way to tell how much of it is actually spare.
     private bool TrySubstituteFor(Thing thing, int lostCount)
     {
-        var compTradeShuttle = toTraderTransportShip!.shipThing.TryGetComp<CompTradeShuttle>();
         var sendableItems = ColonyThingsTraderWillingToBuy()
             .Select(candidate =>
                 (candidate, spareCount: candidate.stackCount - ReservedCountFor(candidate))
@@ -668,8 +732,8 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         var allocation = AllocateSubstitutes(
             thing,
             lostCount,
-            compTradeShuttle.requiredSpecificItems,
-            toTraderTransportShip.ShuttleComp.requiredItems,
+            [.. ToTraderTradeShuttleComps.SelectMany(comp => comp.requiredSpecificItems)],
+            [.. ToTraderTransportShips.SelectMany(ship => ship.ShuttleComp.requiredItems)],
             sendableItems
         );
         if (allocation == null)
@@ -753,18 +817,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
     private bool ReduceRequiredCargoFor(Thing thing, int count)
     {
         var leftToTakeOff = count;
-        var compTradeShuttle = toTraderTransportShip!.shipThing.TryGetComp<CompTradeShuttle>();
-        var reduced = thing.HasRequirements()
-            ? ThingDefCountWithRequirements.TryReduceRequiredCount(
-                compTradeShuttle.requiredSpecificItems,
-                thing,
-                ref leftToTakeOff
-            )
-            : Utils.TryReduceRequiredItemsCount(
-                toTraderTransportShip.ShuttleComp.requiredItems,
-                thing.def,
-                ref leftToTakeOff
-            );
+        var reduced = ReduceRequiredCargo(thing, ref leftToTakeOff);
         if (!reduced)
         {
             RealisticOrbitalTradeMod.Instance.LogWarning(
@@ -774,25 +827,79 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         return reduced;
     }
 
+    /// <summary>
+    /// Takes up to <paramref name="leftToTakeOff"/> units of <paramref name="thing"/>'s
+    /// requirement off the shuttles' required-cargo lists, starting with whichever shuttle has
+    /// the least of it loaded already so loaded cargo is disturbed last. Returns whether any
+    /// shuttle had a matching entry.
+    /// </summary>
+    private bool ReduceRequiredCargo(Thing thing, ref int leftToTakeOff)
+    {
+        var reduced = false;
+        foreach (var ship in ToTraderTransportShips.OrderBy(ship => LoadedCountOf(ship, thing)))
+        {
+            if (leftToTakeOff <= 0)
+            {
+                break;
+            }
+            reduced |= thing.HasRequirements()
+                ? ThingDefCountWithRequirements.TryReduceRequiredCount(
+                    ship.shipThing.TryGetComp<CompTradeShuttle>().requiredSpecificItems,
+                    thing,
+                    ref leftToTakeOff
+                )
+                : Utils.TryReduceRequiredItemsCount(
+                    ship.ShuttleComp.requiredItems,
+                    thing.def,
+                    ref leftToTakeOff
+                );
+        }
+        return reduced;
+    }
+
+    private static int LoadedCountOf(TransportShip ship, Thing thing)
+    {
+        var def = thing.GetInnerIfMinified().def;
+        var count = 0;
+        foreach (var loaded in ship.TransporterComp.innerContainer)
+        {
+            if (loaded.GetInnerIfMinified().def == def)
+            {
+                count += loaded.stackCount;
+            }
+        }
+        return count;
+    }
+
+    internal void CheckAutoloadOnAllShuttles()
+    {
+        foreach (var comp in ToTraderTradeShuttleComps)
+        {
+            comp.CheckAutoload();
+        }
+    }
+
     private void CancelHaulingJobFor(Thing thing)
     {
-        var compTransporter = toTraderTransportShip!.TransporterComp;
-        var map = toTraderTransportShip.shipThing.Map;
-        if (map == null)
+        foreach (var ship in ToTraderTransportShips)
         {
-            return;
-        }
+            var map = ship.shipThing.Map;
+            if (map == null)
+            {
+                continue;
+            }
 
-        foreach (
-            var jobPawn in Utils
-                .PawnsWithHaulToTransporterJob(compTransporter, map)
-                .Where(jp =>
-                    jp.carryTracker.CarriedThing == thing || jp.CurJob.targetA.Thing == thing
-                )
-                .ToList()
-        )
-        {
-            jobPawn.jobs.EndCurrentJob(JobCondition.Incompletable, false, true);
+            foreach (
+                var jobPawn in Utils
+                    .PawnsWithHaulToTransporterJob(ship.TransporterComp, map)
+                    .Where(jp =>
+                        jp.carryTracker.CarriedThing == thing || jp.CurJob.targetA.Thing == thing
+                    )
+                    .ToList()
+            )
+            {
+                jobPawn.jobs.EndCurrentJob(JobCondition.Incompletable, false, true);
+            }
         }
     }
 
@@ -922,7 +1029,10 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         var entries = reservedTraderThings
             .Where(t => transferable.things.Contains(t.thing))
             .ToList();
-        var excess = entries.Sum(t => t.Count) - Math.Max(0, stillNeeded);
+        var excess =
+            entries.Sum(t => t.Count)
+            - Math.Max(0, stillNeeded)
+            - StillNeededByOtherShuttles(transferable);
         foreach (var entry in entries)
         {
             if (excess <= 0)
@@ -939,6 +1049,241 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
             }
         }
     }
+
+    // Reservations cover the whole deal, but a hauling pawn only knows the need of the shuttle it's
+    // loading, so what the deal's other shuttles still need has to be held back from release too.
+    private int StillNeededByOtherShuttles(TransferableOneWay transferable)
+    {
+        if (additionalToTraderTransportShips.Count == 0 || transferable.AnyThing == null)
+        {
+            return 0;
+        }
+
+        var needed = 0;
+        bool isOwnShuttle(TransportShip ship)
+        {
+            return ship.TransporterComp.leftToLoad?.Contains(transferable) == true;
+        }
+        foreach (var ship in ToTraderTransportShips.Where(s => !isOwnShuttle(s)))
+        {
+            var leftToLoad = ship.TransporterComp.leftToLoad;
+            if (leftToLoad == null)
+            {
+                continue;
+            }
+            var match = JobDriver_HaulMultipleToTransporter.FindCommittedTransferable(
+                transferable.AnyThing,
+                leftToLoad
+            );
+            needed += Math.Max(0, match?.CountToTransfer ?? 0);
+        }
+        return needed;
+    }
+
+    internal const int PawnLineIdBase = 1_000_000;
+
+    /// <summary>The mass a sold pawn takes up on a shuttle, carried inventory included.</summary>
+    internal static float PawnCargoMass(Thing pawn) =>
+        CollectionsMassCalculator.MassUsage(
+            [new ThingCount(pawn, 1)],
+            IgnorePawnsInventoryMode.IgnoreIfAssignedToUnload,
+            includePawnsMass: true
+        );
+
+    /// <summary>
+    /// Divides what's sold to the trader (see <see cref="ShuttleLoadPlanner.Plan"/>) across
+    /// shuttles of <paramref name="capacity"/> kg each. A planned line's id is its index in
+    /// <see cref="thingsSoldToTrader"/>, or <see cref="PawnLineIdBase"/> plus its index in
+    /// <see cref="pawnsSoldToTrader"/> for a sold pawn.
+    /// <see langword="null"/> if something sold can't fit on a shuttle at all.
+    /// </summary>
+    internal List<List<(int lineId, int count)>>? PlanShuttleLoads(float capacity)
+    {
+        List<ShuttleLoadPlanner.Line> lines = [];
+        for (var i = 0; i < thingsSoldToTrader.Count; i++)
+        {
+            var soldThing = thingsSoldToTrader[i];
+            if (!IsSoldThingLost(soldThing))
+            {
+                lines.Add(new(i, soldThing.thing.GetStatValue(StatDefOf.Mass), soldThing.Count));
+            }
+        }
+
+        for (var i = 0; i < pawnsSoldToTrader.Count; i++)
+        {
+            if (!IsSoldPawnLost(pawnsSoldToTrader[i]))
+            {
+                lines.Add(new(PawnLineIdBase + i, PawnCargoMass(pawnsSoldToTrader[i]), 1));
+            }
+        }
+
+        return ShuttleLoadPlanner.Plan(capacity, 0f, lines);
+    }
+
+    /// <summary>
+    /// <see cref="PlanShuttleLoads"/>, falling back to everything on a single shuttle when the
+    /// sale can't be divided (nothing legitimately reaches that, since the trade dialog refuses
+    /// a sale that can't be) so the trade still gets its requirements.
+    /// </summary>
+    internal List<List<(int lineId, int count)>> PlanShuttleLoadsOrSingleShuttle(float capacity) =>
+        PlanShuttleLoads(capacity)
+        ??
+        [
+            [
+                .. thingsSoldToTrader
+                    .Select((t, i) => (i, t.Count))
+                    .Where(l => !IsSoldThingLost(thingsSoldToTrader[l.i])),
+            ],
+        ];
+
+    /// <summary>
+    /// Writes each planned shuttle's share into the shuttles' required-cargo lists, in the order
+    /// <see cref="ToTraderTransportShips"/> yields them. Shares beyond the last shuttle land on it.
+    /// </summary>
+    internal void AssignRequiredCargo(List<List<(int lineId, int count)>> plan)
+    {
+        var ships = ToTraderTransportShips.ToList();
+        var divideAmongShuttles = ships.Count > 1;
+        if (divideAmongShuttles)
+        {
+            // With one shuttle its requiredPawns is aliased to pawnsSoldToTrader instead.
+            foreach (var ship in ships)
+            {
+                ship.ShuttleComp.requiredPawns = [];
+            }
+        }
+
+        for (var i = 0; i < plan.Count; i++)
+        {
+            var ship = ships[Math.Min(i, ships.Count - 1)];
+            var compTradeShuttle = ship.shipThing.TryGetComp<CompTradeShuttle>();
+            foreach (var (lineId, count) in plan[i])
+            {
+                if (lineId >= PawnLineIdBase)
+                {
+                    if (divideAmongShuttles)
+                    {
+                        ship.ShuttleComp.requiredPawns.Add(
+                            pawnsSoldToTrader[lineId - PawnLineIdBase]
+                        );
+                    }
+                    continue;
+                }
+
+                Utils.AddThingToLoadToShuttle(
+                    new ThingCountClass(thingsSoldToTrader[lineId].thing, count),
+                    compTradeShuttle,
+                    ship.ShuttleComp
+                );
+            }
+        }
+    }
+
+    // Renegotiation can add to the sale after the shuttles are already assigned their cargo. The
+    // shuttles can't be added to at that point, so the addition fills whatever room the existing
+    // ones have left, spilling whatever doesn't fit onto the last shuttle.
+    private void AddRequiredCargoToShuttles(ThingCountClass thingCount)
+    {
+        var ships = ToTraderTransportShips.ToList();
+        var unitMass = thingCount.thing.GetStatValue(StatDefOf.Mass);
+        var remaining = thingCount.Count;
+        for (var i = 0; i < ships.Count && remaining > 0; i++)
+        {
+            var take =
+                i == ships.Count - 1 || unitMass <= 0f
+                    ? remaining
+                    : Math.Min(
+                        remaining,
+                        (int)Math.Floor(Math.Max(0f, FreeMass(ships[i])) / unitMass)
+                    );
+            if (take <= 0)
+            {
+                continue;
+            }
+
+            Utils.AddThingToLoadToShuttle(
+                new ThingCountClass(thingCount.thing, take),
+                ships[i].shipThing.TryGetComp<CompTradeShuttle>(),
+                ships[i].ShuttleComp
+            );
+            remaining -= take;
+        }
+    }
+
+    private float FreeMass(TransportShip ship)
+    {
+        var compTradeShuttle = ship.shipThing.TryGetComp<CompTradeShuttle>();
+        var required =
+            ship.ShuttleComp.requiredItems.Sum(i =>
+                i.Count * i.ThingDef.GetStatValueAbstract(StatDefOf.Mass)
+            )
+            + compTradeShuttle.requiredSpecificItems.Sum(i =>
+                i.count * i.def.GetStatValueAbstract(StatDefOf.Mass)
+            );
+        required += ship.ShuttleComp.requiredPawns.Sum(PawnCargoMass);
+        return Patch.Rimworld_Dialog_Trade_DoWindowContents.ShuttleMassCapacity - required;
+    }
+
+    private static int RequiredCountOf(TransportShip ship, Thing thing) =>
+        thing.HasRequirements()
+            ? ship
+                .shipThing.TryGetComp<CompTradeShuttle>()
+                .requiredSpecificItems.Where(r => r.def == thing.GetInnerIfMinified().def)
+                .Sum(r => r.count)
+            : ship.ShuttleComp.requiredItems.Where(r => r.ThingDef == thing.def).Sum(r => r.Count);
+
+    // Set while IsToTraderDepartureCleared asks each shuttle whether it's loaded, since that ask
+    // routes back through the shuttle's own departure check.
+    private bool checkingDepartureClearance;
+
+    /// <summary>
+    /// Whether the to-trader shuttles may take off: always true for a single shuttle, otherwise
+    /// only once every shuttle is loaded to satisfaction - which then latches, so shuttles that
+    /// have already left don't hold back the ones still on the ground.
+    /// </summary>
+    internal bool IsToTraderDepartureCleared()
+    {
+        if (
+            toTraderDepartureCleared
+            || additionalToTraderTransportShips.Count == 0
+            || checkingDepartureClearance
+        )
+        {
+            return true;
+        }
+
+        checkingDepartureClearance = true;
+        try
+        {
+            foreach (var ship in ToTraderTransportShips)
+            {
+                if (
+                    ship.shipThing is not { Spawned: true }
+                    || !ship.ShuttleComp.AllRequiredThingsLoaded
+                )
+                {
+                    return false;
+                }
+            }
+        }
+        finally
+        {
+            checkingDepartureClearance = false;
+        }
+
+        toTraderDepartureCleared = true;
+        if (toTraderShuttlesLoadedSignal != null)
+        {
+            Find.SignalManager.SendSignal(new Signal(toTraderShuttlesLoadedSignal));
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// <paramref name="amount"/>, limited to what <paramref name="things"/> actually hold in total.
+    /// </summary>
+    internal static int ClampToAvailable(int amount, IEnumerable<Thing> things) =>
+        Math.Min(amount, things.Sum(t => t.stackCount));
 
     internal enum TransferDirection
     {
@@ -1117,16 +1462,8 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         List<Tradeable> newTradeables
     )
     {
-        var toTraderTransportShip = this.toTraderTransportShip!;
-        var toTraderCompShuttle = toTraderTransportShip.ShuttleComp;
-        var toTraderCompTransporter = toTraderTransportShip.TransporterComp;
-
         var tradeShipThings = tradeShip.things;
         var toPlayerThingOwner = tradeDeliveryMethod!.Things;
-        var toTraderTransportShipContainer = toTraderCompTransporter.innerContainer;
-
-        var toTraderShipThing = toTraderTransportShip.shipThing;
-        var toTraderCompTradeShuttle = toTraderShipThing.TryGetComp<CompTradeShuttle>();
 
         var changes = ComputeRenegotiationChanges(originalTradeables, newTradeables);
         if (changes.Count == 0)
@@ -1141,10 +1478,13 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                 case TransferDirection.ToPlayer:
                     if (amount > 0)
                     {
-                        // Move things out of the trade ship and to the items meant for the player
+                        // Move things out of the trade ship and to the items meant for the player.
+                        // The trader may hold less than the deal owes (e.g. silver, when the
+                        // player accepted a trade the trader can't fully pay for), in which case
+                        // the player gets whatever there is.
                         TransferableUtility.TransferNoSplit(
                             tradeable.thingsTrader,
-                            amount,
+                            ClampToAvailable(amount, tradeable.thingsTrader),
                             (toGive, countToGive) =>
                             {
                                 // A fresh trade routes every bought pawn through this same
@@ -1202,27 +1542,31 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                             (toGive, countToGive) =>
                             {
                                 // A pawn sold to the trader during a fresh trade walks itself onto
-                                // the shuttle via requiredPawns
-                                // (QuestNode_Root_TradeShipTransportShip.RunInt sets
-                                // toTraderCompShuttle.requiredPawns to this same pawnsSoldToTrader
-                                // list reference, so appending here is picked up automatically) -
-                                // it isn't hauled/reserved cargo like an ordinary item, see
+                                // a shuttle via requiredPawns - it isn't hauled/reserved cargo
+                                // like an ordinary item, see
                                 // Rimworld_TradeShip_GiveSoldThingToTrader's prefix. Routing it
                                 // through the ordinary-item path below instead would try to have it
                                 // hauled and reserved like a crate of steel.
                                 if (toGive is Pawn soldPawn)
                                 {
+                                    // A single shuttle's requiredPawns is this same list
+                                    // (QuestNode_Root_TradeShipTransportShip.RunInt), so appending
+                                    // is picked up automatically; several shuttles each keep their
+                                    // own, so the pawn is assigned to whichever has the most room.
                                     pawnsSoldToTrader.Add(soldPawn);
+                                    if (additionalToTraderTransportShips.Count > 0)
+                                    {
+                                        ToTraderTransportShips
+                                            .OrderByDescending(FreeMass)
+                                            .First()
+                                            .ShuttleComp.requiredPawns.Add(soldPawn);
+                                    }
                                     return;
                                 }
                                 ThingCountClass thingCount = new(toGive, countToGive);
                                 thingsSoldToTrader.Add(thingCount);
                                 AddReservation(toGive, countToGive);
-                                Utils.AddThingToLoadToShuttle(
-                                    thingCount,
-                                    toTraderCompTradeShuttle,
-                                    toTraderCompShuttle
-                                );
+                                AddRequiredCargoToShuttles(thingCount);
                             }
                         );
                     }
@@ -1237,45 +1581,49 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                         {
                             // Remove from sold list
                             _ = pawnsSoldToTrader.Remove(pawn);
-                            // Remove from shuttle's required cargo list
-                            _ = toTraderCompShuttle.requiredPawns.Remove(pawn);
-
-                            // If already loaded onto the shuttle, make the shuttle drop
-                            // the pawn back out.
-                            if (toTraderTransportShipContainer.Contains(pawn))
+                            foreach (var ship in ToTraderTransportShips)
                             {
-                                var unloaded = toTraderTransportShipContainer.TryDrop(
-                                    pawn,
-                                    toTraderTransportShip.GetDropLocation(),
-                                    toTraderShipThing.Map,
-                                    ThingPlaceMode.Near,
-                                    out _,
-                                    null,
-                                    c =>
-                                    {
-                                        return !c.Fogged(toTraderShipThing.Map) && !pawn.Downed;
-                                    },
-                                    false
-                                );
-                                if (!unloaded)
-                                {
-                                    RealisticOrbitalTradeMod.Instance.LogError(
-                                        $"Could not unload {pawn} from transport ship after renegotiation!"
-                                    );
-                                }
-                            }
+                                // Remove from shuttle's required cargo list
+                                _ = ship.ShuttleComp.requiredPawns.Remove(pawn);
 
-                            // Also cancel any hauling jobs featuring the pawn
-                            var p = Utils
-                                .PawnsWithHaulToTransporterJob(
-                                    toTraderCompTransporter,
-                                    toTraderShipThing.Map
-                                )
-                                .SingleOrDefault(jp =>
-                                    jp.carryTracker.CarriedThing == pawn
-                                    || jp.CurJob.targetA.Thing == pawn
-                                );
-                            p?.jobs.EndCurrentJob(JobCondition.Incompletable, false, true);
+                                // If already loaded onto the shuttle, make the shuttle drop
+                                // the pawn back out.
+                                var shipContainer = ship.TransporterComp.innerContainer;
+                                if (shipContainer.Contains(pawn))
+                                {
+                                    var unloaded = shipContainer.TryDrop(
+                                        pawn,
+                                        ship.GetDropLocation(),
+                                        ship.shipThing.Map,
+                                        ThingPlaceMode.Near,
+                                        out _,
+                                        null,
+                                        c =>
+                                        {
+                                            return !c.Fogged(ship.shipThing.Map) && !pawn.Downed;
+                                        },
+                                        false
+                                    );
+                                    if (!unloaded)
+                                    {
+                                        RealisticOrbitalTradeMod.Instance.LogError(
+                                            $"Could not unload {pawn} from transport ship after renegotiation!"
+                                        );
+                                    }
+                                }
+
+                                // Also cancel any hauling jobs featuring the pawn
+                                var p = Utils
+                                    .PawnsWithHaulToTransporterJob(
+                                        ship.TransporterComp,
+                                        ship.shipThing.Map
+                                    )
+                                    .SingleOrDefault(jp =>
+                                        jp.carryTracker.CarriedThing == pawn
+                                        || jp.CurJob.targetA.Thing == pawn
+                                    );
+                                p?.jobs.EndCurrentJob(JobCondition.Incompletable, false, true);
+                            }
                         }
                         else
                         {
@@ -1300,7 +1648,10 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                                         : thingsSoldToTrader.Where(t =>
                                             t.thing.def == tradedThingDef
                                         ),
-                                    toTraderTransportShipContainer.Contains
+                                    thing =>
+                                        ToTraderTransportShips.Any(ship =>
+                                            ship.TransporterComp.innerContainer.Contains(thing)
+                                        )
                                 );
                                 if (thingCount == null)
                                 {
@@ -1320,98 +1671,97 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                                 }
                             } while (leftToTakeOff > 0);
 
-                            // Take things off the to-be-loaded list
+                            // Take things off the to-be-loaded list. First, remove things from
+                            // there - if we can get away with just reducing that, we won't need to
+                            // unload anything.
                             leftToTakeOff = -amount;
-                            do
-                            {
-                                // First, remove things from the to-be-loaded list. If we can get away
-                                // with just reducing that, we won't need to unload anything.
-                                if (tradeable.AnyThing.HasRequirements())
-                                {
-                                    if (
-                                        !ThingDefCountWithRequirements.TryReduceRequiredCount(
-                                            toTraderCompTradeShuttle.requiredSpecificItems,
-                                            tradeable.AnyThing.GetInnerIfMinified(),
-                                            ref leftToTakeOff
-                                        )
-                                    )
-                                    {
-                                        RealisticOrbitalTradeMod.Instance.LogError(
-                                            $"Needed to take {-amount} off the 'requiredItems' list, but could only remove {-amount - leftToTakeOff}"
-                                        );
-                                        break;
-                                    }
-                                }
-                                else if (
-                                    !Utils.TryReduceRequiredItemsCount(
-                                        toTraderCompShuttle.requiredItems,
-                                        tradeable.ThingDef,
-                                        ref leftToTakeOff
-                                    )
+                            if (
+                                !ReduceRequiredCargo(
+                                    tradeable.AnyThing.HasRequirements()
+                                        ? tradeable.AnyThing.GetInnerIfMinified()
+                                        : tradeable.AnyThing,
+                                    ref leftToTakeOff
                                 )
-                                {
-                                    RealisticOrbitalTradeMod.Instance.LogError(
-                                        $"Needed to take {-amount} off the 'requiredItems' list, but could only remove {-amount - leftToTakeOff}"
-                                    );
-                                    break;
-                                }
-                            } while (leftToTakeOff > 0);
+                            )
+                            {
+                                RealisticOrbitalTradeMod.Instance.LogError(
+                                    $"Needed to take {-amount} off the 'requiredItems' list, but could only remove {-amount - leftToTakeOff}"
+                                );
+                            }
 
                             // Calculate how much has been loaded already
-                            List<Thing> actuallyLoaded;
-                            int countActuallyLoaded;
-                            if (tradeable.AnyThing.HasRequirements())
+                            var hasRequirements = tradeable.AnyThing.HasRequirements();
+                            bool IsThisTradeable(Thing t)
                             {
-                                actuallyLoaded =
-                                [
-                                    .. toTraderTransportShipContainer.Where(t =>
-                                        t.GetInnerIfMinified() == tradeable.AnyThing
-                                    ),
-                                ];
-                                countActuallyLoaded = actuallyLoaded.Sum(t => t.stackCount);
+                                return hasRequirements
+                                    ? t.GetInnerIfMinified() == tradeable.AnyThing
+                                    : t.GetInnerIfMinified().def == tradeable.ThingDef;
                             }
-                            else
-                            {
-                                actuallyLoaded =
-                                [
-                                    .. toTraderTransportShipContainer.Where(t =>
-                                        t.GetInnerIfMinified().def == tradeable.ThingDef
-                                    ),
-                                ];
-                                countActuallyLoaded = actuallyLoaded.Sum(t => t.stackCount);
-                            }
+                            var loadedByShip = ToTraderTransportShips
+                                .Where(ship => ship.shipThing.Map != null)
+                                .Select(ship =>
+                                    (
+                                        ship,
+                                        things: ship.TransporterComp.innerContainer.Where(
+                                                IsThisTradeable
+                                            )
+                                            .ToList()
+                                    )
+                                )
+                                .ToList();
+                            var countActuallyLoaded = loadedByShip.Sum(l =>
+                                l.things.Sum(t => t.stackCount)
+                            );
 
                             var countRequiredLoaded = tradeable.CountToTransferToDestination;
                             if (countActuallyLoaded > countRequiredLoaded)
                             {
-                                // More items loaded than we've sold now; unload some
+                                // More items loaded than we've sold now; unload some, starting
+                                // with the shuttle holding the most beyond what it still requires
                                 var leftToUnload = countActuallyLoaded - countRequiredLoaded;
 
-                                var dropLoc = toTraderTransportShip.GetDropLocation();
-                                foreach (var loaded in actuallyLoaded)
+                                foreach (
+                                    var (ship, loadedThings) in loadedByShip.OrderByDescending(l =>
+                                        l.things.Sum(t => t.stackCount)
+                                        - RequiredCountOf(l.ship, tradeable.AnyThing)
+                                    )
+                                )
                                 {
-                                    var unloadAmount = Math.Min(leftToUnload, loaded.stackCount);
-                                    var unloaded = toTraderTransportShipContainer.TryDrop(
-                                        loaded,
-                                        dropLoc,
-                                        toTraderShipThing.Map,
-                                        ThingPlaceMode.Near,
-                                        unloadAmount,
-                                        out _,
-                                        null,
-                                        c =>
-                                        {
-                                            return !c.Fogged(toTraderShipThing.Map)
-                                                && c.GetFirstPawn(toTraderShipThing.Map) == null;
-                                        }
-                                    );
-                                    if (!unloaded)
+                                    var shipContainer = ship.TransporterComp.innerContainer;
+                                    var shipMap = ship.shipThing.Map;
+                                    var dropLoc = ship.GetDropLocation();
+                                    foreach (var loaded in loadedThings)
                                     {
-                                        RealisticOrbitalTradeMod.Instance.LogError(
-                                            $"Could not (fully) unload {tradedThingDef.label} from transport ship after renegotiation!"
+                                        var unloadAmount = Math.Min(
+                                            leftToUnload,
+                                            loaded.stackCount
                                         );
+                                        var unloaded = shipContainer.TryDrop(
+                                            loaded,
+                                            dropLoc,
+                                            shipMap,
+                                            ThingPlaceMode.Near,
+                                            unloadAmount,
+                                            out _,
+                                            null,
+                                            c =>
+                                            {
+                                                return !c.Fogged(shipMap)
+                                                    && c.GetFirstPawn(shipMap) == null;
+                                            }
+                                        );
+                                        if (!unloaded)
+                                        {
+                                            RealisticOrbitalTradeMod.Instance.LogError(
+                                                $"Could not (fully) unload {tradedThingDef.label} from transport ship after renegotiation!"
+                                            );
+                                        }
+                                        leftToUnload -= unloadAmount;
+                                        if (leftToUnload == 0)
+                                        {
+                                            break;
+                                        }
                                     }
-                                    leftToUnload -= unloadAmount;
                                     if (leftToUnload == 0)
                                     {
                                         break;
@@ -1420,36 +1770,30 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                             }
 
                             // Also cancel any hauling jobs featuring the item
-                            if (tradeable.AnyThing.HasRequirements())
+                            foreach (var ship in ToTraderTransportShips)
                             {
-                                foreach (
-                                    var p in Utils
-                                        .PawnsWithHaulToTransporterJob(
-                                            toTraderCompTransporter,
-                                            toTraderShipThing.Map
-                                        )
-                                        .Where(jp =>
-                                            jp.carryTracker.CarriedThing == tradeable.AnyThing
-                                            || jp.CurJob.targetA.Thing.GetInnerIfMinified()
-                                                == tradeable.AnyThing
-                                        )
-                                )
+                                var shipMap = ship.shipThing.Map;
+                                if (shipMap == null)
                                 {
-                                    p.jobs.EndCurrentJob(JobCondition.Incompletable, false, true);
+                                    continue;
                                 }
-                            }
-                            else
-                            {
                                 foreach (
                                     var p in Utils
                                         .PawnsWithHaulToTransporterJob(
-                                            toTraderCompTransporter,
-                                            toTraderShipThing.Map
+                                            ship.TransporterComp,
+                                            shipMap
                                         )
                                         .Where(jp =>
-                                            jp.carryTracker.CarriedThing?.def == tradeable.ThingDef
-                                            || jp.CurJob.targetA.Thing.def == tradeable.ThingDef
+                                            hasRequirements
+                                                ? jp.carryTracker.CarriedThing == tradeable.AnyThing
+                                                    || jp.CurJob.targetA.Thing.GetInnerIfMinified()
+                                                        == tradeable.AnyThing
+                                                : jp.carryTracker.CarriedThing?.def
+                                                    == tradeable.ThingDef
+                                                    || jp.CurJob.targetA.Thing.def
+                                                        == tradeable.ThingDef
                                         )
+                                        .ToList()
                                 )
                                 {
                                     p.jobs.EndCurrentJob(JobCondition.Incompletable, false, true);
@@ -1471,8 +1815,11 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         RenegotiationRequired = false;
         lostSoldItems.Clear();
 
-        // Immediately re-evaluate the auto-load list on the shuttle
-        toTraderCompShuttle.CheckAutoload();
+        // Immediately re-evaluate the auto-load list on the shuttles
+        foreach (var ship in ToTraderTransportShips)
+        {
+            ship.ShuttleComp.CheckAutoload();
+        }
 
         return true;
     }

@@ -53,10 +53,20 @@ internal class CompTradeShuttle : ThingComp
     internal Action<int>? extendDepartureTimeAction;
     internal int timesBoughtMoreTime;
 
+    /// <summary>
+    /// The shuttle that carries this trade's departure timer and buy-more-time state: the first
+    /// to-trader shuttle, which is this one unless the sale spans several.
+    /// </summary>
+    internal CompTradeShuttle PrimaryShuttle =>
+        tradeAgreement?.toTraderTransportShip?.shipThing.TryGetComp<CompTradeShuttle>() ?? this;
+
     internal int NextBuyMoreTimeCost =>
         Mathf.RoundToInt(
             Settings._buyMoreTimeBaseSilverCost
-                * Mathf.Pow(Settings._buyMoreTimeCostGrowthFactor, timesBoughtMoreTime)
+                * Mathf.Pow(
+                    Settings._buyMoreTimeCostGrowthFactor,
+                    PrimaryShuttle.timesBoughtMoreTime
+                )
         );
 
     private CompShuttle Shuttle
@@ -926,7 +936,9 @@ internal class CompTradeShuttle : ThingComp
                 return false;
             }
             CalculateRemainingRequiredItems();
-            return tmpRequiredSpecificItems.Sum(t => t.count) == 0;
+            // A multi-shuttle sale's shuttles only take off together, once all are loaded.
+            return tmpRequiredSpecificItems.Sum(t => t.count) == 0
+                && (tradeAgreement?.IsToTraderDepartureCleared() ?? true);
         }
     }
 
@@ -977,7 +989,7 @@ internal class CompTradeShuttle : ThingComp
                 parent
             );
 
-        if (extendDepartureTimeAction != null)
+        if (PrimaryShuttle.extendDepartureTimeAction != null)
         {
             var cost = NextBuyMoreTimeCost;
             yield return FloatMenuUtility.DecoratePrioritizedTask(

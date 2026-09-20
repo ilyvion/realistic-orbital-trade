@@ -48,19 +48,31 @@ internal static class Rimworld_TradeDeal_TryExecute
             }
         }
 
-        // The shuttle that will haul what the colony sells has a real, fixed mass capacity
-        // (CompProperties_Transporter.massCapacity on the Shuttle ThingDef) - it's not a balance
-        // preference like the minimum trade threshold, so this is enforced unconditionally.
+        // What the colony sells is divided across as many shuttles as it takes, but each shuttle
+        // has a real, fixed mass capacity (CompProperties_Transporter.massCapacity on the Shuttle
+        // ThingDef) - it's not a balance preference like the minimum trade threshold, so this is
+        // enforced unconditionally. A renegotiation can't send more shuttles than were sent.
         var outgoingMass = Rimworld_Dialog_Trade_DoWindowContents.CalculateOutgoingMass(__instance);
         var massCapacity = Rimworld_Dialog_Trade_DoWindowContents.ShuttleMassCapacity;
-        if (outgoingMass > massCapacity)
+        var outgoingPlan = Rimworld_Dialog_Trade_DoWindowContents.PlanOutgoingShuttles(__instance);
+        var shuttleLimit = Rimworld_Dialog_Trade_DoWindowContents.OutgoingShuttleLimit;
+        if (
+            Rimworld_Dialog_Trade_DoWindowContents.IsOutgoingCargoOverCapacity(
+                outgoingPlan,
+                shuttleLimit
+            )
+        )
         {
             Rimworld_Dialog_Trade_DoWindowContents.lastMassFlashTime = Time.time;
             Messages.Message(
-                "RealisticOrbitalTrade.TradeExceedsShuttleMassCapacity".Translate(
-                    outgoingMass.ToStringEnsureThreshold(massCapacity, 1),
-                    massCapacity.ToString("F0", CultureInfo.CurrentCulture)
-                ),
+                shuttleLimit is { } limit
+                    ? "RealisticOrbitalTrade.TradeExceedsShuttleMassCapacity".Translate(
+                        outgoingMass.ToStringEnsureThreshold(limit * massCapacity, 1),
+                        (limit * massCapacity).ToString("F0", CultureInfo.CurrentCulture)
+                    )
+                    : "RealisticOrbitalTrade.TradeContainsItemTooHeavyForShuttle".Translate(
+                        massCapacity.ToString("F0", CultureInfo.CurrentCulture)
+                    ),
                 MessageTypeDefOf.RejectInput,
                 historical: false
             );

@@ -213,10 +213,12 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
     private static void DrawCargoMassRow(Rect rowRect, bool outgoing)
     {
         var massCapacity = Rimworld_Dialog_Trade_DoWindowContents.ShuttleMassCapacity;
-        var mass = outgoing
-            ? Rimworld_Dialog_Trade_DoWindowContents.CalculateOutgoingMass(TradeSession.deal)
-            : Rimworld_Dialog_Trade_DoWindowContents.CalculateIncomingMass(TradeSession.deal);
-        var (overCapacity, flash, labelKey, tipKey) =
+        var (mass, valueText, overCapacity) =
+            Rimworld_Dialog_Trade_DoWindowContents.GetCargoMassRowValue(
+                outgoing,
+                TradeSession.deal
+            );
+        var (_, flash, labelKey, tipKey) =
             Rimworld_Dialog_Trade_DoWindowContents.GetCargoMassRowDisplay(
                 outgoing,
                 mass,
@@ -253,14 +255,7 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
 
         GUI.color = overCapacity ? Color.red : Color.white;
         Text.Anchor = TextAnchor.MiddleRight;
-        Widgets.Label(
-            valueRect,
-            mass.ToStringEnsureThreshold(massCapacity, 1)
-                + " / "
-                + massCapacity.ToString("F0", CultureInfo.CurrentCulture)
-                + " "
-                + "kg".Translate()
-        );
+        Widgets.Label(valueRect, valueText);
         GUI.color = Color.white;
         if (Mouse.IsOver(valueRect))
         {

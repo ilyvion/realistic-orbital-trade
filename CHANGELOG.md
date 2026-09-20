@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- A sale no longer has to fit on a single trade shuttle. If what you're selling is heavier than one shuttle can carry, the trader now sends as many shuttles as it takes, all at once. Colonists load them all, and they take off together once every one of them is fully loaded. Cancelling the trade, running out of time, or renegotiating applies to all the shuttles together. Any single thing you buy still has to fit on one shuttle, so a single item or creature too heavy for one shuttle still can't be sold.
+
+### Fixed
+
+- Fixed renegotiating a trade for more silver than the trader has left reporting an error. You now receive as much as the trader can pay, just like when the trade was first made.
+
 ## [0.12.2] - 2026-09-20
 
 ### Added

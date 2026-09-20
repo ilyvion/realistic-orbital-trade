@@ -1,4 +1,5 @@
 using System.Reflection.Emit;
+using RealisticOrbitalTrade.Core;
 
 namespace RealisticOrbitalTrade.Patch;
 
@@ -236,14 +237,8 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
         Widgets.BeginGroup(rowRect);
 
         var massCapacity = ShuttleMassCapacity;
-        var mass = outgoing
-            ? CalculateOutgoingMass(TradeSession.deal)
-            : CalculateIncomingMass(TradeSession.deal);
-        var (overCapacity, flash, labelKey, tipKey) = GetCargoMassRowDisplay(
-            outgoing,
-            mass,
-            massCapacity
-        );
+        var (mass, valueText, overCapacity) = GetCargoMassRowValue(outgoing, TradeSession.deal);
+        var (_, flash, labelKey, tipKey) = GetCargoMassRowDisplay(outgoing, mass, massCapacity);
 
         Rect massValueRect = new(rowWidth - 175f, 0f, 175f, rowRect.height);
         if (Mouse.IsOver(massValueRect))
@@ -255,14 +250,7 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
         var massValueLabelRect = massValueRect;
         massValueLabelRect.xMin += 5f;
         massValueLabelRect.xMax -= 5f;
-        Widgets.Label(
-            massValueLabelRect,
-            mass.ToStringEnsureThreshold(massCapacity, 1)
-                + " / "
-                + massCapacity.ToString("F0", CultureInfo.CurrentCulture)
-                + " "
-                + "kg".Translate()
-        );
+        Widgets.Label(massValueLabelRect, valueText);
         GUI.color = Color.white;
         TooltipHandler.TipRegionByKey(
             massValueRect,
@@ -423,6 +411,113 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
             includePawnsMass: true
         );
     }
+
+    /// <summary>
+    /// How many shuttles outgoing cargo is held to: as many as the sale needs for a new trade
+    /// (<see langword="null"/>), but only the ones already sent when renegotiating one.
+    /// </summary>
+    internal static int? OutgoingShuttleLimit =>
+        TradeShipData.tradeAgreementForQuest is { tradeDeliveryMethod: not null } tradeAgreement
+            ? tradeAgreement.ToTraderTransportShips.Count()
+            : null;
+
+    /// <summary>
+    /// The most mass the sale can add up to: unlimited for a new trade, where the sale is
+    /// divided across as many shuttles as it takes (see <see cref="ShuttleLoadPlanner"/>), or the
+    /// combined capacity of the shuttles already sent when renegotiating one.
+    /// </summary>
+    internal static float OutgoingMassCapacity =>
+        OutgoingShuttleLimit is { } limit ? limit * ShuttleMassCapacity : float.PositiveInfinity;
+
+    /// <summary>
+    /// How the deal's outgoing (sold-to-trader) cargo divides across shuttles, or
+    /// <see langword="null"/> if a single item or creature is too heavy
+    /// for a shuttle to carry at all.
+    /// </summary>
+    internal static List<List<(int lineId, int count)>>? PlanOutgoingShuttles(TradeDeal deal)
+    {
+        List<ShuttleLoadPlanner.Line> lines = [];
+        foreach (var item in deal.AllTradeables)
+        {
+            if (item.CountToTransfer >= 0 || !item.HasAnyThing)
+            {
+                continue;
+            }
+
+            if (item.AnyThing is Pawn)
+            {
+                var remaining = -item.CountToTransfer;
+                foreach (var thing in item.thingsColony)
+                {
+                    if (remaining <= 0)
+                    {
+                        break;
+                    }
+                    lines.Add(new(lines.Count, TradeAgreement.PawnCargoMass(thing), 1));
+                    remaining--;
+                }
+                continue;
+            }
+
+            lines.Add(
+                new(lines.Count, item.AnyThing.GetStatValue(StatDefOf.Mass), -item.CountToTransfer)
+            );
+        }
+
+        return ShuttleLoadPlanner.Plan(ShuttleMassCapacity, 0f, lines);
+    }
+
+    /// <summary>
+    /// Whether the deal's outgoing cargo can't go: a single thing is too heavy for a shuttle, or,
+    /// for a renegotiation, it needs more shuttles than were sent.
+    /// </summary>
+    internal static bool IsOutgoingCargoOverCapacity(
+        List<List<(int lineId, int count)>>? plan,
+        int? shuttleLimit
+    ) => plan == null || (shuttleLimit != null && plan.Count > shuttleLimit);
+
+    /// <summary>
+    /// What a cargo mass row shows for one direction of <paramref name="deal"/>: the mass, its
+    /// display text, and whether to flag it as over capacity. Outgoing cargo reads as a shuttle
+    /// count once it takes more than one shuttle, since no single capacity limits it.
+    /// </summary>
+    internal static (float mass, string valueText, bool overCapacity) GetCargoMassRowValue(
+        bool outgoing,
+        TradeDeal deal
+    )
+    {
+        var capacity = ShuttleMassCapacity;
+        if (!outgoing)
+        {
+            var incomingMass = CalculateIncomingMass(deal);
+            return (
+                incomingMass,
+                FormatMassOfCapacity(incomingMass, capacity),
+                incomingMass > capacity
+            );
+        }
+
+        var mass = CalculateOutgoingMass(deal);
+        var plan = PlanOutgoingShuttles(deal);
+        var shuttleLimit = OutgoingShuttleLimit;
+        var over = IsOutgoingCargoOverCapacity(plan, shuttleLimit);
+        var text =
+            shuttleLimit is { } limit ? FormatMassOfCapacity(mass, limit * capacity)
+            : plan is { Count: > 1 }
+                ? "RealisticOrbitalTrade.CargoMassMultipleShuttles".Translate(
+                    mass.ToString("F1", CultureInfo.CurrentCulture),
+                    plan.Count
+                )
+            : FormatMassOfCapacity(mass, capacity);
+        return (mass, text, over);
+    }
+
+    private static string FormatMassOfCapacity(float mass, float capacity) =>
+        mass.ToStringEnsureThreshold(capacity, 1)
+        + " / "
+        + capacity.ToString("F0", CultureInfo.CurrentCulture)
+        + " "
+        + "kg".Translate();
 
     internal static float ShuttleMassCapacity =>
         TransportShipDefOf

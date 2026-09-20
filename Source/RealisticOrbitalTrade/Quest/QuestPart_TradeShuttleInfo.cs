@@ -32,13 +32,22 @@ internal class QuestPart_TradeShuttleLeaveDelay : QuestPart_ShuttleLeaveDelay
                         TicksLeft
                             .ToStringTicksToPeriodVerbose()
                             .Colorize(ColoredText.DateTimeColor),
-                        shuttle.TryGetComp<CompShuttle>().RequiredThingsLabel
+                        AllRequiredThingsLabel
                     )
             : (string)
                 "RealisticOrbitalTrade.TradeShuttleRequires".Translate(
                     quest.name,
-                    shuttle.TryGetComp<CompShuttle>().RequiredThingsLabel
+                    AllRequiredThingsLabel
                 );
+
+    // Every to-trader shuttle's outstanding cargo, not just this part's own shuttle's.
+    private string AllRequiredThingsLabel =>
+        string.Join(
+            "\n",
+            (shuttle.TryGetComp<CompTradeShuttle>()?.tradeAgreement?.ToTraderTransportShips ?? [])
+                .Select(ship => (string)ship.ShuttleComp.RequiredThingsLabel)
+                .Where(label => !label.NullOrEmpty())
+        );
 
     public override string? ExpiryInfoPart =>
         !tradePausesDepartureTimer ? base.ExpiryInfoPart : null;

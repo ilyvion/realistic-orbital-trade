@@ -462,25 +462,25 @@ internal static class Utils
     }
 
     /// <summary>
-    /// Fully rebuilds the shuttle's required-cargo lists (<c>requiredSpecificItems</c>/
+    /// Fully rebuilds the shuttles' required-cargo lists (<c>requiredSpecificItems</c>/
     /// <c>requiredItems</c>) from <paramref name="tradeAgreement"/>'s current
     /// <c>thingsSoldToTrader</c>, discarding whatever was there before. Used after
     /// <c>thingsSoldToTrader</c> was pruned of entries whose thing no longer resolves (e.g. a
     /// sold item destroyed and saved before that pruning existed), since at that point there's no
     /// way to identify which specific required-cargo entry to reduce.
     /// </summary>
-    internal static void RebuildRequiredCargo(
-        TradeAgreement tradeAgreement,
-        CompTradeShuttle compTradeShuttle,
-        CompShuttle compShuttle
-    )
+    internal static void RebuildRequiredCargo(TradeAgreement tradeAgreement)
     {
-        compTradeShuttle.requiredSpecificItems.Clear();
-        compShuttle.requiredItems.Clear();
-        foreach (var thingCount in tradeAgreement.thingsSoldToTrader)
+        foreach (var ship in tradeAgreement.ToTraderTransportShips)
         {
-            AddThingToLoadToShuttle(thingCount, compTradeShuttle, compShuttle);
+            ship.shipThing.TryGetComp<CompTradeShuttle>().requiredSpecificItems.Clear();
+            ship.ShuttleComp.requiredItems.Clear();
         }
+
+        var plan = tradeAgreement.PlanShuttleLoadsOrSingleShuttle(
+            Patch.Rimworld_Dialog_Trade_DoWindowContents.ShuttleMassCapacity
+        );
+        tradeAgreement.AssignRequiredCargo(plan);
     }
 
     public static IEnumerable<Pawn> PawnsWithHaulToTransporterJob(

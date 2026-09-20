@@ -20,16 +20,66 @@ internal class QuestNode_Root_TradeShipTransportShip : QuestNode
         );
         var cancelTradeSignal = QuestGenUtility.HardcodedSignalWithQuestID("CancelTrade");
 
-        (var toTraderShuttle, var toTraderTransportShip) = SetupToTraderTransportShip(
-            quest,
-            slate,
-            tradeAgreement,
-            questTag,
-            out var signalToTraderShuttleSentSatisfied,
-            out var signalToTraderShuttleKilled
+        var shuttlePlan = tradeAgreement.PlanShuttleLoadsOrSingleShuttle(
+            Patch.Rimworld_Dialog_Trade_DoWindowContents.ShuttleMassCapacity
         );
+        var shuttleCount = shuttlePlan.Count;
+        slate.Set("toTraderShuttleCount", shuttleCount);
 
-        tradeAgreement.toTraderTransportShip = toTraderTransportShip;
+        List<Thing> toTraderShuttles = [];
+        List<TransportShip> toTraderTransportShips = [];
+        List<string> signalsToTraderShuttleSentSatisfied = [];
+        List<string> signalsToTraderShuttleKilled = [];
+        for (var i = 0; i < shuttleCount; i++)
+        {
+            var (shuttle, transportShip) = SetupToTraderTransportShip(
+                quest,
+                slate,
+                tradeAgreement,
+                questTag,
+                i,
+                out var signalSentSatisfied,
+                out var signalKilled
+            );
+            toTraderShuttles.Add(shuttle);
+            toTraderTransportShips.Add(transportShip);
+            signalsToTraderShuttleSentSatisfied.Add(signalSentSatisfied);
+            signalsToTraderShuttleKilled.Add(signalKilled);
+        }
+
+        var toTraderShuttle = toTraderShuttles[0];
+        tradeAgreement.toTraderTransportShip = toTraderTransportShips[0];
+        tradeAgreement.additionalToTraderTransportShips = [.. toTraderTransportShips.Skip(1)];
+        tradeAgreement.AssignRequiredCargo(shuttlePlan);
+
+        // A sale spread across several shuttles has them all take off together once every one is
+        // loaded, and moves on once every one has left.
+        string signalToTraderShuttleSentSatisfied;
+        string? signalToTraderShuttlesLoaded = null;
+        if (shuttleCount == 1)
+        {
+            signalToTraderShuttleSentSatisfied = signalsToTraderShuttleSentSatisfied[0];
+        }
+        else
+        {
+            signalToTraderShuttlesLoaded = QuestGenUtility.HardcodedSignalWithQuestID(
+                "ToTraderShuttlesLoaded"
+            );
+            tradeAgreement.toTraderShuttlesLoadedSignal = signalToTraderShuttlesLoaded;
+
+            signalToTraderShuttleSentSatisfied = QuestGenUtility.HardcodedSignalWithQuestID(
+                "ToTraderShuttlesSentSatisfied"
+            );
+            quest.AddPart(
+                new QuestPart_PassAll
+                {
+                    inSignals = signalsToTraderShuttleSentSatisfied,
+                    outSignal = signalToTraderShuttleSentSatisfied,
+                }
+            );
+        }
+        var signalToTraderDeparting =
+            signalToTraderShuttlesLoaded ?? signalToTraderShuttleSentSatisfied;
 
         string? signalToPlayerItemsDelivered = null;
         string? signalToPlayerShuttleKilled = null;
@@ -69,12 +119,19 @@ internal class QuestNode_Root_TradeShipTransportShip : QuestNode
                 .debugLabel = "toPlayerDropPods delay";
         }
 
-        _ = quest.CancelTrade(toTraderShuttle, outSignalCancelled: cancelTradeSignal);
+        foreach (var shuttle in toTraderShuttles)
+        {
+            _ = quest.CancelTrade(
+                shuttle,
+                inSignalDisable: shuttleCount > 1 ? "ToTraderShuttlesLoaded" : null,
+                outSignalCancelled: cancelTradeSignal
+            );
+        }
         quest.Signal(
             cancelTradeSignal,
             () =>
             {
-                quest.CancelTransportShip(toTraderTransportShip);
+                CancelTransportShips(quest, toTraderTransportShips);
                 _ = quest.ReturnBoughtItemsToTradeShip(tradeAgreement);
                 _ = quest.Letter(
                     LetterDefOf.NeutralEvent,
@@ -101,7 +158,7 @@ internal class QuestNode_Root_TradeShipTransportShip : QuestNode
             tradeAgreement.tradePausesDepartureTimer,
             tradeAgreement.tradeShip.TraderName,
             ticksUntilShuttleDeparture,
-            inSignalsDisable: Gen.YieldSingle(signalToTraderShuttleSentSatisfied),
+            inSignalsDisable: Gen.YieldSingle(signalToTraderDeparting),
             outSignalComplete: shuttleDepartureExpiredSignal
         );
 
@@ -123,7 +180,7 @@ internal class QuestNode_Root_TradeShipTransportShip : QuestNode
             departureRenegotiationFailedSignal,
             () =>
             {
-                quest.CancelTransportShip(toTraderTransportShip);
+                CancelTransportShips(quest, toTraderTransportShips);
                 _ = quest.ReturnBoughtItemsToTradeShip(tradeAgreement);
                 _ = quest.Letter(
                     LetterDefOf.NeutralEvent,
@@ -138,14 +195,27 @@ internal class QuestNode_Root_TradeShipTransportShip : QuestNode
             }
         );
 
-        // What to do if the player destroys the first shuttle
-        _ = quest.ReturnBoughtItemsToTradeShip(tradeAgreement, signalToTraderShuttleKilled);
+        // What to do if the player destroys one of the shuttles that take the sold items away
+        for (var i = 0; i < shuttleCount; i++)
+        {
+            _ = quest.ReturnBoughtItemsToTradeShip(tradeAgreement, signalsToTraderShuttleKilled[i]);
 
-        // What to do if the player destroys either shuttle
+            // The rest of the fleet has nothing left to wait for
+            var survivors = toTraderTransportShips.Where((_, j) => j != i).ToList();
+            if (survivors.Count > 0)
+            {
+                quest.Signal(
+                    signalsToTraderShuttleKilled[i],
+                    () => CancelTransportShips(quest, survivors)
+                );
+            }
+        }
+
+        // What to do if the player destroys any shuttle
         quest.AnySignal(
             signalToPlayerShuttleKilled != null
-                ? [signalToTraderShuttleKilled, signalToPlayerShuttleKilled]
-                : [signalToTraderShuttleKilled],
+                ? [.. signalsToTraderShuttleKilled, signalToPlayerShuttleKilled]
+                : [.. signalsToTraderShuttleKilled],
             () =>
             {
                 _ = quest.Letter(
@@ -165,10 +235,10 @@ internal class QuestNode_Root_TradeShipTransportShip : QuestNode
 
         // What to do if the player becomes blacklisted externally (i.e. destroyed another trader's shuttle)
         _ = quest.Blacklisted(
-            inSignalDisable: signalToTraderShuttleSentSatisfied,
+            inSignalDisable: signalToTraderDeparting,
             complete: () =>
             {
-                quest.CancelTransportShip(toTraderTransportShip);
+                CancelTransportShips(quest, toTraderTransportShips);
                 _ = quest.ReturnBoughtItemsToTradeShip(tradeAgreement);
                 _ = quest.Letter(
                     LetterDefOf.NegativeEvent,
@@ -184,14 +254,19 @@ internal class QuestNode_Root_TradeShipTransportShip : QuestNode
             }
         );
 
-        // What to do when the player has loaded the shuttle appropriately
+        // What to do when the player has loaded the shuttles appropriately. Each shuttle hands
+        // over its own cargo as it takes off.
+        for (var i = 0; i < shuttleCount; i++)
+        {
+            var toTraderTransportShip = toTraderTransportShips[i];
+            quest.Signal(
+                signalsToTraderShuttleSentSatisfied[i],
+                () => quest.TransferItemsToTrader(tradeAgreement, toTraderTransportShip)
+            );
+        }
         quest.Signal(
             signalToTraderShuttleSentSatisfied,
-            () =>
-            {
-                _ = quest.TransferItemsToTrader(tradeAgreement, toTraderTransportShip);
-                _ = quest.ExtendTradeShipDepartureIfVeryShort(tradeAgreement.tradeShip);
-            }
+            () => quest.ExtendTradeShipDepartureIfVeryShort(tradeAgreement.tradeShip)
         );
 
         // What to do when the trader has dropped off the items to the player
@@ -226,17 +301,30 @@ internal class QuestNode_Root_TradeShipTransportShip : QuestNode
         );
     }
 
+    // Shuttles beyond the first arrive this many ticks apart, so each has landed before the next
+    // picks its own landing spot.
+    private const int ToTraderShuttleArrivalStaggerTicks = 600;
+
+    private static void CancelTransportShips(Quest quest, IEnumerable<TransportShip> transportShips)
+    {
+        foreach (var transportShip in transportShips)
+        {
+            quest.CancelTransportShip(transportShip);
+        }
+    }
+
     private static (Thing shuttle, TransportShip transportShip) SetupToTraderTransportShip(
         Quest quest,
         Slate slate,
         TradeAgreement tradeAgreement,
         string questTag,
+        int shuttleIndex,
         out string signalToTraderShuttleSentSatisfied,
         out string signalToTraderShuttleKilled
     )
     {
         var shuttle = QuestUtils.SetupShuttle(
-            "toTraderShuttle",
+            shuttleIndex == 0 ? "toTraderShuttle" : $"toTraderShuttle{shuttleIndex}",
             slate,
             questTag,
             out signalToTraderShuttleSentSatisfied,
@@ -245,20 +333,39 @@ internal class QuestNode_Root_TradeShipTransportShip : QuestNode
         var compTradeShuttle = shuttle.TryGetComp<CompTradeShuttle>();
         compTradeShuttle.isToTrader = true;
         compTradeShuttle.tradeAgreement = tradeAgreement;
-        var compShuttle = shuttle.TryGetComp<CompShuttle>();
-        compShuttle.requiredPawns = tradeAgreement.pawnsSoldToTrader;
-        foreach (var thingCount in tradeAgreement.thingsSoldToTrader)
+        if (shuttleIndex == 0)
         {
-            Utils.AddThingToLoadToShuttle(thingCount, compTradeShuttle, compShuttle);
+            // Sold pawns all board the first shuttle
+            shuttle.TryGetComp<CompShuttle>().requiredPawns = tradeAgreement.pawnsSoldToTrader;
         }
 
         var transportShip = quest
             .GenerateTransportShip(TransportShipDefOf.Ship_Shuttle, [], shuttle)
             .transportShip;
-        slate.Set("toTraderTransportShip", transportShip);
         QuestUtility.AddQuestTag(ref transportShip.questTags, questTag);
 
         var map = tradeAgreement.tradeShip.Map;
+        if (shuttleIndex > 0)
+        {
+            quest
+                .Delay(
+                    ToTraderShuttleArrivalStaggerTicks * shuttleIndex,
+                    () =>
+                    {
+                        _ = quest.AddShipJob_Arrive_FindLandingSpot_JIT(
+                            transportShip,
+                            map.Parent,
+                            null,
+                            ShipJobStartMode.Queue
+                        );
+                        quest.AddShipJob_WaitForever(transportShip, true, false).showGizmos = false;
+                    }
+                )
+                .debugLabel = $"toTraderTransportShip {shuttleIndex} arrival delay";
+            return (shuttle, transportShip);
+        }
+
+        slate.Set("toTraderTransportShip", transportShip);
         var landingSpot = QuestUtils.FindLandingSpot(map);
 
         _ = quest.Letter(

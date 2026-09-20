@@ -67,8 +67,12 @@ internal static class Rimworld_TradeUI_DrawTradeableRow
 
         if (sellDirection)
         {
-            return massCapacity
-                - Rimworld_Dialog_Trade_DoWindowContents.CalculateOutgoingMass(deal);
+            // A new trade's sale is divided across as many shuttles as it needs, so all that's
+            // left to fit is a single thing onto a shuttle.
+            return Rimworld_Dialog_Trade_DoWindowContents.OutgoingShuttleLimit == null
+                ? massCapacity
+                : Rimworld_Dialog_Trade_DoWindowContents.OutgoingMassCapacity
+                    - Rimworld_Dialog_Trade_DoWindowContents.CalculateOutgoingMass(deal);
         }
 
         var tradeAgreement = TradeShipData.tradeAgreementForQuest!;
@@ -141,16 +145,20 @@ internal static class Rimworld_TradeUI_DrawTradeableRow
                 currency,
                 0
             );
-            massMin = -FindMaxSellCount(
-                trad,
-                currency,
-                unitMass,
-                unitMassCurrency,
-                otherCost,
-                otherOutgoingMass,
-                massCapacity,
-                trad.CountHeldBy(Transactor.Colony)
-            );
+            // Nothing heavier than a shuttle can be sold at all, however many shuttles are sent.
+            massMin =
+                unitMass > massCapacity
+                    ? 0
+                    : -FindMaxSellCount(
+                        trad,
+                        currency,
+                        unitMass,
+                        unitMassCurrency,
+                        otherCost,
+                        otherOutgoingMass,
+                        Rimworld_Dialog_Trade_DoWindowContents.OutgoingMassCapacity,
+                        trad.CountHeldBy(Transactor.Colony)
+                    );
         }
 
         int? massMax = null;
