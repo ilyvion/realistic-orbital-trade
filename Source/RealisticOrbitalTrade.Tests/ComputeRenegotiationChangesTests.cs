@@ -1,4 +1,4 @@
-using RimTestRedux;
+using DevTools.Testing;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -8,14 +8,14 @@ namespace RealisticOrbitalTrade.Tests;
 // (previously the only case renegotiation supported) *and* brand-new tradeables that only exist
 // on the "new" side - additions the old Dialog_RenegotiateTrade could never produce, since it only
 // ever showed tradeables already present in the agreed deal.
-[TestSuite]
-internal static class ComputeRenegotiationChangesTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class ComputeRenegotiationChangesTests
 {
     // TransferableUtility.TradeableMatching dereferences TradeSession.trader - see FakeTrader.
-    [BeforeEach]
+    [SetUp]
     public static void SetUpTradeSession() => TradeSession.trader = new FakeTrader();
 
-    [AfterEach]
+    [TearDown]
     public static void TearDownTradeSession() => TradeSession.trader = null;
 
     // Thing.Equals/List<Thing>.Contains dereferences def and compares thingIDNumber - see
@@ -47,7 +47,7 @@ internal static class ComputeRenegotiationChangesTests
 
         var changes = TradeAgreement.ComputeRenegotiationChanges([original], [updated]);
 
-        Assert.ThatCollection(changes).Is.Empty();
+        Expect.IsEmpty(changes);
     }
 
     [Test]
@@ -58,11 +58,11 @@ internal static class ComputeRenegotiationChangesTests
 
         var changes = TradeAgreement.ComputeRenegotiationChanges([original], [updated]);
 
-        Assert.ThatCollection(changes).Has.Count(1);
+        Expect.AreEqual(1, changes.Count);
         var (direction, tradeable, amount) = changes[0];
-        Assert.That(direction).Is.EqualTo(TradeAgreement.TransferDirection.ToTrader);
-        Assert.That(ReferenceEquals(tradeable, updated)).Is.True();
-        Assert.That(amount).Is.EqualTo(-5);
+        Expect.AreEqual(TradeAgreement.TransferDirection.ToTrader, direction);
+        Expect.IsTrue(ReferenceEquals(tradeable, updated));
+        Expect.AreEqual(-5, amount);
     }
 
     [Test]
@@ -75,11 +75,11 @@ internal static class ComputeRenegotiationChangesTests
 
         var changes = TradeAgreement.ComputeRenegotiationChanges([original], [updated]);
 
-        Assert.ThatCollection(changes).Has.Count(1);
+        Expect.AreEqual(1, changes.Count);
         var (direction, tradeable, amount) = changes[0];
-        Assert.That(direction).Is.EqualTo(TradeAgreement.TransferDirection.ToTrader);
-        Assert.That(ReferenceEquals(tradeable, updated)).Is.True();
-        Assert.That(amount).Is.EqualTo(5);
+        Expect.AreEqual(TradeAgreement.TransferDirection.ToTrader, direction);
+        Expect.IsTrue(ReferenceEquals(tradeable, updated));
+        Expect.AreEqual(5, amount);
     }
 
     [Test]
@@ -90,11 +90,11 @@ internal static class ComputeRenegotiationChangesTests
 
         var changes = TradeAgreement.ComputeRenegotiationChanges([], [updated]);
 
-        Assert.ThatCollection(changes).Has.Count(1);
+        Expect.AreEqual(1, changes.Count);
         var (direction, tradeable, amount) = changes[0];
-        Assert.That(direction).Is.EqualTo(TradeAgreement.TransferDirection.ToTrader);
-        Assert.That(ReferenceEquals(tradeable, updated)).Is.True();
-        Assert.That(amount).Is.EqualTo(8);
+        Expect.AreEqual(TradeAgreement.TransferDirection.ToTrader, direction);
+        Expect.IsTrue(ReferenceEquals(tradeable, updated));
+        Expect.AreEqual(8, amount);
     }
 
     [Test]
@@ -104,11 +104,11 @@ internal static class ComputeRenegotiationChangesTests
 
         var changes = TradeAgreement.ComputeRenegotiationChanges([], [updated]);
 
-        Assert.ThatCollection(changes).Has.Count(1);
+        Expect.AreEqual(1, changes.Count);
         var (direction, tradeable, amount) = changes[0];
-        Assert.That(direction).Is.EqualTo(TradeAgreement.TransferDirection.ToPlayer);
-        Assert.That(ReferenceEquals(tradeable, updated)).Is.True();
-        Assert.That(amount).Is.EqualTo(6);
+        Expect.AreEqual(TradeAgreement.TransferDirection.ToPlayer, direction);
+        Expect.IsTrue(ReferenceEquals(tradeable, updated));
+        Expect.AreEqual(6, amount);
     }
 
     [Test]
@@ -121,7 +121,7 @@ internal static class ComputeRenegotiationChangesTests
 
         var changes = TradeAgreement.ComputeRenegotiationChanges([], [updated]);
 
-        Assert.ThatCollection(changes).Is.Empty();
+        Expect.IsEmpty(changes);
     }
 
     [Test]
@@ -136,13 +136,13 @@ internal static class ComputeRenegotiationChangesTests
             [updatedSteel, newSilver]
         );
 
-        Assert.ThatCollection(changes).Has.Count(2);
+        Expect.AreEqual(2, changes.Count);
         var (steelDirection, _, steelAmount) = changes.Single(c => c.tradeable == updatedSteel);
-        Assert.That(steelDirection).Is.EqualTo(TradeAgreement.TransferDirection.ToTrader);
-        Assert.That(steelAmount).Is.EqualTo(-6);
+        Expect.AreEqual(TradeAgreement.TransferDirection.ToTrader, steelDirection);
+        Expect.AreEqual(-6, steelAmount);
         var (silverDirection, _, silverAmount) = changes.Single(c => c.tradeable == newSilver);
-        Assert.That(silverDirection).Is.EqualTo(TradeAgreement.TransferDirection.ToTrader);
-        Assert.That(silverAmount).Is.EqualTo(50);
+        Expect.AreEqual(TradeAgreement.TransferDirection.ToTrader, silverDirection);
+        Expect.AreEqual(50, silverAmount);
     }
 
     [Test]
@@ -155,7 +155,7 @@ internal static class ComputeRenegotiationChangesTests
 
         var changes = TradeAgreement.ComputeRenegotiationChanges([original], [updated]);
 
-        Assert.ThatCollection(changes).Has.Count(2);
+        Expect.AreEqual(2, changes.Count);
         // ToTrader's amount is the original (already-negative) CountToTransfer itself, not its
         // magnitude - a negative ToTrader amount means "undo this much of the previous sale" (see
         // the "hard case" removal branch in ApplyRenegotiation), which is exactly what fully
@@ -163,11 +163,11 @@ internal static class ComputeRenegotiationChangesTests
         var (_, _, toTraderAmount) = changes.Single(c =>
             c.direction == TradeAgreement.TransferDirection.ToTrader
         );
-        Assert.That(toTraderAmount).Is.EqualTo(-10);
+        Expect.AreEqual(-10, toTraderAmount);
         var (_, _, toPlayerAmount) = changes.Single(c =>
             c.direction == TradeAgreement.TransferDirection.ToPlayer
         );
-        Assert.That(toPlayerAmount).Is.EqualTo(5);
+        Expect.AreEqual(5, toPlayerAmount);
     }
 
     [Test]
@@ -179,7 +179,7 @@ internal static class ComputeRenegotiationChangesTests
             NewTradeable(RimWorld.ThingDefOf.Silver, 0),
         };
 
-        Assert.That(TradeAgreement.IsFullCancellation(tradeables)).Is.True();
+        Expect.IsTrue(TradeAgreement.IsFullCancellation(tradeables));
     }
 
     [Test]
@@ -191,6 +191,6 @@ internal static class ComputeRenegotiationChangesTests
             NewTradeable(RimWorld.ThingDefOf.Silver, 0),
         };
 
-        Assert.That(TradeAgreement.IsFullCancellation(tradeables)).Is.False();
+        Expect.IsFalse(TradeAgreement.IsFullCancellation(tradeables));
     }
 }

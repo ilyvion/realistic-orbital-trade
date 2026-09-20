@@ -1,4 +1,4 @@
-using RimTestRedux;
+using DevTools.Testing;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -8,8 +8,8 @@ namespace RealisticOrbitalTrade.Tests;
 // only ever track/release the exact amount asked for, clamped to what's actually still tracked -
 // getting this wrong either leaves a stale reservation blocking a stack forever (never hits 0) or
 // under-protects a partially-hauled stack's remainder.
-[TestSuite]
-internal static class ReservedTraderThingsTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class ReservedTraderThingsTests
 {
     // ThingCountClass.Count silently clamps to thing.stackCount (see Verse.ThingCountClass), so
     // every test thing needs a stack big enough for the counts it exercises - a bare new Pawn()
@@ -33,7 +33,7 @@ internal static class ReservedTraderThingsTests
     {
         var tradeAgreement = new TradeAgreement();
 
-        Assert.That(tradeAgreement.ReservedCountFor(NewThing())).Is.EqualTo(0);
+        Expect.AreEqual(0, tradeAgreement.ReservedCountFor(NewThing()));
     }
 
     [Test]
@@ -44,7 +44,7 @@ internal static class ReservedTraderThingsTests
 
         tradeAgreement.AddReservation(thing, 5);
 
-        Assert.That(tradeAgreement.ReservedCountFor(thing)).Is.EqualTo(5);
+        Expect.AreEqual(5, tradeAgreement.ReservedCountFor(thing));
     }
 
     [Test]
@@ -56,7 +56,7 @@ internal static class ReservedTraderThingsTests
         tradeAgreement.AddReservation(thing, 5);
         tradeAgreement.AddReservation(thing, 3);
 
-        Assert.That(tradeAgreement.ReservedCountFor(thing)).Is.EqualTo(8);
+        Expect.AreEqual(8, tradeAgreement.ReservedCountFor(thing));
     }
 
     [Test]
@@ -68,8 +68,8 @@ internal static class ReservedTraderThingsTests
 
         var released = tradeAgreement.ReduceReservation(thing, 4);
 
-        Assert.That(released).Is.EqualTo(4);
-        Assert.That(tradeAgreement.ReservedCountFor(thing)).Is.EqualTo(6);
+        Expect.AreEqual(4, released);
+        Expect.AreEqual(6, tradeAgreement.ReservedCountFor(thing));
     }
 
     [Test]
@@ -81,8 +81,8 @@ internal static class ReservedTraderThingsTests
 
         var released = tradeAgreement.ReduceReservation(thing, 100);
 
-        Assert.That(released).Is.EqualTo(4);
-        Assert.That(tradeAgreement.ReservedCountFor(thing)).Is.EqualTo(0);
+        Expect.AreEqual(4, released);
+        Expect.AreEqual(0, tradeAgreement.ReservedCountFor(thing));
     }
 
     [Test]
@@ -92,7 +92,7 @@ internal static class ReservedTraderThingsTests
 
         var released = tradeAgreement.ReduceReservation(NewThing(), 5);
 
-        Assert.That(released).Is.EqualTo(0);
+        Expect.AreEqual(0, released);
     }
 
     [Test]
@@ -104,7 +104,7 @@ internal static class ReservedTraderThingsTests
 
         _ = tradeAgreement.ReduceReservation(thing, 4);
 
-        Assert.ThatCollection(tradeAgreement.reservedTraderThings).Is.Empty();
+        Expect.IsEmpty(tradeAgreement.reservedTraderThings);
     }
 
     [Test]
@@ -117,7 +117,7 @@ internal static class ReservedTraderThingsTests
 
         tradeAgreement.RestoreReservation(thing, released);
 
-        Assert.That(tradeAgreement.ReservedCountFor(thing)).Is.EqualTo(10);
+        Expect.AreEqual(10, tradeAgreement.ReservedCountFor(thing));
     }
 
     [Test]
@@ -128,7 +128,7 @@ internal static class ReservedTraderThingsTests
 
         tradeAgreement.RestoreReservation(thing, 0);
 
-        Assert.That(tradeAgreement.ReservedCountFor(thing)).Is.EqualTo(0);
+        Expect.AreEqual(0, tradeAgreement.ReservedCountFor(thing));
     }
 
     [Test]
@@ -142,7 +142,7 @@ internal static class ReservedTraderThingsTests
 
         _ = tradeAgreement.ReduceReservation(thing, 30);
 
-        Assert.That(tradeAgreement.ReservedCountFor(thing)).Is.EqualTo(70);
+        Expect.AreEqual(70, tradeAgreement.ReservedCountFor(thing));
     }
 
     private static TransferableOneWay NewTransferable(int countToTransfer, params Thing[] things)
@@ -168,7 +168,7 @@ internal static class ReservedTraderThingsTests
 
         tradeAgreement.ReconcileReservation(transferable, 55);
 
-        Assert.That(tradeAgreement.ReservedCountFor(stack)).Is.EqualTo(55);
+        Expect.AreEqual(55, tradeAgreement.ReservedCountFor(stack));
     }
 
     [Test]
@@ -188,8 +188,8 @@ internal static class ReservedTraderThingsTests
 
         tradeAgreement.ReconcileReservation(transferable, 0);
 
-        Assert.That(tradeAgreement.ReservedCountFor(stack)).Is.EqualTo(0);
-        Assert.ThatCollection(tradeAgreement.reservedTraderThings).Is.Empty();
+        Expect.AreEqual(0, tradeAgreement.ReservedCountFor(stack));
+        Expect.IsEmpty(tradeAgreement.reservedTraderThings);
     }
 
     [Test]
@@ -204,9 +204,10 @@ internal static class ReservedTraderThingsTests
 
         tradeAgreement.ReconcileReservation(transferable, 10);
 
-        Assert
-            .That(tradeAgreement.ReservedCountFor(stackA) + tradeAgreement.ReservedCountFor(stackB))
-            .Is.EqualTo(10);
+        Expect.AreEqual(
+            10,
+            tradeAgreement.ReservedCountFor(stackA) + tradeAgreement.ReservedCountFor(stackB)
+        );
     }
 
     [Test]
@@ -218,7 +219,7 @@ internal static class ReservedTraderThingsTests
 
         tradeAgreement.ReconcileReservation(null, 0);
 
-        Assert.That(tradeAgreement.ReservedCountFor(stack)).Is.EqualTo(30);
+        Expect.AreEqual(30, tradeAgreement.ReservedCountFor(stack));
     }
 
     [Test]
@@ -240,12 +241,13 @@ internal static class ReservedTraderThingsTests
 
         _ = tradeAgreement.ReduceReservation(stackA, 42);
         tradeAgreement.ReconcileReservation(transferable, 13);
-        Assert.That(tradeAgreement.ReservedCountFor(stackB)).Is.EqualTo(13);
+        Expect.AreEqual(13, tradeAgreement.ReservedCountFor(stackB));
 
         _ = tradeAgreement.ReduceReservation(stackB, 13);
         tradeAgreement.ReconcileReservation(transferable, 0);
-        Assert
-            .That(tradeAgreement.ReservedCountFor(stackA) + tradeAgreement.ReservedCountFor(stackB))
-            .Is.EqualTo(0);
+        Expect.AreEqual(
+            0,
+            tradeAgreement.ReservedCountFor(stackA) + tradeAgreement.ReservedCountFor(stackB)
+        );
     }
 }

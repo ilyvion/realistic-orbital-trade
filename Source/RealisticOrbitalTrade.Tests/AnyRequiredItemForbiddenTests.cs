@@ -1,5 +1,5 @@
+using DevTools.Testing;
 using RealisticOrbitalTrade.Comps;
-using RimTestRedux;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -9,8 +9,8 @@ namespace RealisticOrbitalTrade.Tests;
 // colonists can't actually haul enough" (should surface the ROT_TradeForbidden overlay), and must never
 // penalize a requirement for stock that's already been split off and is physically in flight toward
 // the transporter - that keeps getting delivered regardless of forbidden status.
-[TestSuite]
-internal static class AnyRequiredItemForbiddenTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class AnyRequiredItemForbiddenTests
 {
     private static int _nextThingId;
 
@@ -39,7 +39,7 @@ internal static class AnyRequiredItemForbiddenTests
             thing => thing == forbiddenThing
         );
 
-        Assert.That(forbidden).Is.False();
+        Expect.IsFalse(forbidden);
     }
 
     [Test]
@@ -56,7 +56,7 @@ internal static class AnyRequiredItemForbiddenTests
             thing => true
         );
 
-        Assert.That(forbidden).Is.True();
+        Expect.IsTrue(forbidden);
     }
 
     // Exactly enough non-forbidden stock is not a shortfall.
@@ -75,7 +75,7 @@ internal static class AnyRequiredItemForbiddenTests
             thing => thing == forbiddenThing
         );
 
-        Assert.That(forbidden).Is.False();
+        Expect.IsFalse(forbidden);
     }
 
     // Genuinely missing (not enough stock even counting the forbidden portion) is
@@ -94,7 +94,7 @@ internal static class AnyRequiredItemForbiddenTests
             thing => true
         );
 
-        Assert.That(forbidden).Is.False();
+        Expect.IsFalse(forbidden);
     }
 
     // Stock already split off and being hauled toward the transporter keeps getting delivered
@@ -114,7 +114,7 @@ internal static class AnyRequiredItemForbiddenTests
             thing => true
         );
 
-        Assert.That(forbidden).Is.False();
+        Expect.IsFalse(forbidden);
     }
 
     // In-flight stock reduces what's still needed from the colony - only the remainder has to
@@ -135,7 +135,7 @@ internal static class AnyRequiredItemForbiddenTests
             thing => thing == forbiddenThing
         );
 
-        Assert.That(forbidden).Is.False();
+        Expect.IsFalse(forbidden);
     }
 
     [Test]
@@ -152,7 +152,7 @@ internal static class AnyRequiredItemForbiddenTests
             NeverForbidden
         );
 
-        Assert.That(forbidden).Is.False();
+        Expect.IsFalse(forbidden);
     }
 
     [Test]
@@ -174,6 +174,6 @@ internal static class AnyRequiredItemForbiddenTests
             thing => thing.def == forbiddenDef
         );
 
-        Assert.That(forbidden).Is.True();
+        Expect.IsTrue(forbidden);
     }
 }

@@ -1,5 +1,5 @@
+using DevTools.Testing;
 using RealisticOrbitalTrade.Comps;
-using RimTestRedux;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -7,8 +7,8 @@ namespace RealisticOrbitalTrade.Tests;
 // distinguish "still needed but not yet hauled" (sendableItems already covers the requirement,
 // via colony stock or an in-flight haul) from "genuinely can't be found anywhere" (consumed,
 // worn, hidden away, etc.), since only the latter should surface the ROT_TradeMissing overlay.
-[TestSuite]
-internal static class AnyRequiredItemMissingTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class AnyRequiredItemMissingTests
 {
     private static int _nextThingId;
 
@@ -29,7 +29,7 @@ internal static class AnyRequiredItemMissingTests
 
         var missing = CompTradeShuttle.AnyRequiredItemMissing(required, sendable);
 
-        Assert.That(missing).Is.False();
+        Expect.IsFalse(missing);
     }
 
     // A requirement not yet hauled still shows up as available stock (or as something already
@@ -44,7 +44,7 @@ internal static class AnyRequiredItemMissingTests
 
         var missing = CompTradeShuttle.AnyRequiredItemMissing(required, sendable);
 
-        Assert.That(missing).Is.False();
+        Expect.IsFalse(missing);
     }
 
     [Test]
@@ -56,7 +56,7 @@ internal static class AnyRequiredItemMissingTests
 
         var missing = CompTradeShuttle.AnyRequiredItemMissing(required, sendable);
 
-        Assert.That(missing).Is.True();
+        Expect.IsTrue(missing);
     }
 
     [Test]
@@ -68,7 +68,7 @@ internal static class AnyRequiredItemMissingTests
 
         var missing = CompTradeShuttle.AnyRequiredItemMissing(required, sendable);
 
-        Assert.That(missing).Is.True();
+        Expect.IsTrue(missing);
     }
 
     // A requirement already fully satisfied (count reduced to 0 by CalculateRemainingRequiredItems
@@ -83,7 +83,7 @@ internal static class AnyRequiredItemMissingTests
 
         var missing = CompTradeShuttle.AnyRequiredItemMissing(required, sendable);
 
-        Assert.That(missing).Is.False();
+        Expect.IsFalse(missing);
     }
 
     [Test]
@@ -100,6 +100,6 @@ internal static class AnyRequiredItemMissingTests
 
         var missing = CompTradeShuttle.AnyRequiredItemMissing(required, sendable);
 
-        Assert.That(missing).Is.True();
+        Expect.IsTrue(missing);
     }
 }

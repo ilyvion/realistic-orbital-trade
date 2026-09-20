@@ -1,11 +1,11 @@
+using DevTools.Testing;
 using RealisticOrbitalTrade.Comps;
 using RealisticOrbitalTrade.Quests;
-using RimTestRedux;
 
 namespace RealisticOrbitalTrade.Tests;
 
-[TestSuite]
-internal static class BuyMoreTimeTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class BuyMoreTimeTests
 {
     private sealed class NonClosingStream(Stream inner) : Stream
     {
@@ -90,7 +90,7 @@ internal static class BuyMoreTimeTests
 
         RoundTrip(saveHarness, loadHarness);
 
-        Assert.That(loadHarness.Comp.timesBoughtMoreTime).Is.EqualTo(3);
+        Expect.AreEqual(3, loadHarness.Comp.timesBoughtMoreTime);
     }
 
     [Test]
@@ -104,13 +104,13 @@ internal static class BuyMoreTimeTests
             Settings._buyMoreTimeCostGrowthFactor = 2f;
 
             CompTradeShuttle comp = new() { timesBoughtMoreTime = 0 };
-            Assert.That(comp.NextBuyMoreTimeCost).Is.EqualTo(200);
+            Expect.AreEqual(200, comp.NextBuyMoreTimeCost);
 
             comp.timesBoughtMoreTime = 1;
-            Assert.That(comp.NextBuyMoreTimeCost).Is.EqualTo(400);
+            Expect.AreEqual(400, comp.NextBuyMoreTimeCost);
 
             comp.timesBoughtMoreTime = 2;
-            Assert.That(comp.NextBuyMoreTimeCost).Is.EqualTo(800);
+            Expect.AreEqual(800, comp.NextBuyMoreTimeCost);
         }
         finally
         {
@@ -132,7 +132,7 @@ internal static class BuyMoreTimeTests
 
         QuestPart_TradeShuttleLeaveDelay.ExtendDepartureTime(ref delayTicks, tradeShip, 1000);
 
-        Assert.That(delayTicks).Is.EqualTo(1500);
-        Assert.That(tradeShip.ticksUntilDeparture).Is.EqualTo(1500);
+        Expect.AreEqual(1500, delayTicks);
+        Expect.AreEqual(1500, tradeShip.ticksUntilDeparture);
     }
 }

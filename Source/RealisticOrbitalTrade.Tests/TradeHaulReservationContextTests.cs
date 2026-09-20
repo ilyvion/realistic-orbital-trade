@@ -1,4 +1,4 @@
-using RimTestRedux;
+using DevTools.Testing;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -7,8 +7,8 @@ namespace RealisticOrbitalTrade.Tests;
 // TradeHaulReservationContext.Scope (i.e. no exemption in play), a thing a trade agreement has
 // reserved must come back blocked so callers can reject the order up front instead of letting it
 // fail deep inside ReservationManager.Reserve.
-[TestSuite]
-internal static class TradeHaulReservationContextTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class TradeHaulReservationContextTests
 {
     private static int _nextThingId;
 
@@ -25,7 +25,7 @@ internal static class TradeHaulReservationContextTests
     {
         var thing = NewThing();
 
-        Assert.That(TradeHaulReservationContext.IsReservedByATrade(thing, null)).Is.EqualTo(false);
+        Expect.AreEqual(false, TradeHaulReservationContext.IsReservedByATrade(thing, null));
     }
 
     [Test]
@@ -36,9 +36,10 @@ internal static class TradeHaulReservationContextTests
         var tradeAgreement = new TradeAgreement();
         tradeAgreement.AddReservation(otherThing, 5);
 
-        Assert
-            .That(TradeHaulReservationContext.IsReservedByATrade(thing, [tradeAgreement]))
-            .Is.EqualTo(false);
+        Expect.AreEqual(
+            false,
+            TradeHaulReservationContext.IsReservedByATrade(thing, [tradeAgreement])
+        );
     }
 
     [Test]
@@ -48,9 +49,10 @@ internal static class TradeHaulReservationContextTests
         var tradeAgreement = new TradeAgreement();
         tradeAgreement.AddReservation(thing, 5);
 
-        Assert
-            .That(TradeHaulReservationContext.IsReservedByATrade(thing, [tradeAgreement]))
-            .Is.EqualTo(true);
+        Expect.AreEqual(
+            true,
+            TradeHaulReservationContext.IsReservedByATrade(thing, [tradeAgreement])
+        );
     }
 
     [Test]
@@ -59,7 +61,7 @@ internal static class TradeHaulReservationContextTests
         var claimant = NewThing();
         var thing = NewThing();
 
-        Assert.That(TradeHaulReservationContext.IsBlocked(claimant, thing, null)).Is.EqualTo(false);
+        Expect.AreEqual(false, TradeHaulReservationContext.IsBlocked(claimant, thing, null));
     }
 
     // The exact scenario from the bug report: a player float-menu-orders a pawn to pick up a
@@ -73,8 +75,9 @@ internal static class TradeHaulReservationContextTests
         var tradeAgreement = new TradeAgreement();
         tradeAgreement.AddReservation(thing, 5);
 
-        Assert
-            .That(TradeHaulReservationContext.IsBlocked(claimant, thing, [tradeAgreement]))
-            .Is.EqualTo(true);
+        Expect.AreEqual(
+            true,
+            TradeHaulReservationContext.IsBlocked(claimant, thing, [tradeAgreement])
+        );
     }
 }

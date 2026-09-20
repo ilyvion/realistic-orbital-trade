@@ -1,12 +1,12 @@
-using RimTestRedux;
+using DevTools.Testing;
 
 namespace RealisticOrbitalTrade.Tests;
 
 // Regression guard for TradeAgreement.lostSoldItems, which lets CompTradeShuttle's inspect string
 // and the shuttle's contents tab tell the player *what* was lost from a sold-to-trader deal
 // instead of just that something was (see TradeAgreement.Notify_OwnThingDestroyed).
-[TestSuite]
-internal static class LostTradeItemRecordTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class LostTradeItemRecordTests
 {
     [Test]
     public static void ForThingCapturesDefStuffQualityAndTheGivenCount()
@@ -24,12 +24,12 @@ internal static class LostTradeItemRecordTests
         // thing.stackCount (see that method's remark).
         var record = TradeAgreement.LostTradeItemRecord.ForThing(thing, 7);
 
-        Assert.That(record.def == thingDef).Is.True();
-        Assert.That(record.stuffDef == stuffDef).Is.True();
-        Assert.That(record.hasQuality).Is.True();
-        Assert.That((int)record.quality).Is.EqualTo((int)QualityCategory.Excellent);
-        Assert.That(record.count).Is.EqualTo(7);
-        Assert.That(record.pawnLabel == null).Is.True();
+        Expect.IsTrue(record.def == thingDef);
+        Expect.IsTrue(record.stuffDef == stuffDef);
+        Expect.IsTrue(record.hasQuality);
+        Expect.AreEqual((int)QualityCategory.Excellent, (int)record.quality);
+        Expect.AreEqual(7, record.count);
+        Expect.IsTrue(record.pawnLabel == null);
     }
 
     [Test]
@@ -40,7 +40,7 @@ internal static class LostTradeItemRecordTests
 
         var record = TradeAgreement.LostTradeItemRecord.ForThing(thing, 3);
 
-        Assert.That(record.hasQuality).Is.False();
+        Expect.IsFalse(record.hasQuality);
     }
 
     [Test]
@@ -51,8 +51,8 @@ internal static class LostTradeItemRecordTests
 
         TradeAgreement.LostTradeItemRecord.AddOrMerge(records, new() { def = thingDef, count = 3 });
 
-        Assert.That(records.Count).Is.EqualTo(1);
-        Assert.That(records[0].count).Is.EqualTo(8);
+        Expect.AreEqual(1, records.Count);
+        Expect.AreEqual(8, records[0].count);
     }
 
     // Regression guard: two different stuff/quality variants of the same def losing items in the
@@ -84,7 +84,7 @@ internal static class LostTradeItemRecordTests
             }
         );
 
-        Assert.That(records.Count).Is.EqualTo(2);
+        Expect.AreEqual(2, records.Count);
     }
 
     [Test]
@@ -113,7 +113,7 @@ internal static class LostTradeItemRecordTests
             }
         );
 
-        Assert.That(records.Count).Is.EqualTo(2);
+        Expect.AreEqual(2, records.Count);
     }
 
     // Regression guard: two different pawns can coincidentally share a label (e.g. two animals
@@ -126,7 +126,7 @@ internal static class LostTradeItemRecordTests
 
         TradeAgreement.LostTradeItemRecord.AddOrMerge(records, new() { pawnLabel = "Rex" });
 
-        Assert.That(records.Count).Is.EqualTo(2);
+        Expect.AreEqual(2, records.Count);
     }
 
     [Test]
@@ -137,7 +137,7 @@ internal static class LostTradeItemRecordTests
 
         TradeAgreement.LostTradeItemRecord.AddOrMerge(records, new() { def = thingDef, count = 2 });
 
-        Assert.That(records.Count).Is.EqualTo(1);
-        Assert.That(records[0].count).Is.EqualTo(2);
+        Expect.AreEqual(1, records.Count);
+        Expect.AreEqual(2, records[0].count);
     }
 }

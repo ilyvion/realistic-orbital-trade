@@ -1,9 +1,9 @@
-using RimTestRedux;
+using DevTools.Testing;
 
 namespace RealisticOrbitalTrade.Tests;
 
-[TestSuite]
-internal static class ComputeHandCarryCountTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class ComputeHandCarryCountTests
 {
     [Test]
     public static void NoShortfallCarriesJobCountAsPlanned()
@@ -14,7 +14,7 @@ internal static class ComputeHandCarryCountTests
             stackCount: 28
         );
 
-        Assert.That(countToCarry).Is.EqualTo(27);
+        Expect.AreEqual(27, countToCarry);
     }
 
     // Mirrors the reported bug: an earlier inventory pickup from this same stack came in 1 short
@@ -29,7 +29,7 @@ internal static class ComputeHandCarryCountTests
             stackCount: 28
         );
 
-        Assert.That(countToCarry).Is.EqualTo(28);
+        Expect.AreEqual(28, countToCarry);
     }
 
     // Carrying the shortfall forward must never exceed what's physically in the stack, same as
@@ -43,7 +43,7 @@ internal static class ComputeHandCarryCountTests
             stackCount: 20
         );
 
-        Assert.That(countToCarry).Is.EqualTo(20);
+        Expect.AreEqual(20, countToCarry);
     }
 
     // A demand-limited topper (only part of the stack was ever needed) still only tops up by the
@@ -58,6 +58,6 @@ internal static class ComputeHandCarryCountTests
             stackCount: 28
         );
 
-        Assert.That(countToCarry).Is.EqualTo(18);
+        Expect.AreEqual(18, countToCarry);
     }
 }

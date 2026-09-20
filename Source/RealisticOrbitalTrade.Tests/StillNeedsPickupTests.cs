@@ -1,4 +1,4 @@
-using RimTestRedux;
+using DevTools.Testing;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -10,8 +10,8 @@ namespace RealisticOrbitalTrade.Tests;
 // tick. Caught live via Player.log: dozens of repeated "committed counts from other pawns ->
 // wood=75" / "CountToTransfer=66 alreadyCommitted=75 -> primaryCount clamped to 0" / "bailing out"
 // lines for the same pawn in a row.
-[TestSuite]
-internal static class StillNeedsPickupTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class StillNeedsPickupTests
 {
     private static int _nextThingId;
 
@@ -36,9 +36,9 @@ internal static class StillNeedsPickupTests
         var transferable = NewTransferable(66);
         Dictionary<TransferableOneWay, int> committed = new() { [transferable] = 75 };
 
-        Assert
-            .That(WorkGiver_HaulMultipleToTransporter.StillNeedsPickup(transferable, committed))
-            .Is.False();
+        Expect.IsFalse(
+            WorkGiver_HaulMultipleToTransporter.StillNeedsPickup(transferable, committed)
+        );
     }
 
     [Test]
@@ -47,9 +47,9 @@ internal static class StillNeedsPickupTests
         var transferable = NewTransferable(66);
         Dictionary<TransferableOneWay, int> committed = new() { [transferable] = 40 };
 
-        Assert
-            .That(WorkGiver_HaulMultipleToTransporter.StillNeedsPickup(transferable, committed))
-            .Is.True();
+        Expect.IsTrue(
+            WorkGiver_HaulMultipleToTransporter.StillNeedsPickup(transferable, committed)
+        );
     }
 
     [Test]
@@ -58,8 +58,8 @@ internal static class StillNeedsPickupTests
         var transferable = NewTransferable(66);
         Dictionary<TransferableOneWay, int> committed = [];
 
-        Assert
-            .That(WorkGiver_HaulMultipleToTransporter.StillNeedsPickup(transferable, committed))
-            .Is.True();
+        Expect.IsTrue(
+            WorkGiver_HaulMultipleToTransporter.StillNeedsPickup(transferable, committed)
+        );
     }
 }

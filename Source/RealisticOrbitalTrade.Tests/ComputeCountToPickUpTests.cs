@@ -1,4 +1,4 @@
-using RimTestRedux;
+using DevTools.Testing;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -9,8 +9,8 @@ namespace RealisticOrbitalTrade.Tests;
 // despawns/detaches the *original* thing instead of returning a valid partial split, which left
 // the haul job's toil chain unable to make progress and jumping between toils forever until the
 // native call stack overflowed.
-[TestSuite]
-internal static class ComputeCountToPickUpTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class ComputeCountToPickUpTests
 {
     [Test]
     public static void StackCountBelowJobAndMassCapClampsToStackCount()
@@ -21,7 +21,7 @@ internal static class ComputeCountToPickUpTests
             stackCount: 4
         );
 
-        Assert.That(countToPickUp).Is.EqualTo(4);
+        Expect.AreEqual(4, countToPickUp);
     }
 
     [Test]
@@ -33,7 +33,7 @@ internal static class ComputeCountToPickUpTests
             stackCount: 75
         );
 
-        Assert.That(countToPickUp).Is.EqualTo(10);
+        Expect.AreEqual(10, countToPickUp);
     }
 
     [Test]
@@ -45,7 +45,7 @@ internal static class ComputeCountToPickUpTests
             stackCount: 75
         );
 
-        Assert.That(countToPickUp).Is.EqualTo(5);
+        Expect.AreEqual(5, countToPickUp);
     }
 
     [Test]
@@ -57,6 +57,6 @@ internal static class ComputeCountToPickUpTests
             stackCount: 10
         );
 
-        Assert.That(countToPickUp).Is.EqualTo(10);
+        Expect.AreEqual(10, countToPickUp);
     }
 }

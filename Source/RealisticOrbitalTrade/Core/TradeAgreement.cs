@@ -556,7 +556,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
     public static void Notify_ThingDestroyed(Thing thing)
     {
         // Thing.Destroy fires constantly outside actual gameplay too (def loading, main-menu
-        // scratch objects, RimTest Redux's in-game test runs before/without a real save loaded).
+        // scratch objects, the test runner's main-menu fixtures run without a real save loaded).
         // Game.GetComponent<T> indexes into Game.components, which is only populated once a real
         // game is playing, so it's not enough to check Current.Game != null - a non-playing Game
         // instance can still exist with components left uninitialized.

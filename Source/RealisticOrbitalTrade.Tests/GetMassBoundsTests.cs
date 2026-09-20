@@ -1,5 +1,5 @@
+using DevTools.Testing;
 using RealisticOrbitalTrade.Patch;
-using RimTestRedux;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -11,14 +11,14 @@ namespace RealisticOrbitalTrade.Tests;
 // of any silver tradeable so this logic never needs real trade pricing to run.
 //
 // GetMassBounds' own two early-return gates are exercised directly; everything past them goes
-// through ComputeMassBounds with a hand-picked unitMass instead, since RimTest Redux runs before
+// through ComputeMassBounds with a hand-picked unitMass instead, since these tests run at the main menu, before
 // any game/map is loaded and Thing.GetStatValue needs Find.TickManager to resolve.
-[TestSuite]
-internal static class GetMassBoundsTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class GetMassBoundsTests
 {
     // TransferableUtility.TradeableMatching and TradeDeal's own construction dereference
     // TradeSession.trader - see FakeTrader.
-    [BeforeEach]
+    [SetUp]
     public static void SetUp()
     {
         TradeSession.trader = new FakeTrader();
@@ -32,7 +32,7 @@ internal static class GetMassBoundsTests
         TradeSession.deal.AllTradeables.Clear();
     }
 
-    [AfterEach]
+    [TearDown]
     public static void TearDown()
     {
         TradeSession.trader = null;
@@ -66,8 +66,8 @@ internal static class GetMassBoundsTests
 
         var (massMin, massMax) = Rimworld_TradeUI_DrawTradeableRow.GetMassBounds(trad);
 
-        Assert.That(massMin.HasValue).Is.False();
-        Assert.That(massMax.HasValue).Is.False();
+        Expect.IsFalse(massMin.HasValue);
+        Expect.IsFalse(massMax.HasValue);
     }
 
     [Test]
@@ -77,8 +77,8 @@ internal static class GetMassBoundsTests
 
         var (massMin, massMax) = Rimworld_TradeUI_DrawTradeableRow.GetMassBounds(new Tradeable());
 
-        Assert.That(massMin.HasValue).Is.False();
-        Assert.That(massMax.HasValue).Is.False();
+        Expect.IsFalse(massMin.HasValue);
+        Expect.IsFalse(massMax.HasValue);
     }
 
     [Test]
@@ -92,8 +92,8 @@ internal static class GetMassBoundsTests
             unitMass: 0f
         );
 
-        Assert.That(massMin.HasValue).Is.False();
-        Assert.That(massMax.HasValue).Is.False();
+        Expect.IsFalse(massMin.HasValue);
+        Expect.IsFalse(massMax.HasValue);
     }
 
     [Test]
@@ -109,8 +109,8 @@ internal static class GetMassBoundsTests
 
         // 10kg is nowhere near the shuttle's mass capacity, so the bound is just the full colony
         // stock, negated.
-        Assert.That(massMin!.Value).Is.EqualTo(-10);
-        Assert.That(massMax.HasValue).Is.False();
+        Expect.AreEqual(-10, massMin!.Value);
+        Expect.IsFalse(massMax.HasValue);
     }
 
     [Test]
@@ -124,8 +124,8 @@ internal static class GetMassBoundsTests
             unitMass: 1f
         );
 
-        Assert.That(massMax!.Value).Is.EqualTo(15);
-        Assert.That(massMin.HasValue).Is.False();
+        Expect.AreEqual(15, massMax!.Value);
+        Expect.IsFalse(massMin.HasValue);
     }
 
     [Test]
@@ -136,7 +136,7 @@ internal static class GetMassBoundsTests
 
         var (_, massMax) = Rimworld_TradeUI_DrawTradeableRow.ComputeMassBounds(trad, unitMass: 1f);
 
-        Assert.That(massMax.HasValue).Is.False();
+        Expect.IsFalse(massMax.HasValue);
     }
 
     [Test]
@@ -154,7 +154,7 @@ internal static class GetMassBoundsTests
             unitMass: 1f
         );
 
-        Assert.That(massMin!.Value).Is.EqualTo(-1);
-        Assert.That(massMax!.Value).Is.EqualTo(5);
+        Expect.AreEqual(-1, massMin!.Value);
+        Expect.AreEqual(5, massMax!.Value);
     }
 }

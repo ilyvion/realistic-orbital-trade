@@ -1,9 +1,9 @@
-using RimTestRedux;
+using DevTools.Testing;
 
 namespace RealisticOrbitalTrade.Tests;
 
-[TestSuite]
-internal static class CalculateCountToTakeTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class CalculateCountToTakeTests
 {
     [Test]
     public static void LimitedByStackCount()
@@ -15,7 +15,7 @@ internal static class CalculateCountToTakeTests
             unitMass: 0.1f
         );
 
-        Assert.That(result).Is.EqualTo(10);
+        Expect.AreEqual(10, result);
     }
 
     [Test]
@@ -28,7 +28,7 @@ internal static class CalculateCountToTakeTests
             unitMass: 0.1f
         );
 
-        Assert.That(result).Is.EqualTo(5);
+        Expect.AreEqual(5, result);
     }
 
     [Test]
@@ -42,7 +42,7 @@ internal static class CalculateCountToTakeTests
             unitMass: 2f
         );
 
-        Assert.That(result).Is.EqualTo(10);
+        Expect.AreEqual(10, result);
     }
 
     [Test]
@@ -55,7 +55,7 @@ internal static class CalculateCountToTakeTests
             unitMass: 2f
         );
 
-        Assert.That(result).Is.EqualTo(0);
+        Expect.AreEqual(0, result);
     }
 
     // Regression guard: a zero-mass item (unitMass == 0) must not divide-by-zero or otherwise
@@ -70,7 +70,7 @@ internal static class CalculateCountToTakeTests
             unitMass: 0f
         );
 
-        Assert.That(result).Is.EqualTo(30);
+        Expect.AreEqual(30, result);
     }
 
     // A single unit that only just barely fits (mass caps it down from a larger want) isn't worth
@@ -86,7 +86,7 @@ internal static class CalculateCountToTakeTests
             unitMass: 0.3f
         );
 
-        Assert.That(result).Is.EqualTo(0);
+        Expect.AreEqual(0, result);
     }
 
     // If only a single unit was ever wanted (not because mass forced it down from more), mass
@@ -101,7 +101,7 @@ internal static class CalculateCountToTakeTests
             unitMass: 0.3f
         );
 
-        Assert.That(result).Is.EqualTo(1);
+        Expect.AreEqual(1, result);
     }
 
     // Room for two or more of the item means it's worth grabbing what fits, edge case or not.
@@ -115,6 +115,6 @@ internal static class CalculateCountToTakeTests
             unitMass: 0.3f
         );
 
-        Assert.That(result).Is.EqualTo(2);
+        Expect.AreEqual(2, result);
     }
 }

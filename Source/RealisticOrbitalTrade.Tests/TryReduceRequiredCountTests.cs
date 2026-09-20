@@ -1,10 +1,10 @@
+using DevTools.Testing;
 using RealisticOrbitalTrade.Comps;
-using RimTestRedux;
 
 namespace RealisticOrbitalTrade.Tests;
 
-[TestSuite]
-internal static class TryReduceRequiredCountTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class TryReduceRequiredCountTests
 {
     // Regression guard: ThingDefCountWithRequirements is a struct, so mutating the
     // `count` field of a value pulled out of the list via LINQ only changed a local copy and was
@@ -27,10 +27,10 @@ internal static class TryReduceRequiredCountTests
             ref leftToTakeOff
         );
 
-        Assert.That(found).Is.True();
-        Assert.That(leftToTakeOff).Is.EqualTo(0);
-        Assert.That(requiredSpecificItems.Count).Is.EqualTo(1);
-        Assert.That(requiredSpecificItems[0].count).Is.EqualTo(6);
+        Expect.IsTrue(found);
+        Expect.AreEqual(0, leftToTakeOff);
+        Expect.AreEqual(1, requiredSpecificItems.Count);
+        Expect.AreEqual(6, requiredSpecificItems[0].count);
     }
 
     [Test]
@@ -50,9 +50,9 @@ internal static class TryReduceRequiredCountTests
             ref leftToTakeOff
         );
 
-        Assert.That(found).Is.True();
-        Assert.That(leftToTakeOff).Is.EqualTo(0);
-        Assert.That(requiredSpecificItems.Count).Is.EqualTo(0);
+        Expect.IsTrue(found);
+        Expect.AreEqual(0, leftToTakeOff);
+        Expect.AreEqual(0, requiredSpecificItems.Count);
     }
 
     [Test]
@@ -72,9 +72,9 @@ internal static class TryReduceRequiredCountTests
             ref leftToTakeOff
         );
 
-        Assert.That(found).Is.True();
-        Assert.That(leftToTakeOff).Is.EqualTo(2);
-        Assert.That(requiredSpecificItems.Count).Is.EqualTo(0);
+        Expect.IsTrue(found);
+        Expect.AreEqual(2, leftToTakeOff);
+        Expect.AreEqual(0, requiredSpecificItems.Count);
     }
 
     [Test]
@@ -95,8 +95,8 @@ internal static class TryReduceRequiredCountTests
             ref leftToTakeOff
         );
 
-        Assert.That(found).Is.False();
-        Assert.That(leftToTakeOff).Is.EqualTo(2);
+        Expect.IsFalse(found);
+        Expect.AreEqual(2, leftToTakeOff);
     }
 
     // Regression guard: the partial-reduction path preserves the requirement fields
@@ -134,12 +134,12 @@ internal static class TryReduceRequiredCountTests
         );
 
         var remaining = requiredSpecificItems[0];
-        Assert.That(remaining.count).Is.EqualTo(7);
-        Assert.That(remaining.healthAffectsPrice).Is.True();
-        Assert.That(remaining.hitPoints).Is.EqualTo(50);
-        Assert.That(remaining.maxHitPoints).Is.EqualTo(100);
-        Assert.That(remaining.hasQuality).Is.True();
-        Assert.That((int)remaining.quality).Is.EqualTo((int)QualityCategory.Excellent);
+        Expect.AreEqual(7, remaining.count);
+        Expect.IsTrue(remaining.healthAffectsPrice);
+        Expect.AreEqual(50, remaining.hitPoints);
+        Expect.AreEqual(100, remaining.maxHitPoints);
+        Expect.IsTrue(remaining.hasQuality);
+        Expect.AreEqual((int)QualityCategory.Excellent, (int)remaining.quality);
     }
 
     // Regression guard: with genepacks bound to their exact Thing via
@@ -175,9 +175,9 @@ internal static class TryReduceRequiredCountTests
             ref leftToTakeOff
         );
 
-        Assert.That(found).Is.True();
-        Assert.That(leftToTakeOff).Is.EqualTo(0);
-        Assert.That(requiredSpecificItems.Count).Is.EqualTo(1);
-        Assert.That(requiredSpecificItems[0].requiredThing == thingA).Is.True();
+        Expect.IsTrue(found);
+        Expect.AreEqual(0, leftToTakeOff);
+        Expect.AreEqual(1, requiredSpecificItems.Count);
+        Expect.IsTrue(requiredSpecificItems[0].requiredThing == thingA);
     }
 }

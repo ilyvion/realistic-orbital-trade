@@ -1,5 +1,5 @@
+using DevTools.Testing;
 using RealisticOrbitalTrade.Comps;
-using RimTestRedux;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -10,8 +10,8 @@ namespace RealisticOrbitalTrade.Tests;
 // trade) stock to cover the requirement without it - and the replacement stack(s) actually picked
 // must be reported so the caller can record them as sold in the lost thing's place, without ever
 // drawing more than a candidate's spare capacity.
-[TestSuite]
-internal static class AllocateSubstitutesTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class AllocateSubstitutesTests
 {
     private static int _nextThingId;
 
@@ -58,10 +58,10 @@ internal static class AllocateSubstitutesTests
             sendable
         );
 
-        Assert.That(allocation == null).Is.False();
-        Assert.That(allocation!.Count).Is.EqualTo(1);
-        Assert.That(ReferenceEquals(allocation[0].candidate, replacement)).Is.True();
-        Assert.That(allocation[0].count).Is.EqualTo(10);
+        Expect.IsFalse(allocation == null);
+        Expect.AreEqual(1, allocation!.Count);
+        Expect.IsTrue(ReferenceEquals(allocation[0].candidate, replacement));
+        Expect.AreEqual(10, allocation[0].count);
     }
 
     [Test]
@@ -82,12 +82,12 @@ internal static class AllocateSubstitutesTests
             sendable
         );
 
-        Assert.That(allocation == null).Is.False();
-        Assert.That(allocation!.Count).Is.EqualTo(2);
-        Assert.That(ReferenceEquals(allocation[0].candidate, firstReplacement)).Is.True();
-        Assert.That(allocation[0].count).Is.EqualTo(4);
-        Assert.That(ReferenceEquals(allocation[1].candidate, secondReplacement)).Is.True();
-        Assert.That(allocation[1].count).Is.EqualTo(6);
+        Expect.IsFalse(allocation == null);
+        Expect.AreEqual(2, allocation!.Count);
+        Expect.IsTrue(ReferenceEquals(allocation[0].candidate, firstReplacement));
+        Expect.AreEqual(4, allocation[0].count);
+        Expect.IsTrue(ReferenceEquals(allocation[1].candidate, secondReplacement));
+        Expect.AreEqual(6, allocation[1].count);
     }
 
     [Test]
@@ -106,7 +106,7 @@ internal static class AllocateSubstitutesTests
             sendable
         );
 
-        Assert.That(allocation == null).Is.True();
+        Expect.IsTrue(allocation == null);
     }
 
     [Test]
@@ -118,7 +118,7 @@ internal static class AllocateSubstitutesTests
 
         var allocation = TradeAgreement.AllocateSubstitutes(destroyed, 10, [], [], sendable);
 
-        Assert.That(allocation == null).Is.True();
+        Expect.IsTrue(allocation == null);
     }
 
     // A stack already partly committed to this trade (e.g. 1 of its 6 units already reserved
@@ -142,10 +142,10 @@ internal static class AllocateSubstitutesTests
             sendable
         );
 
-        Assert.That(allocation == null).Is.False();
-        Assert.That(allocation!.Count).Is.EqualTo(1);
-        Assert.That(ReferenceEquals(allocation[0].candidate, partiallyReserved)).Is.True();
-        Assert.That(allocation[0].count).Is.EqualTo(5);
+        Expect.IsFalse(allocation == null);
+        Expect.AreEqual(1, allocation!.Count);
+        Expect.IsTrue(ReferenceEquals(allocation[0].candidate, partiallyReserved));
+        Expect.AreEqual(5, allocation[0].count);
     }
 
     // A stack already fully committed to this trade (spare capacity of zero, despite a nonzero
@@ -168,10 +168,10 @@ internal static class AllocateSubstitutesTests
             sendable
         );
 
-        Assert.That(allocation == null).Is.False();
-        Assert.That(allocation!.Count).Is.EqualTo(1);
-        Assert.That(ReferenceEquals(allocation[0].candidate, free)).Is.True();
-        Assert.That(allocation[0].count).Is.EqualTo(10);
+        Expect.IsFalse(allocation == null);
+        Expect.AreEqual(1, allocation!.Count);
+        Expect.IsTrue(ReferenceEquals(allocation[0].candidate, free));
+        Expect.AreEqual(10, allocation[0].count);
     }
 
     // Stock that's only fully committed, with nothing else spare anywhere, is a genuine shortfall.
@@ -192,7 +192,7 @@ internal static class AllocateSubstitutesTests
             sendable
         );
 
-        Assert.That(allocation == null).Is.True();
+        Expect.IsTrue(allocation == null);
     }
 
     [Test]
@@ -221,10 +221,10 @@ internal static class AllocateSubstitutesTests
             sendable
         );
 
-        Assert.That(allocation == null).Is.False();
-        Assert.That(allocation!.Count).Is.EqualTo(1);
-        Assert.That(ReferenceEquals(allocation[0].candidate, replacement)).Is.True();
-        Assert.That(allocation[0].count).Is.EqualTo(1);
+        Expect.IsFalse(allocation == null);
+        Expect.AreEqual(1, allocation!.Count);
+        Expect.IsTrue(ReferenceEquals(allocation[0].candidate, replacement));
+        Expect.AreEqual(1, allocation[0].count);
     }
 
     [Test]
@@ -252,7 +252,7 @@ internal static class AllocateSubstitutesTests
             sendable
         );
 
-        Assert.That(allocation == null).Is.True();
+        Expect.IsTrue(allocation == null);
     }
 
     // Genepacks/xenogerms pin their required-cargo entry to the exact destroyed Thing via
@@ -282,7 +282,7 @@ internal static class AllocateSubstitutesTests
             sendable
         );
 
-        Assert.That(allocation == null).Is.True();
+        Expect.IsTrue(allocation == null);
     }
 
     // The destroyed Thing's own (already-zeroed) reference must never be picked as its own
@@ -305,8 +305,8 @@ internal static class AllocateSubstitutesTests
             sendable
         );
 
-        Assert.That(allocation == null).Is.False();
-        Assert.That(allocation!.Count).Is.EqualTo(1);
-        Assert.That(ReferenceEquals(allocation[0].candidate, replacement)).Is.True();
+        Expect.IsFalse(allocation == null);
+        Expect.AreEqual(1, allocation!.Count);
+        Expect.IsTrue(ReferenceEquals(allocation[0].candidate, replacement));
     }
 }

@@ -1,4 +1,4 @@
-using RimTestRedux;
+using DevTools.Testing;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -11,8 +11,8 @@ namespace RealisticOrbitalTrade.Tests;
 // InFlightCargo is what Rimworld_TransporterUtility_ThingsBeingHauledTo's postfix reports per
 // bulk-hauling pawn to close that gap - it must cover both the hand-carried stack and every
 // stack still waiting in the pawn's inventory.
-[TestSuite]
-internal static class InFlightCargoTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class InFlightCargoTests
 {
     private static int _nextThingId;
 
@@ -35,10 +35,10 @@ internal static class InFlightCargoTests
             .InFlightCargo(carried, [pendingWood, pendingMeal])
             .ToList();
 
-        Assert.ThatCollection(cargo).Has.Count(3);
-        Assert.ThatCollection(cargo).Does.Contain(carried);
-        Assert.ThatCollection(cargo).Does.Contain(pendingWood);
-        Assert.ThatCollection(cargo).Does.Contain(pendingMeal);
+        Expect.AreEqual(3, cargo.Count);
+        Expect.IsTrue(cargo.Contains(carried));
+        Expect.IsTrue(cargo.Contains(pendingWood));
+        Expect.IsTrue(cargo.Contains(pendingMeal));
     }
 
     [Test]
@@ -50,7 +50,7 @@ internal static class InFlightCargoTests
             .InFlightCargo(carriedThing: null, [pendingWood])
             .ToList();
 
-        Assert.ThatCollection(cargo).Has.Count(1);
-        Assert.ThatCollection(cargo).Does.Contain(pendingWood);
+        Expect.AreEqual(1, cargo.Count);
+        Expect.IsTrue(cargo.Contains(pendingWood));
     }
 }

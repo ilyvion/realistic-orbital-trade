@@ -1,6 +1,6 @@
+using DevTools.Testing;
 using RealisticOrbitalTrade.Comps;
 using RealisticOrbitalTrade.ShipJobs;
-using RimTestRedux;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -9,8 +9,8 @@ namespace RealisticOrbitalTrade.Tests;
 // to re-initiate loading and reviving the renegotiation UI on a dead trade. These tests drive a
 // real Scribe save/load cycle (via ilyvion.Laboratory's CustomStream Scribe helpers, so no
 // on-disk save file is needed) and assert the flags survive the round trip.
-[TestSuite]
-internal static class CancelledFlagScribeTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class CancelledFlagScribeTests
 {
     /// <summary>
     /// A <see cref="Stream"/> wrapper whose dispose is a no-op, so the wrapped stream survives
@@ -100,7 +100,7 @@ internal static class CancelledFlagScribeTests
 
         RoundTrip(saveHarness, loadHarness);
 
-        Assert.That(loadHarness.Comp.cancelled).Is.True();
+        Expect.IsTrue(loadHarness.Comp.cancelled);
     }
 
     [Test]
@@ -112,7 +112,7 @@ internal static class CancelledFlagScribeTests
 
         RoundTrip(saveHarness, loadHarness);
 
-        Assert.That(loadHarness.Comp.cancelled).Is.False();
+        Expect.IsFalse(loadHarness.Comp.cancelled);
     }
 
     [Test]
@@ -123,6 +123,6 @@ internal static class CancelledFlagScribeTests
 
         RoundTrip(saveJob, loadJob);
 
-        Assert.That(loadJob.done).Is.True();
+        Expect.IsTrue(loadJob.done);
     }
 }

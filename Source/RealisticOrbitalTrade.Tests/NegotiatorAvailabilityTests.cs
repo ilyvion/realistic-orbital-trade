@@ -1,4 +1,4 @@
-using RimTestRedux;
+using DevTools.Testing;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -7,15 +7,15 @@ namespace RealisticOrbitalTrade.Tests;
 // a recurring NullReferenceException in CompTradeShuttle.CheckAutoload. It now checks
 // NegotiatorAvailable first and returns no items until the player registers a replacement
 // negotiator (JobDriver_RegisterAsNegotiator), rather than picking one automatically.
-[TestSuite]
-internal static class NegotiatorAvailabilityTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class NegotiatorAvailabilityTests
 {
     [Test]
     public static void NegotiatorAvailableIsFalseForDespawnedNegotiator()
     {
         var tradeAgreement = new TradeAgreement { negotiator = new Pawn() };
 
-        Assert.That(tradeAgreement.NegotiatorAvailable).Is.False();
+        Expect.IsFalse(tradeAgreement.NegotiatorAvailable);
     }
 
     [Test]
@@ -25,7 +25,7 @@ internal static class NegotiatorAvailabilityTests
 
         var result = tradeAgreement.ColonyThingsTraderWillingToBuy();
 
-        Assert.ThatCollection(result).Is.Empty();
+        Expect.IsEmpty(result);
     }
 
     [Test]
@@ -33,7 +33,7 @@ internal static class NegotiatorAvailabilityTests
     {
         var tradeAgreement = new TradeAgreement { negotiator = new Pawn() };
 
-        Assert.That(tradeAgreement.ShouldSendNegotiatorUnavailableLetter).Is.True();
+        Expect.IsTrue(tradeAgreement.ShouldSendNegotiatorUnavailableLetter);
     }
 
     [Test]
@@ -45,6 +45,6 @@ internal static class NegotiatorAvailabilityTests
             NegotiatorUnavailableLetterSent = true,
         };
 
-        Assert.That(tradeAgreement.ShouldSendNegotiatorUnavailableLetter).Is.False();
+        Expect.IsFalse(tradeAgreement.ShouldSendNegotiatorUnavailableLetter);
     }
 }

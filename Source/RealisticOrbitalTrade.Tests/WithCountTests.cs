@@ -1,10 +1,10 @@
+using DevTools.Testing;
 using RealisticOrbitalTrade.Comps;
-using RimTestRedux;
 
 namespace RealisticOrbitalTrade.Tests;
 
-[TestSuite]
-internal static class WithCountTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class WithCountTests
 {
     // Regression guard: WithCount only copied def, count, healthAffectsPrice, hitPoints,
     // hasQuality, and quality, silently dropping stuffDef, isInnerThing, and maxHitPoints on the
@@ -33,15 +33,15 @@ internal static class WithCountTests
 
         var copy = original.WithCount(4);
 
-        Assert.That(copy.def == thingDef).Is.True();
-        Assert.That(copy.stuffDef == stuffDef).Is.True();
-        Assert.That(copy.isInnerThing).Is.True();
-        Assert.That(copy.count).Is.EqualTo(4);
-        Assert.That(copy.healthAffectsPrice).Is.True();
-        Assert.That(copy.hitPoints).Is.EqualTo(50);
-        Assert.That(copy.maxHitPoints).Is.EqualTo(100);
-        Assert.That(copy.hasQuality).Is.True();
-        Assert.That((int)copy.quality).Is.EqualTo((int)QualityCategory.Excellent);
-        Assert.That(copy.requiredThing == requiredThing).Is.True();
+        Expect.IsTrue(copy.def == thingDef);
+        Expect.IsTrue(copy.stuffDef == stuffDef);
+        Expect.IsTrue(copy.isInnerThing);
+        Expect.AreEqual(4, copy.count);
+        Expect.IsTrue(copy.healthAffectsPrice);
+        Expect.AreEqual(50, copy.hitPoints);
+        Expect.AreEqual(100, copy.maxHitPoints);
+        Expect.IsTrue(copy.hasQuality);
+        Expect.AreEqual((int)QualityCategory.Excellent, (int)copy.quality);
+        Expect.IsTrue(copy.requiredThing == requiredThing);
     }
 }

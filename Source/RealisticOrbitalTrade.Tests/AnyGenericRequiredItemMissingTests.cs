@@ -1,5 +1,5 @@
+using DevTools.Testing;
 using RealisticOrbitalTrade.Comps;
-using RimTestRedux;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -9,8 +9,8 @@ namespace RealisticOrbitalTrade.Tests;
 // overlay: CompTradeShuttle.CheckAutoload only ever ran AnyRequiredItemMissing against
 // requiredSpecificItems, so a def-counted requirement that became genuinely unfindable (e.g. a
 // required stack picked up into a non-hauling colonist's inventory) was silently never flagged.
-[TestSuite]
-internal static class AnyGenericRequiredItemMissingTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class AnyGenericRequiredItemMissingTests
 {
     private static int _nextThingId;
 
@@ -31,7 +31,7 @@ internal static class AnyGenericRequiredItemMissingTests
 
         var missing = CompTradeShuttle.AnyGenericRequiredItemMissing(required, sendable);
 
-        Assert.That(missing).Is.False();
+        Expect.IsFalse(missing);
     }
 
     [Test]
@@ -43,7 +43,7 @@ internal static class AnyGenericRequiredItemMissingTests
 
         var missing = CompTradeShuttle.AnyGenericRequiredItemMissing(required, sendable);
 
-        Assert.That(missing).Is.False();
+        Expect.IsFalse(missing);
     }
 
     [Test]
@@ -55,7 +55,7 @@ internal static class AnyGenericRequiredItemMissingTests
 
         var missing = CompTradeShuttle.AnyGenericRequiredItemMissing(required, sendable);
 
-        Assert.That(missing).Is.True();
+        Expect.IsTrue(missing);
     }
 
     [Test]
@@ -67,7 +67,7 @@ internal static class AnyGenericRequiredItemMissingTests
 
         var missing = CompTradeShuttle.AnyGenericRequiredItemMissing(required, sendable);
 
-        Assert.That(missing).Is.True();
+        Expect.IsTrue(missing);
     }
 
     // The exact reported scenario: a stack matching a required def exists, but only inside a
@@ -83,7 +83,7 @@ internal static class AnyGenericRequiredItemMissingTests
 
         var missing = CompTradeShuttle.AnyGenericRequiredItemMissing(required, sendable);
 
-        Assert.That(missing).Is.True();
+        Expect.IsTrue(missing);
     }
 
     [Test]
@@ -95,7 +95,7 @@ internal static class AnyGenericRequiredItemMissingTests
 
         var missing = CompTradeShuttle.AnyGenericRequiredItemMissing(required, sendable);
 
-        Assert.That(missing).Is.False();
+        Expect.IsFalse(missing);
     }
 
     [Test]
@@ -108,6 +108,6 @@ internal static class AnyGenericRequiredItemMissingTests
 
         var missing = CompTradeShuttle.AnyGenericRequiredItemMissing(required, sendable);
 
-        Assert.That(missing).Is.True();
+        Expect.IsTrue(missing);
     }
 }

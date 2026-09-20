@@ -1,12 +1,12 @@
+using DevTools.Testing;
 using RealisticOrbitalTrade.Comps;
-using RimTestRedux;
 
 namespace RealisticOrbitalTrade.Tests;
 
 // Same coverage as AnyRequiredItemForbiddenTests, for the plain ThingDef-counted requirements
 // vanilla's own CompShuttle.requiredItems tracks (wood, steel, meals, etc.).
-[TestSuite]
-internal static class AnyGenericRequiredItemForbiddenTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class AnyGenericRequiredItemForbiddenTests
 {
     private static int _nextThingId;
 
@@ -33,7 +33,7 @@ internal static class AnyGenericRequiredItemForbiddenTests
             thing => thing == forbiddenThing
         );
 
-        Assert.That(forbidden).Is.False();
+        Expect.IsFalse(forbidden);
     }
 
     [Test]
@@ -50,7 +50,7 @@ internal static class AnyGenericRequiredItemForbiddenTests
             thing => true
         );
 
-        Assert.That(forbidden).Is.True();
+        Expect.IsTrue(forbidden);
     }
 
     [Test]
@@ -67,7 +67,7 @@ internal static class AnyGenericRequiredItemForbiddenTests
             thing => true
         );
 
-        Assert.That(forbidden).Is.False();
+        Expect.IsFalse(forbidden);
     }
 
     [Test]
@@ -84,7 +84,7 @@ internal static class AnyGenericRequiredItemForbiddenTests
             thing => true
         );
 
-        Assert.That(forbidden).Is.False();
+        Expect.IsFalse(forbidden);
     }
 
     [Test]
@@ -101,7 +101,7 @@ internal static class AnyGenericRequiredItemForbiddenTests
             thing => false
         );
 
-        Assert.That(forbidden).Is.False();
+        Expect.IsFalse(forbidden);
     }
 
     [Test]
@@ -119,6 +119,6 @@ internal static class AnyGenericRequiredItemForbiddenTests
             thing => thing.def == forbiddenDef
         );
 
-        Assert.That(forbidden).Is.True();
+        Expect.IsTrue(forbidden);
     }
 }

@@ -1,4 +1,4 @@
-using RimTestRedux;
+using DevTools.Testing;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -6,8 +6,8 @@ namespace RealisticOrbitalTrade.Tests;
 // translation key to show (BuildLostSoldItemsBulletList/LostSoldItemsExplanationKey), split out
 // from the effectful shell (TradeDeal.UpdateCurrencyCount, Find.WindowStack.Add) that can't run
 // outside a real game.
-[TestSuite]
-internal static class LostSoldItemsExplanationTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class LostSoldItemsExplanationTests
 {
     private static int _nextThingId;
 
@@ -36,7 +36,7 @@ internal static class LostSoldItemsExplanationTests
 
         var result = Utils.BuildLostSoldItemsBulletList(records);
 
-        Assert.That(result).Is.EqualTo("- Rex\n- Muffalo");
+        Expect.AreEqual("- Rex\n- Muffalo", result);
     }
 
     [Test]
@@ -46,9 +46,7 @@ internal static class LostSoldItemsExplanationTests
             (TradeAgreement.TransferDirection.ToTrader, null, 0)
         );
 
-        Assert
-            .That(key)
-            .Is.EqualTo("RealisticOrbitalTrade.RenegotiationLostItemsNoCurrencyChangeText");
+        Expect.AreEqual("RealisticOrbitalTrade.RenegotiationLostItemsNoCurrencyChangeText", key);
     }
 
     [Test]
@@ -60,9 +58,7 @@ internal static class LostSoldItemsExplanationTests
             (TradeAgreement.TransferDirection.ToTrader, currency, 0)
         );
 
-        Assert
-            .That(key)
-            .Is.EqualTo("RealisticOrbitalTrade.RenegotiationLostItemsNoCurrencyChangeText");
+        Expect.AreEqual("RealisticOrbitalTrade.RenegotiationLostItemsNoCurrencyChangeText", key);
     }
 
     [Test]
@@ -74,9 +70,7 @@ internal static class LostSoldItemsExplanationTests
             (TradeAgreement.TransferDirection.ToTrader, currency, 69)
         );
 
-        Assert
-            .That(key)
-            .Is.EqualTo("RealisticOrbitalTrade.RenegotiationLostItemsIncreasedOwedText");
+        Expect.AreEqual("RealisticOrbitalTrade.RenegotiationLostItemsIncreasedOwedText", key);
     }
 
     [Test]
@@ -88,9 +82,7 @@ internal static class LostSoldItemsExplanationTests
             (TradeAgreement.TransferDirection.ToPlayer, currency, 69)
         );
 
-        Assert
-            .That(key)
-            .Is.EqualTo("RealisticOrbitalTrade.RenegotiationLostItemsDecreasedOwedText");
+        Expect.AreEqual("RealisticOrbitalTrade.RenegotiationLostItemsDecreasedOwedText", key);
     }
 
     // Regression case: the trader was already sending the colony silver (ToPlayer), and losing a
@@ -106,9 +98,7 @@ internal static class LostSoldItemsExplanationTests
             (TradeAgreement.TransferDirection.ToPlayer, currency, -16)
         );
 
-        Assert
-            .That(key)
-            .Is.EqualTo("RealisticOrbitalTrade.RenegotiationLostItemsIncreasedOwedText");
+        Expect.AreEqual("RealisticOrbitalTrade.RenegotiationLostItemsIncreasedOwedText", key);
     }
 
     [Test]
@@ -120,8 +110,6 @@ internal static class LostSoldItemsExplanationTests
             (TradeAgreement.TransferDirection.ToTrader, currency, -16)
         );
 
-        Assert
-            .That(key)
-            .Is.EqualTo("RealisticOrbitalTrade.RenegotiationLostItemsDecreasedOwedText");
+        Expect.AreEqual("RealisticOrbitalTrade.RenegotiationLostItemsDecreasedOwedText", key);
     }
 }

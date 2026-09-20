@@ -1,4 +1,4 @@
-using RimTestRedux;
+using DevTools.Testing;
 
 namespace RealisticOrbitalTrade.SocialEXPFromTrade.Tests;
 
@@ -12,8 +12,8 @@ namespace RealisticOrbitalTrade.SocialEXPFromTrade.Tests;
 // That crashed every such load with a NullReferenceException. These tests drive a real Scribe
 // save/load cycle (via ilyvion.Laboratory's CustomStream Scribe helpers, so no on-disk save file
 // is needed) to guard against that regressing.
-[TestSuite]
-internal static class SocialExpGrantTrackerScribeTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class SocialExpGrantTrackerScribeTests
 {
     /// <summary>
     /// A <see cref="Stream"/> wrapper whose dispose is a no-op, so the wrapped stream survives
@@ -103,9 +103,7 @@ internal static class SocialExpGrantTrackerScribeTests
     {
         SocialExpGrantTracker.Reset();
 
-        Assert
-            .ThatFunc(() => RoundTrip(new EmptyHarness(), new SocialExpGrantTrackerHarness()))
-            .Not.Throw();
+        RoundTrip(new EmptyHarness(), new SocialExpGrantTrackerHarness());
 
         SocialExpGrantTracker.Reset();
     }

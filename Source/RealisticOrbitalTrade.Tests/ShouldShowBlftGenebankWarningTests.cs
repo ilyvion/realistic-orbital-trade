@@ -1,19 +1,19 @@
-using RimTestRedux;
+using DevTools.Testing;
 
 namespace RealisticOrbitalTrade.Tests;
 
-[TestSuite]
-internal static class ShouldShowBlftGenebankWarningTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class ShouldShowBlftGenebankWarningTests
 {
     [Test]
     public static void ShownWhenMultiItemLoadingOffAndBlftActive() =>
-        Assert.That(Settings.ShouldShowBlftGenebankWarning(false, true)).Is.True();
+        Expect.IsTrue(Settings.ShouldShowBlftGenebankWarning(false, true));
 
     [Test]
     public static void HiddenWhenMultiItemLoadingOn() =>
-        Assert.That(Settings.ShouldShowBlftGenebankWarning(true, true)).Is.False();
+        Expect.IsFalse(Settings.ShouldShowBlftGenebankWarning(true, true));
 
     [Test]
     public static void HiddenWhenBlftNotActive() =>
-        Assert.That(Settings.ShouldShowBlftGenebankWarning(false, false)).Is.False();
+        Expect.IsFalse(Settings.ShouldShowBlftGenebankWarning(false, false));
 }

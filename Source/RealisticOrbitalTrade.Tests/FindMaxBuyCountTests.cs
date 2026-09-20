@@ -1,13 +1,13 @@
+using DevTools.Testing;
 using RealisticOrbitalTrade.Patch;
-using RimTestRedux;
 
 namespace RealisticOrbitalTrade.Tests;
 
 // Regression/coverage guard for Rimworld_TradeUI_DrawTradeableRow.FindMaxBuyCount: the
 // buy-side half of GetMassBounds' silver-rebalancing mass search, previously untested despite being
 // exactly the kind of branchy, edge-case-prone pure logic the project otherwise covers well.
-[TestSuite]
-internal static class FindMaxBuyCountTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class FindMaxBuyCountTests
 {
     [Test]
     public static void NoCurrencyBoundsPurelyByThisRowsOwnMass()
@@ -24,7 +24,7 @@ internal static class FindMaxBuyCountTests
             trueMax: 100
         );
 
-        Assert.That(result).Is.EqualTo(10);
+        Expect.AreEqual(10, result);
     }
 
     // otherCost=-100 means the deal (before this row) already owes the colony 100 silver back;
@@ -50,7 +50,7 @@ internal static class FindMaxBuyCountTests
             trueMax: 100
         );
 
-        Assert.That(result).Is.EqualTo(44);
+        Expect.AreEqual(44, result);
 
         // Ignoring the rebalancing entirely (no currency tradeable) would have allowed one more
         // unit, since the 44th unit alone fits in 45kg without the extra 0.24kg the owed silver adds.
@@ -64,7 +64,7 @@ internal static class FindMaxBuyCountTests
             massCapacity: 45f,
             trueMax: 100
         );
-        Assert.That(withoutCurrency).Is.EqualTo(45);
+        Expect.AreEqual(45, withoutCurrency);
     }
 
     // When the deal is already net-buying (the colony owes the trader silver, not the other way
@@ -87,6 +87,6 @@ internal static class FindMaxBuyCountTests
             trueMax: 100
         );
 
-        Assert.That(result).Is.EqualTo(20);
+        Expect.AreEqual(20, result);
     }
 }

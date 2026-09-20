@@ -1,10 +1,10 @@
+using DevTools.Testing;
 using RealisticOrbitalTrade.Patch;
-using RimTestRedux;
 
 namespace RealisticOrbitalTrade.Tests;
 
-[TestSuite]
-internal static class BinarySearchMaxFeasibleTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class BinarySearchMaxFeasibleTests
 {
     [Test]
     public static void ReturnsZeroWhenEvenZeroIsOverCapacity()
@@ -15,7 +15,7 @@ internal static class BinarySearchMaxFeasibleTests
             trueMax: 10
         );
 
-        Assert.That(result).Is.EqualTo(0);
+        Expect.AreEqual(0, result);
     }
 
     [Test]
@@ -27,7 +27,7 @@ internal static class BinarySearchMaxFeasibleTests
             trueMax: 10
         );
 
-        Assert.That(result).Is.EqualTo(10);
+        Expect.AreEqual(10, result);
     }
 
     [Test]
@@ -40,7 +40,7 @@ internal static class BinarySearchMaxFeasibleTests
             trueMax: 100
         );
 
-        Assert.That(result).Is.EqualTo(6);
+        Expect.AreEqual(6, result);
     }
 
     [Test]
@@ -52,7 +52,7 @@ internal static class BinarySearchMaxFeasibleTests
             trueMax: 0
         );
 
-        Assert.That(result).Is.EqualTo(0);
+        Expect.AreEqual(0, result);
     }
 
     // Regression guard: mirrors the silver-rebalancing mass function, which is not strictly
@@ -73,6 +73,6 @@ internal static class BinarySearchMaxFeasibleTests
             trueMax: 10
         );
 
-        Assert.That(MassAt(result)).Not.GreaterThan(50f);
+        Expect.LessThanOrEqualTo(MassAt(result), 50f);
     }
 }

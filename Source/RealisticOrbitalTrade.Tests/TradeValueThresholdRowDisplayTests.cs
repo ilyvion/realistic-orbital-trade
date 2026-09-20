@@ -1,5 +1,5 @@
+using DevTools.Testing;
 using RealisticOrbitalTrade.Patch;
-using RimTestRedux;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -7,10 +7,10 @@ namespace RealisticOrbitalTrade.Tests;
 // the trade-value-difference/color/flash selection factored out of DrawTradeValueThresholdRow and
 // its DynamicTradeInterface mirror so both UIs stay in sync instead of copy-pasting this
 // logic.
-[TestSuite]
-internal static class TradeValueThresholdRowDisplayTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class TradeValueThresholdRowDisplayTests
 {
-    [AfterEach]
+    [TearDown]
     public static void ResetFlashTime() =>
         Rimworld_Dialog_Trade_DoWindowContents.lastTradeValueFlashTime = -100f;
 
@@ -23,7 +23,7 @@ internal static class TradeValueThresholdRowDisplayTests
                 minimumTradeThreshold: 100
             );
 
-        Assert.That(tradeValueDifference).Is.EqualTo(50);
+        Expect.AreEqual(50, tradeValueDifference);
     }
 
     [Test]
@@ -35,7 +35,7 @@ internal static class TradeValueThresholdRowDisplayTests
                 minimumTradeThreshold: 100
             );
 
-        Assert.That(valueColor == Color.green).Is.True();
+        Expect.IsTrue(valueColor == Color.green);
     }
 
     [Test]
@@ -47,7 +47,7 @@ internal static class TradeValueThresholdRowDisplayTests
                 minimumTradeThreshold: 100
             );
 
-        Assert.That(valueColor == Color.yellow).Is.True();
+        Expect.IsTrue(valueColor == Color.yellow);
     }
 
     [Test]
@@ -60,7 +60,7 @@ internal static class TradeValueThresholdRowDisplayTests
             minimumTradeThreshold: 100
         );
 
-        Assert.That(flash).Is.True();
+        Expect.IsTrue(flash);
     }
 
     [Test]
@@ -73,6 +73,6 @@ internal static class TradeValueThresholdRowDisplayTests
             minimumTradeThreshold: 100
         );
 
-        Assert.That(flash).Is.False();
+        Expect.IsFalse(flash);
     }
 }

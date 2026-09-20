@@ -1,4 +1,4 @@
-using RimTestRedux;
+using DevTools.Testing;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -7,8 +7,8 @@ namespace RealisticOrbitalTrade.Tests;
 // the shortfall stayed physically sitting in the source stack but the trip's bookkeeping already
 // counted it as taken, so it was silently left behind on the map for an entirely separate future
 // hauling trip to come back for.
-[TestSuite]
-internal static class ComputeMassShortfallTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class ComputeMassShortfallTests
 {
     [Test]
     public static void PickupShortOfPlanIsAShortfall()
@@ -20,7 +20,7 @@ internal static class ComputeMassShortfallTests
             countPickedUp: 2
         );
 
-        Assert.That(shortfall).Is.EqualTo(1);
+        Expect.AreEqual(1, shortfall);
     }
 
     [Test]
@@ -32,7 +32,7 @@ internal static class ComputeMassShortfallTests
             countPickedUp: 10
         );
 
-        Assert.That(shortfall).Is.EqualTo(0);
+        Expect.AreEqual(0, shortfall);
     }
 
     // The stack itself only had 4 units to give in the first place (physical stock, not mass, was
@@ -46,7 +46,7 @@ internal static class ComputeMassShortfallTests
             countPickedUp: 4
         );
 
-        Assert.That(shortfall).Is.EqualTo(0);
+        Expect.AreEqual(0, shortfall);
     }
 
     [Test]
@@ -58,6 +58,6 @@ internal static class ComputeMassShortfallTests
             countPickedUp: 3
         );
 
-        Assert.That(shortfall).Is.EqualTo(2);
+        Expect.AreEqual(2, shortfall);
     }
 }

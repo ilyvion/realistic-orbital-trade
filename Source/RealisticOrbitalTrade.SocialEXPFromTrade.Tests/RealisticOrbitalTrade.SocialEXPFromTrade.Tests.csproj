@@ -6,7 +6,7 @@
         <OutputPath>../../Integrations/SocialEXPFromTrade/$(RimWorldVersion)/Assemblies</OutputPath>
     </PropertyGroup>
     <!--
-        Without the RimTestRedux reference (see below), this project has no Publicize items of
+        Without the DevTools reference (see below), this project has no Publicize items of
         its own, so Krafs.Publicizer's generated IgnoresAccessChecksToAttribute merely shadows
         the one already made public inside the referenced RealisticOrbitalTrade.SocialEXPFromTrade
         assembly; CS0436 is harmless here.
@@ -16,7 +16,7 @@
     </PropertyGroup>
     <!--
         Dev-only test assembly for the Social Experience from Trade integration, built and run
-        in-game via RimTest Redux (see https://github.com/ilyvion/rimtest-redux). Its output is
+        in-game via DevTools (https://github.com/SmashPhil/DevTools). Its output is
         deployed alongside RealisticOrbitalTrade.SocialEXPFromTrade.dll into
         Integrations/SocialEXPFromTrade/<version>/Assemblies, which LoadFolders.xml only loads
         when Social Experience from Trade (krelinos.socialexpfromtrade) is active, so these tests
@@ -30,9 +30,10 @@
         Release-configuration build (what CI/release always use, per rimworld-utils'
         build_mod.yml) skips building it entirely; its output never lands in a shipped release.
 
-        RimTest Redux only supports RimWorld 1.6, so for any other RimWorldVersion this project
-        builds as an empty assembly: both the test sources and the RimTestRedux reference are
-        excluded below.
+        DevTools only supports RimWorld 1.6, so for any other RimWorldVersion this project builds
+        as an empty assembly: both the test sources and the DevTools reference are excluded
+        below. DevTools' own OutDir is relative to its clone location, so it's redirected to this
+        mod's 1.6/Assemblies folder, where DevTools.dll must sit to be loaded.
     -->
     <ItemGroup>
         <ProjectReference Include="..\RealisticOrbitalTrade\RealisticOrbitalTrade.csproj">
@@ -45,7 +46,10 @@
         </ProjectReference>
     </ItemGroup>
     <ItemGroup Condition="'$(RimWorldVersion)' == '1.6'">
-        <ProjectReference Include="$(ProjectDependenciesBasePath)\RimTest\Source\RimTestRedux\RimTestRedux.csproj">
+        <ProjectReference
+            Include="$(ProjectDependenciesBasePath)\Third-Party\DevTools\DevTools\DevTools.csproj"
+            AdditionalProperties="OutDir=$(MSBuildThisFileDirectory)..\..\1.6\Assemblies\"
+        >
             <CopyLocal>False</CopyLocal>
             <Private>false</Private>
         </ProjectReference>

@@ -1,9 +1,9 @@
-using RimTestRedux;
+using DevTools.Testing;
 
 namespace RealisticOrbitalTrade.Tests;
 
-[TestSuite]
-internal static class TryReduceRequiredItemsCountTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class TryReduceRequiredItemsCountTests
 {
     [Test]
     public static void PartialReductionIsWrittenBackToTheList()
@@ -14,10 +14,10 @@ internal static class TryReduceRequiredItemsCountTests
 
         var found = Utils.TryReduceRequiredItemsCount(requiredItems, thingDef, ref leftToTakeOff);
 
-        Assert.That(found).Is.True();
-        Assert.That(leftToTakeOff).Is.EqualTo(0);
-        Assert.That(requiredItems.Count).Is.EqualTo(1);
-        Assert.That(requiredItems[0].Count).Is.EqualTo(6);
+        Expect.IsTrue(found);
+        Expect.AreEqual(0, leftToTakeOff);
+        Expect.AreEqual(1, requiredItems.Count);
+        Expect.AreEqual(6, requiredItems[0].Count);
     }
 
     [Test]
@@ -29,9 +29,9 @@ internal static class TryReduceRequiredItemsCountTests
 
         var found = Utils.TryReduceRequiredItemsCount(requiredItems, thingDef, ref leftToTakeOff);
 
-        Assert.That(found).Is.True();
-        Assert.That(leftToTakeOff).Is.EqualTo(0);
-        Assert.That(requiredItems.Count).Is.EqualTo(0);
+        Expect.IsTrue(found);
+        Expect.AreEqual(0, leftToTakeOff);
+        Expect.AreEqual(0, requiredItems.Count);
     }
 
     [Test]
@@ -43,9 +43,9 @@ internal static class TryReduceRequiredItemsCountTests
 
         var found = Utils.TryReduceRequiredItemsCount(requiredItems, thingDef, ref leftToTakeOff);
 
-        Assert.That(found).Is.True();
-        Assert.That(leftToTakeOff).Is.EqualTo(2);
-        Assert.That(requiredItems.Count).Is.EqualTo(0);
+        Expect.IsTrue(found);
+        Expect.AreEqual(2, leftToTakeOff);
+        Expect.AreEqual(0, requiredItems.Count);
     }
 
     [Test]
@@ -58,7 +58,7 @@ internal static class TryReduceRequiredItemsCountTests
 
         var found = Utils.TryReduceRequiredItemsCount(requiredItems, thingDef, ref leftToTakeOff);
 
-        Assert.That(found).Is.False();
-        Assert.That(leftToTakeOff).Is.EqualTo(2);
+        Expect.IsFalse(found);
+        Expect.AreEqual(2, leftToTakeOff);
     }
 }

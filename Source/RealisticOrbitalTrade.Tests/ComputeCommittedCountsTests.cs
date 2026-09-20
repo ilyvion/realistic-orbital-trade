@@ -1,4 +1,4 @@
-using RimTestRedux;
+using DevTools.Testing;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -10,8 +10,8 @@ namespace RealisticOrbitalTrade.Tests;
 // so another pawn computing its own remainingNeeded saw stock that was really already spoken for
 // as still up for grabs and over-hauled it - caught live via Player.log showing committed counts
 // go blank for a pawn that was still mid-haul.
-[TestSuite]
-internal static class ComputeCommittedCountsTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class ComputeCommittedCountsTests
 {
     private static int _nextThingId;
 
@@ -50,7 +50,7 @@ internal static class ComputeCommittedCountsTests
             leftToLoad
         );
 
-        Assert.That(ReferenceEquals(found, transferable)).Is.True();
+        Expect.IsTrue(ReferenceEquals(found, transferable));
     }
 
     [Test]
@@ -65,7 +65,7 @@ internal static class ComputeCommittedCountsTests
             leftToLoad
         );
 
-        Assert.That(ReferenceEquals(found, transferable)).Is.True();
+        Expect.IsTrue(ReferenceEquals(found, transferable));
     }
 
     [Test]
@@ -81,7 +81,7 @@ internal static class ComputeCommittedCountsTests
             leftToLoad
         );
 
-        Assert.That(found == null).Is.True();
+        Expect.IsTrue(found == null);
     }
 
     [Test]
@@ -95,7 +95,7 @@ internal static class ComputeCommittedCountsTests
             jobCount: 38
         );
 
-        Assert.That(result).Is.EqualTo(38);
+        Expect.AreEqual(38, result);
     }
 
     // Regression guard: once a hand-carry group's second (or later) pickup has merged into the
@@ -114,6 +114,6 @@ internal static class ComputeCommittedCountsTests
             jobCount: 38
         );
 
-        Assert.That(result).Is.EqualTo(75);
+        Expect.AreEqual(75, result);
     }
 }

@@ -1,4 +1,4 @@
-using RimTestRedux;
+using DevTools.Testing;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -8,8 +8,8 @@ namespace RealisticOrbitalTrade.Tests;
 // Tradeable.TraderWillTrade when the renegotiation dialog opened. After a save/load, a destroyed
 // thing's Scribe_References reference resolved to null, crashing TradeAgreement.AllTradeables
 // (and thus the renegotiation job) with a NullReferenceException before the dialog could open.
-[TestSuite]
-internal static class SoldItemDestroyedTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class SoldItemDestroyedTests
 {
     // Thing.Destroy() dereferences Find.WorldPawns (via Pawn.Discard) among other live-game
     // state, so it can't run outside an actual loaded game. Thing.Destroyed is just a read of the
@@ -28,7 +28,7 @@ internal static class SoldItemDestroyedTests
     {
         var thingCount = new ThingCountClass(new Pawn(), 1);
 
-        Assert.That(TradeAgreement.IsSoldThingLost(thingCount)).Is.False();
+        Expect.IsFalse(TradeAgreement.IsSoldThingLost(thingCount));
     }
 
     [Test]
@@ -36,7 +36,7 @@ internal static class SoldItemDestroyedTests
     {
         var thingCount = new ThingCountClass(null, 1);
 
-        Assert.That(TradeAgreement.IsSoldThingLost(thingCount)).Is.True();
+        Expect.IsTrue(TradeAgreement.IsSoldThingLost(thingCount));
     }
 
     [Test]
@@ -46,16 +46,16 @@ internal static class SoldItemDestroyedTests
         MarkDestroyed(thing);
         var thingCount = new ThingCountClass(thing, 1);
 
-        Assert.That(TradeAgreement.IsSoldThingLost(thingCount)).Is.True();
+        Expect.IsTrue(TradeAgreement.IsSoldThingLost(thingCount));
     }
 
     [Test]
     public static void IsSoldPawnLostIsFalseForALivePawn() =>
-        Assert.That(TradeAgreement.IsSoldPawnLost(new Pawn())).Is.False();
+        Expect.IsFalse(TradeAgreement.IsSoldPawnLost(new Pawn()));
 
     [Test]
     public static void IsSoldPawnLostIsTrueForANullPawn() =>
-        Assert.That(TradeAgreement.IsSoldPawnLost(null)).Is.True();
+        Expect.IsTrue(TradeAgreement.IsSoldPawnLost(null));
 
     [Test]
     public static void IsSoldPawnLostIsTrueForADestroyedPawn()
@@ -63,6 +63,6 @@ internal static class SoldItemDestroyedTests
         var pawn = new Pawn();
         MarkDestroyed(pawn);
 
-        Assert.That(TradeAgreement.IsSoldPawnLost(pawn)).Is.True();
+        Expect.IsTrue(TradeAgreement.IsSoldPawnLost(pawn));
     }
 }

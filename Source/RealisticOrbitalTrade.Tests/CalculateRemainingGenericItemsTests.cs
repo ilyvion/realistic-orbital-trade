@@ -1,5 +1,5 @@
+using DevTools.Testing;
 using RealisticOrbitalTrade.Comps;
-using RimTestRedux;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -7,8 +7,8 @@ namespace RealisticOrbitalTrade.Tests;
 // CompShuttle.CheckAutoload's own local tmpRequiredItems reduction (not exposed for reuse) so
 // AnyGenericRequiredItemMissing can be checked against what's still actually owed, not the full
 // original requirement.
-[TestSuite]
-internal static class CalculateRemainingGenericItemsTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class CalculateRemainingGenericItemsTests
 {
     private static int _nextThingId;
 
@@ -28,7 +28,7 @@ internal static class CalculateRemainingGenericItemsTests
 
         var remaining = CompTradeShuttle.CalculateRemainingGenericItems(required, []);
 
-        Assert.That(remaining[0].Count).Is.EqualTo(75);
+        Expect.AreEqual(75, remaining[0].Count);
     }
 
     [Test]
@@ -40,7 +40,7 @@ internal static class CalculateRemainingGenericItemsTests
 
         var remaining = CompTradeShuttle.CalculateRemainingGenericItems(required, loaded);
 
-        Assert.That(remaining[0].Count).Is.EqualTo(45);
+        Expect.AreEqual(45, remaining[0].Count);
     }
 
     [Test]
@@ -52,7 +52,7 @@ internal static class CalculateRemainingGenericItemsTests
 
         var remaining = CompTradeShuttle.CalculateRemainingGenericItems(required, loaded);
 
-        Assert.That(remaining[0].Count).Is.EqualTo(0);
+        Expect.AreEqual(0, remaining[0].Count);
     }
 
     // Vanilla's own reduction floors at zero rather than letting a loaded surplus carry over to
@@ -66,7 +66,7 @@ internal static class CalculateRemainingGenericItemsTests
 
         var remaining = CompTradeShuttle.CalculateRemainingGenericItems(required, loaded);
 
-        Assert.That(remaining[0].Count).Is.EqualTo(0);
+        Expect.AreEqual(0, remaining[0].Count);
     }
 
     [Test]
@@ -79,7 +79,7 @@ internal static class CalculateRemainingGenericItemsTests
 
         var remaining = CompTradeShuttle.CalculateRemainingGenericItems(required, loaded);
 
-        Assert.That(remaining[0].Count).Is.EqualTo(75);
+        Expect.AreEqual(75, remaining[0].Count);
     }
 
     // A pawn riding along as required cargo (e.g. a required animal) must not be treated as a
@@ -94,6 +94,6 @@ internal static class CalculateRemainingGenericItemsTests
 
         var remaining = CompTradeShuttle.CalculateRemainingGenericItems(required, loaded);
 
-        Assert.That(remaining[0].Count).Is.EqualTo(75);
+        Expect.AreEqual(75, remaining[0].Count);
     }
 }

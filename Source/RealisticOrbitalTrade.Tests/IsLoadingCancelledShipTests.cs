@@ -1,5 +1,5 @@
+using DevTools.Testing;
 using RealisticOrbitalTrade.ShipJobs;
-using RimTestRedux;
 using Verse.AI;
 
 namespace RealisticOrbitalTrade.Tests;
@@ -9,8 +9,8 @@ namespace RealisticOrbitalTrade.Tests;
 // (JobDefOf.ROT_HaulMultipleToTransporter - the default loading path per
 // Settings._multiItemShuttleLoading) kept walking cargo to a shuttle whose trade had already been
 // cancelled.
-[TestSuite]
-internal static class IsLoadingCancelledShipTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class IsLoadingCancelledShipTests
 {
     private static int _nextThingId;
 
@@ -23,7 +23,7 @@ internal static class IsLoadingCancelledShipTests
         var shipThing = NewShipThing();
         var job = new Job { def = RimWorld.JobDefOf.HaulToTransporter, targetB = shipThing };
 
-        Assert.That(ShipJob_CancelLoad.IsLoadingCancelledShip(job, shipThing)).Is.True();
+        Expect.IsTrue(ShipJob_CancelLoad.IsLoadingCancelledShip(job, shipThing));
     }
 
     [Test]
@@ -32,7 +32,7 @@ internal static class IsLoadingCancelledShipTests
         var shipThing = NewShipThing();
         var job = new Job { def = JobDefOf.ROT_HaulMultipleToTransporter, targetB = shipThing };
 
-        Assert.That(ShipJob_CancelLoad.IsLoadingCancelledShip(job, shipThing)).Is.True();
+        Expect.IsTrue(ShipJob_CancelLoad.IsLoadingCancelledShip(job, shipThing));
     }
 
     [Test]
@@ -40,7 +40,7 @@ internal static class IsLoadingCancelledShipTests
     {
         var shipThing = NewShipThing();
 
-        Assert.That(ShipJob_CancelLoad.IsLoadingCancelledShip(null, shipThing)).Is.False();
+        Expect.IsFalse(ShipJob_CancelLoad.IsLoadingCancelledShip(null, shipThing));
     }
 
     [Test]
@@ -54,7 +54,7 @@ internal static class IsLoadingCancelledShipTests
             targetB = otherShipThing,
         };
 
-        Assert.That(ShipJob_CancelLoad.IsLoadingCancelledShip(job, shipThing)).Is.False();
+        Expect.IsFalse(ShipJob_CancelLoad.IsLoadingCancelledShip(job, shipThing));
     }
 
     [Test]
@@ -63,6 +63,6 @@ internal static class IsLoadingCancelledShipTests
         var shipThing = NewShipThing();
         var job = new Job { def = RimWorld.JobDefOf.Wait, targetB = shipThing };
 
-        Assert.That(ShipJob_CancelLoad.IsLoadingCancelledShip(job, shipThing)).Is.False();
+        Expect.IsFalse(ShipJob_CancelLoad.IsLoadingCancelledShip(job, shipThing));
     }
 }

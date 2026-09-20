@@ -1,4 +1,4 @@
-using RimTestRedux;
+using DevTools.Testing;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -8,8 +8,8 @@ namespace RealisticOrbitalTrade.Tests;
 // how much silver was actually already loaded onto the shuttle before the dialog opened. This is
 // the pure lookup that value comes from - see Rimworld_Dialog_Trade_DoWindowContents'
 // DrawSilverCeilingRow (and its DTI mirror) for where it's surfaced to the player.
-[TestSuite]
-internal static class MaxPayableSilverTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class MaxPayableSilverTests
 {
     // Thing.Equals/List<Thing>.Contains dereferences def and compares thingIDNumber - see
     // ReservedTraderThingsTests for why every test thing needs a real def and a distinct id.
@@ -40,7 +40,7 @@ internal static class MaxPayableSilverTests
 
         var result = TradeAgreement.MaxPayableSilver([steel, silver]);
 
-        Assert.That(result).Is.EqualTo(299);
+        Expect.AreEqual(299, result);
     }
 
     [Test]
@@ -50,7 +50,7 @@ internal static class MaxPayableSilverTests
 
         var result = TradeAgreement.MaxPayableSilver([steel]);
 
-        Assert.That(result).Is.EqualTo(0);
+        Expect.AreEqual(0, result);
     }
 
     [Test]
@@ -62,6 +62,6 @@ internal static class MaxPayableSilverTests
 
         var result = TradeAgreement.MaxPayableSilver([silver]);
 
-        Assert.That(result).Is.EqualTo(0);
+        Expect.AreEqual(0, result);
     }
 }

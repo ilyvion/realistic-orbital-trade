@@ -1,5 +1,5 @@
+using DevTools.Testing;
 using RealisticOrbitalTrade.Comps;
-using RimTestRedux;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -13,8 +13,8 @@ namespace RealisticOrbitalTrade.Tests;
 // trip, but by the time that trip finished delivering it, a fresh autoload tick had already
 // pushed the requirement a few units higher again, sending the pawn back for more of the very
 // same stack.
-[TestSuite]
-internal static class UpdateToLoadListTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class UpdateToLoadListTests
 {
     private static int _nextThingId;
 
@@ -50,7 +50,7 @@ internal static class UpdateToLoadListTests
 
         CompTradeShuttle.UpdateToLoadList(leftToLoad, repeatCandidate, 51, NoCommitments);
 
-        Assert.That(existing.CountToTransfer).Is.EqualTo(51);
+        Expect.AreEqual(51, existing.CountToTransfer);
     }
 
     [Test]
@@ -65,7 +65,7 @@ internal static class UpdateToLoadListTests
 
         CompTradeShuttle.UpdateToLoadList(leftToLoad, candidate, 4, NoCommitments);
 
-        Assert.That(existing.CountToTransfer).Is.EqualTo(4);
+        Expect.AreEqual(4, existing.CountToTransfer);
     }
 
     // Regression guard: without this floor, a freshly recomputed (and legitimately lower) count
@@ -87,7 +87,7 @@ internal static class UpdateToLoadListTests
 
         CompTradeShuttle.UpdateToLoadList(leftToLoad, candidate, 24, committed);
 
-        Assert.That(existing.CountToTransfer).Is.EqualTo(51);
+        Expect.AreEqual(51, existing.CountToTransfer);
     }
 
     // Regression guard: the old lookup only checked the candidate's AnyThing (its first thing)
@@ -115,8 +115,8 @@ internal static class UpdateToLoadListTests
 
         CompTradeShuttle.UpdateToLoadList(leftToLoad, candidate, 66, committed);
 
-        Assert.That(leftToLoad.Count).Is.EqualTo(1);
-        Assert.That(existing.CountToTransfer).Is.EqualTo(75);
+        Expect.AreEqual(1, leftToLoad.Count);
+        Expect.AreEqual(75, existing.CountToTransfer);
     }
 
     [Test]
@@ -133,9 +133,9 @@ internal static class UpdateToLoadListTests
 
         CompTradeShuttle.UpdateToLoadList(leftToLoad, candidate, 55, NoCommitments);
 
-        Assert.ThatCollection(existing.things).Contain(firstStack);
-        Assert.ThatCollection(existing.things).Contain(secondStack);
-        Assert.That(existing.things.Count).Is.EqualTo(2);
+        Expect.IsTrue(existing.things.Contains(firstStack));
+        Expect.IsTrue(existing.things.Contains(secondStack));
+        Expect.AreEqual(2, existing.things.Count);
     }
 
     // Regression guard: FindExistingToLoadEntry used to defer to vanilla's
@@ -162,9 +162,9 @@ internal static class UpdateToLoadListTests
 
         CompTradeShuttle.UpdateToLoadList(leftToLoad, candidate, 1, NoCommitments);
 
-        Assert.That(leftToLoad.Count).Is.EqualTo(2);
-        Assert.That(existing.CountToTransfer).Is.EqualTo(1);
-        Assert.That(leftToLoad[1].CountToTransfer).Is.EqualTo(1);
+        Expect.AreEqual(2, leftToLoad.Count);
+        Expect.AreEqual(1, existing.CountToTransfer);
+        Expect.AreEqual(1, leftToLoad[1].CountToTransfer);
     }
 
     [Test]
@@ -177,8 +177,8 @@ internal static class UpdateToLoadListTests
 
         CompTradeShuttle.UpdateToLoadList(leftToLoad, candidate, 51, NoCommitments);
 
-        Assert.That(leftToLoad.Count).Is.EqualTo(1);
-        Assert.That(leftToLoad[0].CountToTransfer).Is.EqualTo(51);
+        Expect.AreEqual(1, leftToLoad.Count);
+        Expect.AreEqual(51, leftToLoad[0].CountToTransfer);
     }
 
     [Test]
@@ -199,10 +199,10 @@ internal static class UpdateToLoadListTests
             NoCommitments
         );
 
-        Assert.That(existing.CountToTransfer).Is.EqualTo(1);
+        Expect.AreEqual(1, existing.CountToTransfer);
         // The freshly-built candidate for this cycle must not have become a second row for the
         // same requiredThing.
-        Assert.That(leftToLoad.Count).Is.EqualTo(1);
+        Expect.AreEqual(1, leftToLoad.Count);
     }
 
     [Test]
@@ -221,7 +221,7 @@ internal static class UpdateToLoadListTests
             NoCommitments
         );
 
-        Assert.That(leftToLoad.Count).Is.EqualTo(1);
-        Assert.That(leftToLoad[0].CountToTransfer).Is.EqualTo(1);
+        Expect.AreEqual(1, leftToLoad.Count);
+        Expect.AreEqual(1, leftToLoad[0].CountToTransfer);
     }
 }

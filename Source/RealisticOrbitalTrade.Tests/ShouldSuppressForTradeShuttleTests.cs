@@ -1,6 +1,6 @@
+using DevTools.Testing;
 using RealisticOrbitalTrade.Comps;
 using RealisticOrbitalTrade.Patch;
-using RimTestRedux;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -13,8 +13,8 @@ namespace RealisticOrbitalTrade.Tests;
 // still doing nothing (see TODO.md's "Occasional trade shuttle loading bug"). Suppressing
 // vanilla's WorkGiver for trade shuttles whenever this mod's own multi-item loading is enabled
 // avoids that class of conflict entirely.
-[TestSuite]
-internal static class ShouldSuppressForTradeShuttleTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class ShouldSuppressForTradeShuttleTests
 {
     [Test]
     public static void SuppressesWhenEnabledAndThingIsATradeShuttle()
@@ -24,7 +24,7 @@ internal static class ShouldSuppressForTradeShuttleTests
             tradeShuttleComp: new CompTradeShuttle()
         );
 
-        Assert.That(result).Is.True();
+        Expect.IsTrue(result);
     }
 
     [Test]
@@ -35,7 +35,7 @@ internal static class ShouldSuppressForTradeShuttleTests
             tradeShuttleComp: new CompTradeShuttle()
         );
 
-        Assert.That(result).Is.False();
+        Expect.IsFalse(result);
     }
 
     [Test]
@@ -46,6 +46,6 @@ internal static class ShouldSuppressForTradeShuttleTests
             tradeShuttleComp: null
         );
 
-        Assert.That(result).Is.False();
+        Expect.IsFalse(result);
     }
 }

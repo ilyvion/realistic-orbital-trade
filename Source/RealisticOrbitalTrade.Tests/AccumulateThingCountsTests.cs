@@ -1,5 +1,5 @@
+using DevTools.Testing;
 using RealisticOrbitalTrade.Dialogs;
-using RimTestRedux;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -7,8 +7,8 @@ namespace RealisticOrbitalTrade.Tests;
 // to build its Dictionary<ThingDef, int> via plain Dictionary.Add, which throws ArgumentException
 // the moment the same ThingDef shows up twice - e.g. if ROT_TradeShuttle.killedLeavings ever grew
 // a second entry resolving to a def already seen, or a parts payment happened to be silver.
-[TestSuite]
-internal static class AccumulateThingCountsTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class AccumulateThingCountsTests
 {
     [Test]
     public static void DuplicateThingDefCountsAreSummedInsteadOfThrowing()
@@ -22,9 +22,9 @@ internal static class AccumulateThingCountsTests
             100
         );
 
-        Assert.That(result[steel]).Is.EqualTo(15);
-        Assert.That(result[silver]).Is.EqualTo(100);
-        Assert.That(result.Count).Is.EqualTo(2);
+        Expect.AreEqual(15, result[steel]);
+        Expect.AreEqual(100, result[silver]);
+        Expect.AreEqual(2, result.Count);
     }
 
     [Test]
@@ -38,8 +38,8 @@ internal static class AccumulateThingCountsTests
             100
         );
 
-        Assert.That(result[silver]).Is.EqualTo(125);
-        Assert.That(result.Count).Is.EqualTo(1);
+        Expect.AreEqual(125, result[silver]);
+        Expect.AreEqual(1, result.Count);
     }
 
     [Test]
@@ -55,9 +55,9 @@ internal static class AccumulateThingCountsTests
             100
         );
 
-        Assert.That(result[steel]).Is.EqualTo(10);
-        Assert.That(result[plasteel]).Is.EqualTo(3);
-        Assert.That(result[silver]).Is.EqualTo(100);
-        Assert.That(result.Count).Is.EqualTo(3);
+        Expect.AreEqual(10, result[steel]);
+        Expect.AreEqual(3, result[plasteel]);
+        Expect.AreEqual(100, result[silver]);
+        Expect.AreEqual(3, result.Count);
     }
 }

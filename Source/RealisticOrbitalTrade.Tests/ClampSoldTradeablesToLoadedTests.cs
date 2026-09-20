@@ -1,4 +1,4 @@
-using RimTestRedux;
+using DevTools.Testing;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -6,14 +6,14 @@ namespace RealisticOrbitalTrade.Tests;
 // "trader leaves before loading finished" auto-renegotiation (issue #7): when the trade shuttle's
 // departure timer expires with cargo only partially loaded, whatever's already loaded gets locked
 // in as the new sold-to-trader amount instead of dumping everything and failing the trade outright.
-[TestSuite]
-internal static class ClampSoldTradeablesToLoadedTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class ClampSoldTradeablesToLoadedTests
 {
     // TransferableUtility.TradeableMatching dereferences TradeSession.trader - see FakeTrader.
-    [BeforeEach]
+    [SetUp]
     public static void SetUpTradeSession() => TradeSession.trader = new FakeTrader();
 
-    [AfterEach]
+    [TearDown]
     public static void TearDownTradeSession() => TradeSession.trader = null;
 
     // Thing.Equals/List<Thing>.Contains dereferences def and compares thingIDNumber - see
@@ -47,7 +47,7 @@ internal static class ClampSoldTradeablesToLoadedTests
 
         TradeAgreement.ClampSoldTradeablesToLoaded([tradeable], [thing]);
 
-        Assert.That(tradeable.CountToTransfer).Is.EqualTo(-10);
+        Expect.AreEqual(-10, tradeable.CountToTransfer);
     }
 
     [Test]
@@ -59,7 +59,7 @@ internal static class ClampSoldTradeablesToLoadedTests
 
         TradeAgreement.ClampSoldTradeablesToLoaded([tradeable], [loadedThing]);
 
-        Assert.That(tradeable.CountToTransfer).Is.EqualTo(-4);
+        Expect.AreEqual(-4, tradeable.CountToTransfer);
     }
 
     [Test]
@@ -70,7 +70,7 @@ internal static class ClampSoldTradeablesToLoadedTests
 
         TradeAgreement.ClampSoldTradeablesToLoaded([tradeable], []);
 
-        Assert.That(tradeable.CountToTransfer).Is.EqualTo(0);
+        Expect.AreEqual(0, tradeable.CountToTransfer);
     }
 
     [Test]
@@ -81,7 +81,7 @@ internal static class ClampSoldTradeablesToLoadedTests
 
         TradeAgreement.ClampSoldTradeablesToLoaded([tradeable], [pawn]);
 
-        Assert.That(tradeable.CountToTransfer).Is.EqualTo(-1);
+        Expect.AreEqual(-1, tradeable.CountToTransfer);
     }
 
     [Test]
@@ -92,7 +92,7 @@ internal static class ClampSoldTradeablesToLoadedTests
 
         TradeAgreement.ClampSoldTradeablesToLoaded([tradeable], []);
 
-        Assert.That(tradeable.CountToTransfer).Is.EqualTo(0);
+        Expect.AreEqual(0, tradeable.CountToTransfer);
     }
 
     [Test]
@@ -105,6 +105,6 @@ internal static class ClampSoldTradeablesToLoadedTests
 
         TradeAgreement.ClampSoldTradeablesToLoaded([tradeable], []);
 
-        Assert.That(tradeable.CountToTransfer).Is.EqualTo(5);
+        Expect.AreEqual(5, tradeable.CountToTransfer);
     }
 }

@@ -1,5 +1,5 @@
+using DevTools.Testing;
 using RealisticOrbitalTrade.Comps;
-using RimTestRedux;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -10,8 +10,8 @@ namespace RealisticOrbitalTrade.Tests;
 // than summing across every entry that maps onto that row, so several count-1 entries sharing the
 // same matching stock collapsed into a single row capped at 1 - selling e.g. 7 identical-quality
 // parkas showed and hauled only 1 at a time, needing 7 separate trips instead of one.
-[TestSuite]
-internal static class AddThingToLoadToShuttleTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class AddThingToLoadToShuttleTests
 {
     private static int _nextThingId;
 
@@ -45,8 +45,8 @@ internal static class AddThingToLoadToShuttleTests
             compShuttle
         );
 
-        Assert.That(compTradeShuttle.requiredSpecificItems.Count).Is.EqualTo(1);
-        Assert.That(compTradeShuttle.requiredSpecificItems[0].count).Is.EqualTo(2);
+        Expect.AreEqual(1, compTradeShuttle.requiredSpecificItems.Count);
+        Expect.AreEqual(2, compTradeShuttle.requiredSpecificItems[0].count);
     }
 
     [Test]
@@ -73,9 +73,9 @@ internal static class AddThingToLoadToShuttleTests
             compShuttle
         );
 
-        Assert.That(compTradeShuttle.requiredSpecificItems.Count).Is.EqualTo(2);
-        Assert.That(compTradeShuttle.requiredSpecificItems[0].count).Is.EqualTo(1);
-        Assert.That(compTradeShuttle.requiredSpecificItems[1].count).Is.EqualTo(1);
+        Expect.AreEqual(2, compTradeShuttle.requiredSpecificItems.Count);
+        Expect.AreEqual(1, compTradeShuttle.requiredSpecificItems[0].count);
+        Expect.AreEqual(1, compTradeShuttle.requiredSpecificItems[1].count);
     }
 
     [Test]
@@ -98,6 +98,6 @@ internal static class AddThingToLoadToShuttleTests
             compShuttle
         );
 
-        Assert.That(compTradeShuttle.requiredSpecificItems.Count).Is.EqualTo(2);
+        Expect.AreEqual(2, compTradeShuttle.requiredSpecificItems.Count);
     }
 }

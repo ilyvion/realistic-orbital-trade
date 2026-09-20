@@ -1,5 +1,5 @@
+using DevTools.Testing;
 using RealisticOrbitalTrade.Patch;
-using RimTestRedux;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -7,10 +7,10 @@ namespace RealisticOrbitalTrade.Tests;
 // label/tip-key/flash-time/over-capacity selection factored out of DrawCargoMassRow and its
 // DynamicTradeInterface mirror so both UIs stay in sync instead of copy-pasting this
 // logic.
-[TestSuite]
-internal static class CargoMassRowDisplayTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class CargoMassRowDisplayTests
 {
-    [AfterEach]
+    [TearDown]
     public static void ResetFlashTimes()
     {
         Rimworld_Dialog_Trade_DoWindowContents.lastMassFlashTime = -100f;
@@ -27,8 +27,8 @@ internal static class CargoMassRowDisplayTests
                 massCapacity: 20f
             );
 
-        Assert.That(labelKey).Is.EqualTo("RealisticOrbitalTrade.CargoMassLabel");
-        Assert.That(tipKey).Is.EqualTo("RealisticOrbitalTrade.CargoMassTip");
+        Expect.AreEqual("RealisticOrbitalTrade.CargoMassLabel", labelKey);
+        Expect.AreEqual("RealisticOrbitalTrade.CargoMassTip", tipKey);
     }
 
     [Test]
@@ -41,8 +41,8 @@ internal static class CargoMassRowDisplayTests
                 massCapacity: 20f
             );
 
-        Assert.That(labelKey).Is.EqualTo("RealisticOrbitalTrade.IncomingCargoMassLabel");
-        Assert.That(tipKey).Is.EqualTo("RealisticOrbitalTrade.IncomingCargoMassTip");
+        Expect.AreEqual("RealisticOrbitalTrade.IncomingCargoMassLabel", labelKey);
+        Expect.AreEqual("RealisticOrbitalTrade.IncomingCargoMassTip", tipKey);
     }
 
     [Test]
@@ -54,7 +54,7 @@ internal static class CargoMassRowDisplayTests
             massCapacity: 20f
         );
 
-        Assert.That(overCapacity).Is.False();
+        Expect.IsFalse(overCapacity);
     }
 
     [Test]
@@ -66,7 +66,7 @@ internal static class CargoMassRowDisplayTests
             massCapacity: 20f
         );
 
-        Assert.That(overCapacity).Is.True();
+        Expect.IsTrue(overCapacity);
     }
 
     [Test]
@@ -81,7 +81,7 @@ internal static class CargoMassRowDisplayTests
             massCapacity: 20f
         );
 
-        Assert.That(flash).Is.True();
+        Expect.IsTrue(flash);
     }
 
     [Test]
@@ -96,7 +96,7 @@ internal static class CargoMassRowDisplayTests
             massCapacity: 20f
         );
 
-        Assert.That(flash).Is.True();
+        Expect.IsTrue(flash);
     }
 
     [Test]
@@ -110,6 +110,6 @@ internal static class CargoMassRowDisplayTests
             massCapacity: 20f
         );
 
-        Assert.That(flash).Is.False();
+        Expect.IsFalse(flash);
     }
 }

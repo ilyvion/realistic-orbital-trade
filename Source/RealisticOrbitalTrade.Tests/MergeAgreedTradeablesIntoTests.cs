@@ -1,5 +1,5 @@
+using DevTools.Testing;
 using RealisticOrbitalTrade.Core;
-using RimTestRedux;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -9,14 +9,14 @@ namespace RealisticOrbitalTrade.Tests;
 // still sitting untouched in a stockpile is found by *both* - blindly re-adding its physical Thing
 // would duplicate it in Tradeable.thingsColony and double-count its stack in mass/count
 // calculations.
-[TestSuite]
-internal static class MergeAgreedTradeablesIntoTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class MergeAgreedTradeablesIntoTests
 {
     // TransferableUtility.TradeableMatching dereferences TradeSession.trader - see FakeTrader.
-    [BeforeEach]
+    [SetUp]
     public static void SetUpTradeSession() => TradeSession.trader = new FakeTrader();
 
-    [AfterEach]
+    [TearDown]
     public static void TearDownTradeSession() => TradeSession.trader = null;
 
     private static int _nextThingId;
@@ -56,9 +56,9 @@ internal static class MergeAgreedTradeablesIntoTests
         // The matched plain Tradeable gets upgraded (list entry replaced) to a capped one - see
         // MergeAppliesACapFloorWhenAMatchedThingsStackHasAlreadyShrunk - so assertions run against
         // the current tradeables[0], not the now-orphaned `existing` reference.
-        Assert.ThatCollection(tradeables).Has.Count(1);
-        Assert.ThatCollection(tradeables[0].thingsColony).Has.Count(1);
-        Assert.That(tradeables[0].CountToTransfer).Is.EqualTo(-10);
+        Expect.AreEqual(1, tradeables.Count);
+        Expect.AreEqual(1, tradeables[0].thingsColony.Count);
+        Expect.AreEqual(-10, tradeables[0].CountToTransfer);
     }
 
     [Test]
@@ -74,8 +74,8 @@ internal static class MergeAgreedTradeablesIntoTests
 
         tradeAgreement.MergeAgreedTradeablesInto(tradeables);
 
-        Assert.ThatCollection(tradeables).Has.Count(1);
-        Assert.That(tradeables[0].CountToTransfer).Is.EqualTo(-10);
+        Expect.AreEqual(1, tradeables.Count);
+        Expect.AreEqual(-10, tradeables[0].CountToTransfer);
     }
 
     // Regression guard: renegotiating a partially-hauled sale (some of
@@ -104,9 +104,9 @@ internal static class MergeAgreedTradeablesIntoTests
 
         tradeAgreement.MergeAgreedTradeablesInto(tradeables);
 
-        Assert.ThatCollection(tradeables).Has.Count(1);
-        Assert.That(tradeables[0].CountToTransfer).Is.EqualTo(-430);
-        Assert.That(tradeables[0].CountHeldBy(Transactor.Colony)).Is.EqualTo(430);
+        Expect.AreEqual(1, tradeables.Count);
+        Expect.AreEqual(-430, tradeables[0].CountToTransfer);
+        Expect.AreEqual(430, tradeables[0].CountHeldBy(Transactor.Colony));
     }
 
     // Regression guard: silver was excluded from the Tradeable_Capped
@@ -129,9 +129,9 @@ internal static class MergeAgreedTradeablesIntoTests
 
         tradeAgreement.MergeAgreedTradeablesInto(tradeables);
 
-        Assert.ThatCollection(tradeables).Has.Count(1);
-        Assert.That(tradeables[0].CountToTransfer).Is.EqualTo(-430);
-        Assert.That(tradeables[0].CountHeldBy(Transactor.Colony)).Is.EqualTo(430);
+        Expect.AreEqual(1, tradeables.Count);
+        Expect.AreEqual(-430, tradeables[0].CountToTransfer);
+        Expect.AreEqual(430, tradeables[0].CountHeldBy(Transactor.Colony));
     }
 
     // Regression guard: a colony can hold more of an already-sold def
@@ -165,9 +165,9 @@ internal static class MergeAgreedTradeablesIntoTests
 
         tradeAgreement.MergeAgreedTradeablesInto(tradeables);
 
-        Assert.ThatCollection(tradeables).Has.Count(1);
-        Assert.That(tradeables[0].IsCurrency).Is.True();
-        Assert.That(tradeables[0].CountToTransfer).Is.EqualTo(-299);
+        Expect.AreEqual(1, tradeables.Count);
+        Expect.IsTrue(tradeables[0].IsCurrency);
+        Expect.AreEqual(-299, tradeables[0].CountToTransfer);
     }
 
     // Regression guard: TradeUI.DrawTradeableRow shows the trader's own
@@ -190,7 +190,7 @@ internal static class MergeAgreedTradeablesIntoTests
 
         tradeAgreement.MergeAgreedTradeablesInto(tradeables);
 
-        Assert.That(tradeables[0].CountHeldBy(Transactor.Trader)).Is.EqualTo(5000);
+        Expect.AreEqual(5000, tradeables[0].CountHeldBy(Transactor.Trader));
     }
 
     [Test]
@@ -204,7 +204,7 @@ internal static class MergeAgreedTradeablesIntoTests
 
         var result = TradeAgreement.SumMatchingStackCounts(tradeable, [matching, nonMatching]);
 
-        Assert.That(result).Is.EqualTo(20);
+        Expect.AreEqual(20, result);
     }
 
     [Test]
@@ -215,6 +215,6 @@ internal static class MergeAgreedTradeablesIntoTests
 
         var result = TradeAgreement.SumMatchingStackCounts(tradeable, []);
 
-        Assert.That(result).Is.EqualTo(0);
+        Expect.AreEqual(0, result);
     }
 }

@@ -1,4 +1,4 @@
-using RimTestRedux;
+using DevTools.Testing;
 
 namespace RealisticOrbitalTrade.SocialEXPFromTrade.Tests;
 
@@ -7,8 +7,8 @@ namespace RealisticOrbitalTrade.SocialEXPFromTrade.Tests;
 // before delivery actually happens - see SocialEXPFromTrade_Patch1_Postfix for where this holds
 // the buy/sell values back instead of granting immediately. This is the pure accumulation/formula
 // logic that deferral relies on, mirroring Social Experience from Trade's own Patch1.Postfix math.
-[TestSuite]
-internal static class PendingSocialExpGainTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class PendingSocialExpGainTests
 {
     [Test]
     public static void AccumulateSumsBuyAndSellValuesSeparately()
@@ -17,8 +17,8 @@ internal static class PendingSocialExpGainTests
 
         var result = first.Accumulate(5f, 7f, false);
 
-        Assert.That(result.BuyValue).Is.EqualTo(15f);
-        Assert.That(result.SellValue).Is.EqualTo(27f);
+        Expect.AreEqual(15f, result.BuyValue);
+        Expect.AreEqual(27f, result.SellValue);
     }
 
     [Test]
@@ -28,7 +28,7 @@ internal static class PendingSocialExpGainTests
 
         var result = first.Accumulate(0f, 0f, false);
 
-        Assert.That(result.Inspired).Is.EqualTo(true);
+        Expect.AreEqual(true, result.Inspired);
     }
 
     [Test]
@@ -38,7 +38,7 @@ internal static class PendingSocialExpGainTests
 
         var result = first.Accumulate(0f, 0f, true);
 
-        Assert.That(result.Inspired).Is.EqualTo(true);
+        Expect.AreEqual(true, result.Inspired);
     }
 
     [Test]
@@ -53,7 +53,7 @@ internal static class PendingSocialExpGainTests
         );
 
         // (10 * 2) + (20 * 3) = 80; inspiredMultiplier is not applied since Inspired is false.
-        Assert.That(result).Is.EqualTo(80f);
+        Expect.AreEqual(80f, result);
     }
 
     [Test]
@@ -68,6 +68,6 @@ internal static class PendingSocialExpGainTests
         );
 
         // ((10 * 2) + (20 * 3)) * 5 = 400
-        Assert.That(result).Is.EqualTo(400f);
+        Expect.AreEqual(400f, result);
     }
 }

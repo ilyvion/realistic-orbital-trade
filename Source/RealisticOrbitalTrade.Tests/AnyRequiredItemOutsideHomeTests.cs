@@ -1,13 +1,13 @@
+using DevTools.Testing;
 using RealisticOrbitalTrade.Comps;
-using RimTestRedux;
 
 namespace RealisticOrbitalTrade.Tests;
 
 // A requirement that colonists can't cover from home-area/storage stock, while matching items lie
 // outside both, must surface the ROT_TradeOutsideHome overlay rather than only the generic
 // 'missing' one.
-[TestSuite]
-internal static class AnyRequiredItemOutsideHomeTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class AnyRequiredItemOutsideHomeTests
 {
     private static int _nextThingId;
 
@@ -32,7 +32,7 @@ internal static class AnyRequiredItemOutsideHomeTests
             [NewThing(thingDef, 75), NewThing(thingDef, 75)]
         );
 
-        Assert.That(outside).Is.True();
+        Expect.IsTrue(outside);
     }
 
     [Test]
@@ -48,7 +48,7 @@ internal static class AnyRequiredItemOutsideHomeTests
             [NewThing(new ThingDef { defName = "OtherDef" }, 500)]
         );
 
-        Assert.That(outside).Is.False();
+        Expect.IsFalse(outside);
     }
 
     [Test]
@@ -64,7 +64,7 @@ internal static class AnyRequiredItemOutsideHomeTests
             [NewThing(thingDef, 75)]
         );
 
-        Assert.That(outside).Is.False();
+        Expect.IsFalse(outside);
     }
 
     [Test]
@@ -80,6 +80,6 @@ internal static class AnyRequiredItemOutsideHomeTests
             [NewThing(thingDef, 5)]
         );
 
-        Assert.That(outside).Is.True();
+        Expect.IsTrue(outside);
     }
 }

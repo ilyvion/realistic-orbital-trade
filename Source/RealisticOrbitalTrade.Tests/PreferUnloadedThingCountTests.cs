@@ -1,4 +1,4 @@
-using RimTestRedux;
+using DevTools.Testing;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -9,11 +9,11 @@ namespace RealisticOrbitalTrade.Tests;
 // untouched stack's reservation dangling forever, since nothing else would ever release it - this
 // is what caused sold items to remain incorrectly marked "reserved for trade" after a departure
 // renegotiation locked in less than what had originally been sold (issue #7 follow-up).
-[TestSuite]
-internal static class PreferUnloadedThingCountTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class PreferUnloadedThingCountTests
 {
-    // ThingCountClass isn't IComparable, so Assert.That(...) can't take one directly - every check
-    // below instead asserts a bool for whether the result is (or isn't) a particular candidate.
+    // Every check below asserts a bool for whether the result is (or isn't) a particular
+    // candidate.
     private static int _nextThingId;
 
     private static Thing NewThing(int stackCount = 10) =>
@@ -34,7 +34,7 @@ internal static class PreferUnloadedThingCountTests
 
         var result = TradeAgreement.PreferUnloadedThingCount([thingCount], _ => true);
 
-        Assert.That(ReferenceEquals(result, thingCount)).Is.True();
+        Expect.IsTrue(ReferenceEquals(result, thingCount));
     }
 
     [Test]
@@ -50,7 +50,7 @@ internal static class PreferUnloadedThingCountTests
             t => t == loadedThing
         );
 
-        Assert.That(ReferenceEquals(result, unloaded)).Is.True();
+        Expect.IsTrue(ReferenceEquals(result, unloaded));
     }
 
     [Test]
@@ -66,7 +66,7 @@ internal static class PreferUnloadedThingCountTests
             t => t == loadedThing
         );
 
-        Assert.That(ReferenceEquals(result, unloaded)).Is.True();
+        Expect.IsTrue(ReferenceEquals(result, unloaded));
     }
 
     [Test]
@@ -77,7 +77,7 @@ internal static class PreferUnloadedThingCountTests
 
         var result = TradeAgreement.PreferUnloadedThingCount([loaded], _ => true);
 
-        Assert.That(ReferenceEquals(result, loaded)).Is.True();
+        Expect.IsTrue(ReferenceEquals(result, loaded));
     }
 
     [Test]
@@ -85,6 +85,6 @@ internal static class PreferUnloadedThingCountTests
     {
         var result = TradeAgreement.PreferUnloadedThingCount([], _ => false);
 
-        Assert.That(result == null).Is.True();
+        Expect.IsTrue(result == null);
     }
 }

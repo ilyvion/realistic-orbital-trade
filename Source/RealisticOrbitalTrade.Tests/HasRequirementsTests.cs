@@ -1,4 +1,4 @@
-using RimTestRedux;
+using DevTools.Testing;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -9,8 +9,8 @@ namespace RealisticOrbitalTrade.Tests;
 // genepack during renegotiation ejected every loaded genepack instead of just that one, and the
 // reload afterward grabbed whichever genepacks happened to be nearest rather than the ones
 // actually still owed.
-[TestSuite]
-internal static class HasRequirementsTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class HasRequirementsTests
 {
     [Test]
     public static void GenepackHasRequirements()
@@ -20,7 +20,7 @@ internal static class HasRequirementsTests
             def = new ThingDef { defName = "TestGenepack", healthAffectsPrice = false },
         };
 
-        Assert.That(genepack.HasRequirements()).Is.True();
+        Expect.IsTrue(genepack.HasRequirements());
     }
 
     [Test]
@@ -37,10 +37,10 @@ internal static class HasRequirementsTests
             out var hasInnerThing
         );
 
-        Assert.That(result).Is.True();
-        Assert.That(healthAffectsPrice).Is.False();
-        Assert.That(qualityCategory.HasValue).Is.False();
-        Assert.That(hasInnerThing).Is.False();
+        Expect.IsTrue(result);
+        Expect.IsFalse(healthAffectsPrice);
+        Expect.IsFalse(qualityCategory.HasValue);
+        Expect.IsFalse(hasInnerThing);
     }
 
     [Test]
@@ -51,6 +51,6 @@ internal static class HasRequirementsTests
             def = new ThingDef { defName = "TestPlainThing", healthAffectsPrice = false },
         };
 
-        Assert.That(thing.HasRequirements()).Is.False();
+        Expect.IsFalse(thing.HasRequirements());
     }
 }

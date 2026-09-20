@@ -1,18 +1,18 @@
+using DevTools.Testing;
 using RealisticOrbitalTrade.Core;
-using RimTestRedux;
 
 namespace RealisticOrbitalTrade.Tests;
 
-[TestSuite]
-internal static class ShuttleLoadPlannerTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class ShuttleLoadPlannerTests
 {
     [Test]
     public static void SaleWithinOneShuttleUsesOneShuttle()
     {
         var plan = ShuttleLoadPlanner.Plan(200f, 0f, [new(0, 1f, 150)]);
 
-        Assert.ThatCollection(plan!).Has.Count(1);
-        Assert.That(plan![0].Sum(s => s.count)).Is.EqualTo(150);
+        Expect.AreEqual(1, plan!.Count);
+        Expect.AreEqual(150, plan![0].Sum(s => s.count));
     }
 
     // A sale heavier than one shuttle's capacity used to be rejected outright; 1000 units at 1 kg
@@ -22,10 +22,10 @@ internal static class ShuttleLoadPlannerTests
     {
         var plan = ShuttleLoadPlanner.Plan(200f, 0f, [new(0, 1f, 1000)]);
 
-        Assert.ThatCollection(plan!).Has.Count(5);
+        Expect.AreEqual(5, plan!.Count);
         foreach (var shuttle in plan!)
         {
-            Assert.That(shuttle.Sum(s => s.count)).Is.EqualTo(200);
+            Expect.AreEqual(200, shuttle.Sum(s => s.count));
         }
     }
 
@@ -41,9 +41,9 @@ internal static class ShuttleLoadPlannerTests
         var totals = plan.SelectMany(s => s)
             .GroupBy(s => s.lineId)
             .ToDictionary(g => g.Key, g => g.Sum(s => s.count));
-        Assert.That(totals[0]).Is.EqualTo(777);
-        Assert.That(totals[1]).Is.EqualTo(91);
-        Assert.That(totals[2]).Is.EqualTo(7);
+        Expect.AreEqual(777, totals[0]);
+        Expect.AreEqual(91, totals[1]);
+        Expect.AreEqual(7, totals[2]);
     }
 
     [Test]
@@ -55,7 +55,7 @@ internal static class ShuttleLoadPlannerTests
         foreach (var shuttle in plan!)
         {
             var mass = shuttle.Sum(s => s.count * lines[s.lineId].UnitMass);
-            Assert.That(mass <= 200.001f).Is.True();
+            Expect.IsTrue(mass <= 200.001f);
         }
     }
 
@@ -64,9 +64,9 @@ internal static class ShuttleLoadPlannerTests
     {
         var plan = ShuttleLoadPlanner.Plan(200f, 150f, [new(0, 1f, 100)]);
 
-        Assert.ThatCollection(plan!).Has.Count(2);
-        Assert.That(plan![0].Sum(s => s.count)).Is.EqualTo(50);
-        Assert.That(plan[1].Sum(s => s.count)).Is.EqualTo(50);
+        Expect.AreEqual(2, plan!.Count);
+        Expect.AreEqual(50, plan![0].Sum(s => s.count));
+        Expect.AreEqual(50, plan[1].Sum(s => s.count));
     }
 
     [Test]
@@ -74,24 +74,24 @@ internal static class ShuttleLoadPlannerTests
     {
         var plan = ShuttleLoadPlanner.Plan(200f, 60f, []);
 
-        Assert.ThatCollection(plan).Has.Count(1);
+        Expect.AreEqual(1, plan!.Count);
     }
 
     [Test]
     public static void ReservedMassBeyondOneShuttleIsInfeasible() =>
-        Assert.That(ShuttleLoadPlanner.Plan(200f, 260f, []) == null).Is.True();
+        Expect.IsTrue(ShuttleLoadPlanner.Plan(200f, 260f, []) == null);
 
     [Test]
     public static void SingleUnitHeavierThanAShuttleIsInfeasible() =>
-        Assert.That(ShuttleLoadPlanner.Plan(200f, 0f, [new(0, 250f, 1)]) == null).Is.True();
+        Expect.IsTrue(ShuttleLoadPlanner.Plan(200f, 0f, [new(0, 250f, 1)]) == null);
 
     [Test]
     public static void WeightlessItemsNeverForceAnExtraShuttle()
     {
         var plan = ShuttleLoadPlanner.Plan(200f, 0f, [new(0, 0f, 5000)]);
 
-        Assert.ThatCollection(plan!).Has.Count(1);
-        Assert.That(plan![0].Sum(s => s.count)).Is.EqualTo(5000);
+        Expect.AreEqual(1, plan!.Count);
+        Expect.AreEqual(5000, plan![0].Sum(s => s.count));
     }
 
     [Test]
@@ -99,8 +99,8 @@ internal static class ShuttleLoadPlannerTests
     {
         var plan = ShuttleLoadPlanner.Plan(200f, 0f, [new(0, 1f, 0)]);
 
-        Assert.ThatCollection(plan!).Has.Count(1);
-        Assert.ThatCollection(plan![0]).Is.Empty();
+        Expect.AreEqual(1, plan!.Count);
+        Expect.IsEmpty(plan![0]);
     }
 
     // Sold creatures are one-unit lines, so a herd heavier than a shuttle is spread across several.
@@ -115,8 +115,8 @@ internal static class ShuttleLoadPlannerTests
 
         var plan = ShuttleLoadPlanner.Plan(1980f, 0f, lines);
 
-        Assert.ThatCollection(plan).Has.Count(3);
-        Assert.That(plan.Sum(s => s.Count)).Is.EqualTo(20);
-        Assert.That(plan.All(s => s.Count <= 8)).Is.True();
+        Expect.AreEqual(3, plan!.Count);
+        Expect.AreEqual(20, plan.Sum(s => s.Count));
+        Expect.IsTrue(plan.All(s => s.Count <= 8));
     }
 }

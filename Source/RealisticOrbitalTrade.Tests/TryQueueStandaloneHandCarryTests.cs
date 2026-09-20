@@ -1,4 +1,4 @@
-using RimTestRedux;
+using DevTools.Testing;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -9,8 +9,8 @@ namespace RealisticOrbitalTrade.Tests;
 // opening a race window where a live animal/prisoner could be double-claimed. This must instead
 // mirror CommitToInventory/QueueHandCarryGroup, which both drop their candidate outright on a
 // failed reservation.
-[TestSuite]
-internal static class TryQueueStandaloneHandCarryTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class TryQueueStandaloneHandCarryTests
 {
     private static int _nextThingId;
 
@@ -37,9 +37,9 @@ internal static class TryQueueStandaloneHandCarryTests
             countQueue
         );
 
-        Assert.That(queued).Is.EqualTo(false);
-        Assert.ThatCollection(targetQueue).Is.Empty();
-        Assert.ThatCollection(countQueue).Is.Empty();
+        Expect.AreEqual(false, queued);
+        Expect.IsEmpty(targetQueue);
+        Expect.IsEmpty(countQueue);
     }
 
     [Test]
@@ -57,11 +57,11 @@ internal static class TryQueueStandaloneHandCarryTests
             countQueue
         );
 
-        Assert.That(queued).Is.EqualTo(true);
-        Assert.ThatCollection(targetQueue).Has.Count(1);
-        Assert.That(targetQueue[0].Thing?.thingIDNumber).Is.EqualTo(thing.thingIDNumber);
-        Assert.ThatCollection(countQueue).Has.Count(1);
-        Assert.That(countQueue[0]).Is.EqualTo(5);
+        Expect.AreEqual(true, queued);
+        Expect.AreEqual(1, targetQueue.Count);
+        Expect.AreEqual(thing.thingIDNumber, targetQueue[0].Thing?.thingIDNumber);
+        Expect.AreEqual(1, countQueue.Count);
+        Expect.AreEqual(5, countQueue[0]);
     }
 
     [Test]
@@ -84,7 +84,7 @@ internal static class TryQueueStandaloneHandCarryTests
             []
         );
 
-        Assert.That(reservedThing?.thingIDNumber).Is.EqualTo(thing.thingIDNumber);
-        Assert.That(reservedCount).Is.EqualTo(7);
+        Expect.AreEqual(thing.thingIDNumber, reservedThing?.thingIDNumber);
+        Expect.AreEqual(7, reservedCount);
     }
 }
