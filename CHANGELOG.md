@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- A trade shuttle now tells you when sold items are lying outside the home area and outside any storage, which is the one place colonists never look when loading. It shows a new warning icon and an inspect message explaining that you can expand the home area over the items, move them into storage, or renegotiate.
+
 ## [0.12.1] - 2026-09-18
 
 ### Changed

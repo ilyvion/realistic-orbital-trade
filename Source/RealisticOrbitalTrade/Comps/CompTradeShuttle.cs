@@ -21,6 +21,11 @@ internal class CompTradeShuttle : ThingComp
         ShaderDatabase.MetaOverlay
     );
 
+    private static readonly Material OutsideHomeOverlayMat = MaterialPool.MatFrom(
+        "UI/Overlays/ROT_TradeOutsideHome",
+        ShaderDatabase.MetaOverlay
+    );
+
     internal bool cancelled;
     internal bool isToTrader;
     internal TradeAgreement? tradeAgreement;
@@ -39,6 +44,11 @@ internal class CompTradeShuttle : ThingComp
     // haul what's left. Distinct from missingRequiredItems, which fires when the item can't be
     // found at all regardless of forbidden status.
     internal bool requiredItemsForbidden;
+
+    // Same recomputation caveat as missingRequiredItems. True when a requirement is short of what
+    // colonists can haul, but matching items lie on the map outside the home area and outside any
+    // storage - the shuttle loading jobs only look inside those.
+    internal bool requiredItemsOutsideHome;
 
     internal Action<int>? extendDepartureTimeAction;
     internal int timesBoughtMoreTime;
@@ -108,6 +118,10 @@ internal class CompTradeShuttle : ThingComp
         else if (requiredItemsForbidden)
         {
             DrawAttentionOverlay(TradeForbiddenOverlayMat);
+        }
+        else if (requiredItemsOutsideHome)
+        {
+            DrawAttentionOverlay(OutsideHomeOverlayMat);
         }
         else if (missingRequiredItems)
         {
@@ -201,15 +215,6 @@ internal class CompTradeShuttle : ThingComp
                 );
             }
         }
-        else if (missingRequiredItems)
-        {
-#if v1_6_OR_GREATER
-            _ =
-#endif
-            stringBuilder.AppendInNewLine(
-                "RealisticOrbitalTrade.RequiredItemsMissingInspectString".Translate()
-            );
-        }
         else if (requiredItemsForbidden)
         {
 #if v1_6_OR_GREATER
@@ -217,6 +222,24 @@ internal class CompTradeShuttle : ThingComp
 #endif
             stringBuilder.AppendInNewLine(
                 "RealisticOrbitalTrade.RequiredItemsForbiddenInspectString".Translate()
+            );
+        }
+        else if (requiredItemsOutsideHome)
+        {
+#if v1_6_OR_GREATER
+            _ =
+#endif
+            stringBuilder.AppendInNewLine(
+                "RealisticOrbitalTrade.RequiredItemsOutsideHomeInspectString".Translate()
+            );
+        }
+        else if (missingRequiredItems)
+        {
+#if v1_6_OR_GREATER
+            _ =
+#endif
+            stringBuilder.AppendInNewLine(
+                "RealisticOrbitalTrade.RequiredItemsMissingInspectString".Translate()
             );
         }
 
@@ -314,6 +337,7 @@ internal class CompTradeShuttle : ThingComp
     private static readonly List<Thing> tmpColonySendableItems = [];
     private static readonly List<Thing> tmpCarriedSendableItems = [];
     private static readonly List<ThingDefCount> tmpRequiredGenericItems = [];
+    private static readonly List<Thing> tmpItemsOutsideHome = [];
 
     private static bool IsForbiddenToPlayer(Thing thing) => thing.IsForbidden(Faction.OfPlayer);
 
@@ -412,6 +436,18 @@ internal class CompTradeShuttle : ThingComp
                 IsForbiddenToPlayer
             );
 
+        requiredItemsOutsideHome = false;
+        if (missingRequiredItems)
+        {
+            CollectItemsOutsideHome(parent.Map, tmpItemsOutsideHome);
+            requiredItemsOutsideHome = AnyRequiredItemOutsideHome(
+                tmpRequiredSpecificItems,
+                tmpRequiredGenericItems,
+                tmpAllSendableItems,
+                tmpItemsOutsideHome
+            );
+        }
+
         foreach (var requiredItem in tmpRequiredSpecificItems)
         {
             if (requiredItem.count <= 0)
@@ -492,6 +528,75 @@ internal class CompTradeShuttle : ThingComp
                 }
             }
             if (numberOfMatches < requiredItem.count)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Fills <paramref name="into"/> with the spawned items on <paramref name="map"/> that the
+    /// shuttle loading jobs ignore for lying outside the home area and outside any storage. Empty
+    /// on maps that aren't a player home, where loading isn't restricted to the home area.
+    /// </summary>
+    internal static void CollectItemsOutsideHome(Map map, List<Thing> into)
+    {
+        into.Clear();
+        if (!map.IsPlayerHome)
+        {
+            return;
+        }
+
+        foreach (var thing in map.listerThings.ThingsInGroup(ThingRequestGroup.HaulableEver))
+        {
+            if (
+                thing.Spawned
+                && thing.def.category == ThingCategory.Item
+                && !map.areaManager.Home[thing.Position]
+                && !thing.IsInAnyStorage()
+                && !thing.Position.Fogged(map)
+            )
+            {
+                into.Add(thing);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Whether any of the remaining requirements is short of what <paramref name="sendableItems"/>
+    /// covers while <paramref name="itemsOutsideHome"/> holds matching stock - the shortfall is
+    /// sitting where colonists won't look for it.
+    /// </summary>
+    internal static bool AnyRequiredItemOutsideHome(
+        IEnumerable<ThingDefCountWithRequirements> remainingSpecificItems,
+        IEnumerable<ThingDefCount> remainingGenericItems,
+        IEnumerable<Thing> sendableItems,
+        IEnumerable<Thing> itemsOutsideHome
+    )
+    {
+        var sendable = sendableItems.ToList();
+        var outsideHome = itemsOutsideHome.ToList();
+        foreach (var requiredItem in remainingSpecificItems)
+        {
+            if (
+                requiredItem.count > 0
+                && sendable.Where(requiredItem.Matches).Sum(t => t.stackCount) < requiredItem.count
+                && outsideHome.Any(requiredItem.Matches)
+            )
+            {
+                return true;
+            }
+        }
+
+        foreach (var requiredItem in remainingGenericItems)
+        {
+            if (
+                requiredItem.Count > 0
+                && sendable.Where(t => t.def == requiredItem.ThingDef).Sum(t => t.stackCount)
+                    < requiredItem.Count
+                && outsideHome.Any(t => t.def == requiredItem.ThingDef)
+            )
             {
                 return true;
             }
