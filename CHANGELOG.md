@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.2] - 2026-09-20
+
 ### Added
 
 - A trade shuttle now tells you when sold items are lying outside the home area and outside any storage, which is the one place colonists never look when loading. It shows a new warning icon and an inspect message explaining that you can expand the home area over the items, move them into storage, or renegotiate.
@@ -243,7 +245,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.12.1...HEAD
+[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.12.2...HEAD
+[0.12.2]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.12.1..v0.12.2
 [0.12.1]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.12.0..v0.12.1
 [0.12.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.11.4..v0.12.0
 [0.11.4]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.11.3..v0.11.4
