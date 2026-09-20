@@ -27,5 +27,6 @@
             >Integrations/DynamicTradeInterface/1.6</li>
         <li IfModActive="supes.autoseller.core">Integrations/AutoSeller/1.6</li>
         <li IfModActive="krelinos.socialexpfromtrade">Integrations/SocialEXPFromTrade/1.6</li>
+        <li IfModActive="ilyvion.rimtestredux">Integrations/RimTestRedux/1.6</li>
     </v1.6>
 </loadFolders>
