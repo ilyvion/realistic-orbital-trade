@@ -889,17 +889,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                 continue;
             }
 
-            foreach (
-                var jobPawn in Utils
-                    .PawnsWithHaulToTransporterJob(ship.TransporterComp, map)
-                    .Where(jp =>
-                        jp.carryTracker.CarriedThing == thing || jp.CurJob.targetA.Thing == thing
-                    )
-                    .ToList()
-            )
-            {
-                jobPawn.jobs.EndCurrentJob(JobCondition.Incompletable, false, true);
-            }
+            Utils.EndHaulJobsFor(ship.TransporterComp, map, hauled => hauled == thing);
         }
     }
 
@@ -1536,8 +1526,8 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                 case TransferDirection.ToTrader:
                     if (amount > 0)
                     {
-                        TransferableUtility.TransferNoSplit(
-                            tradeable.thingsColony,
+                        SellUnsoldStock(
+                            tradeable,
                             amount,
                             (toGive, countToGive) =>
                             {
@@ -1563,10 +1553,19 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                                     }
                                     return;
                                 }
-                                ThingCountClass thingCount = new(toGive, countToGive);
-                                thingsSoldToTrader.Add(thingCount);
+                                var alreadySold = thingsSoldToTrader.FirstOrDefault(t =>
+                                    t.thing == toGive
+                                );
+                                if (alreadySold != null)
+                                {
+                                    alreadySold.Count += countToGive;
+                                }
+                                else
+                                {
+                                    thingsSoldToTrader.Add(new(toGive, countToGive));
+                                }
                                 AddReservation(toGive, countToGive);
-                                AddRequiredCargoToShuttles(thingCount);
+                                AddRequiredCargoToShuttles(new(toGive, countToGive));
                             }
                         );
                     }
@@ -1613,16 +1612,11 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                                 }
 
                                 // Also cancel any hauling jobs featuring the pawn
-                                var p = Utils
-                                    .PawnsWithHaulToTransporterJob(
-                                        ship.TransporterComp,
-                                        ship.shipThing.Map
-                                    )
-                                    .SingleOrDefault(jp =>
-                                        jp.carryTracker.CarriedThing == pawn
-                                        || jp.CurJob.targetA.Thing == pawn
-                                    );
-                                p?.jobs.EndCurrentJob(JobCondition.Incompletable, false, true);
+                                Utils.EndHaulJobsFor(
+                                    ship.TransporterComp,
+                                    ship.shipThing.Map,
+                                    hauled => hauled == pawn
+                                );
                             }
                         }
                         else
@@ -1777,27 +1771,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                                 {
                                     continue;
                                 }
-                                foreach (
-                                    var p in Utils
-                                        .PawnsWithHaulToTransporterJob(
-                                            ship.TransporterComp,
-                                            shipMap
-                                        )
-                                        .Where(jp =>
-                                            hasRequirements
-                                                ? jp.carryTracker.CarriedThing == tradeable.AnyThing
-                                                    || jp.CurJob.targetA.Thing.GetInnerIfMinified()
-                                                        == tradeable.AnyThing
-                                                : jp.carryTracker.CarriedThing?.def
-                                                    == tradeable.ThingDef
-                                                    || jp.CurJob.targetA.Thing.def
-                                                        == tradeable.ThingDef
-                                        )
-                                        .ToList()
-                                )
-                                {
-                                    p.jobs.EndCurrentJob(JobCondition.Incompletable, false, true);
-                                }
+                                Utils.EndHaulJobsFor(ship.TransporterComp, shipMap, IsThisTradeable);
                             }
                         }
                     }
@@ -1823,6 +1797,42 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
 
         return true;
     }
+
+    // Hands <paramref name="sell"/> up to <paramref name="amount"/> of the tradeable's colony stock
+    // that isn't already part of this deal, stack by stack.
+    private void SellUnsoldStock(Tradeable tradeable, int amount, Action<Thing, int> sell)
+    {
+        var left = amount;
+        foreach (var thing in tradeable.thingsColony)
+        {
+            if (left <= 0)
+            {
+                break;
+            }
+
+            var count = Math.Min(left, UnsoldCount(thing));
+            if (count > 0)
+            {
+                sell(thing, count);
+                left -= count;
+            }
+        }
+
+        if (left > 0)
+        {
+            RealisticOrbitalTradeMod.Instance.LogError(
+                $"Needed to sell {amount} {tradeable.LabelCap} in the renegotiation, but only {amount - left} was available."
+            );
+        }
+    }
+
+    private int UnsoldCount(Thing thing) =>
+        thing is Pawn pawn
+            ? (pawnsSoldToTrader.Contains(pawn) ? 0 : 1)
+            : Math.Max(
+                0,
+                thing.stackCount - thingsSoldToTrader.Where(t => t.thing == thing).Sum(t => t.Count)
+            );
 
     // Computes how much of a stack to pull back onto the trade ship when returning silver/goods to
     // the trader: at most the amount still owed, and never the full stack count when it exceeds

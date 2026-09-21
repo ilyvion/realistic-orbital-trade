@@ -1,5 +1,6 @@
 using System.Reflection.Emit;
 using RealisticOrbitalTrade.Comps;
+using Verse.AI;
 
 namespace RealisticOrbitalTrade;
 
@@ -492,13 +493,56 @@ internal static class Utils
         foreach (var pawn in pawns)
         {
             if (
-                pawn.CurJobDef == RimWorld.JobDefOf.HaulToTransporter
-                && pawn.jobs.curDriver is JobDriver_HaulToTransporter jobDriver
-                && compTransporter == jobDriver.Transporter
+                (
+                    pawn.CurJobDef == RimWorld.JobDefOf.HaulToTransporter
+                    && pawn.jobs?.curDriver is JobDriver_HaulToTransporter jobDriver
+                    && compTransporter == jobDriver.Transporter
+                )
+                || (
+                    pawn.jobs?.curDriver is JobDriver_HaulMultipleToTransporter bulkDriver
+                    && compTransporter == bulkDriver.Transporter
+                )
             )
             {
                 yield return pawn;
             }
+        }
+    }
+
+    /// <summary>
+    /// Whether <paramref name="pawn"/>'s hauling job has anything matching
+    /// <paramref name="matches"/> in its hands, its queue of pickups, or (for this mod's bulk
+    /// hauling) its inventory awaiting delivery.
+    /// </summary>
+    internal static bool IsHauling(Pawn pawn, Func<Thing, bool> matches)
+    {
+        var job = pawn.CurJob;
+        return (pawn.carryTracker.CarriedThing is { } carried && matches(carried))
+            || (job.targetA.Thing is { } target && matches(target))
+            || job.GetTargetQueue(TargetIndex.A).Any(t => t.Thing is { } queued && matches(queued))
+            || (
+                pawn.jobs.curDriver is JobDriver_HaulMultipleToTransporter bulkDriver
+                && bulkDriver.CarriedThings.Any(matches)
+            );
+    }
+
+    /// <summary>
+    /// Ends every hauling job toward <paramref name="compTransporter"/> that is hauling something
+    /// matching <paramref name="matches"/>.
+    /// </summary>
+    internal static void EndHaulJobsFor(
+        CompTransporter compTransporter,
+        Map map,
+        Func<Thing, bool> matches
+    )
+    {
+        foreach (
+            var pawn in PawnsWithHaulToTransporterJob(compTransporter, map)
+                .Where(p => IsHauling(p, matches))
+                .ToList()
+        )
+        {
+            pawn.jobs.EndCurrentJob(JobCondition.Incompletable, false, true);
         }
     }
 

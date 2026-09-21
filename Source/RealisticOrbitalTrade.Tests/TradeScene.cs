@@ -207,6 +207,34 @@ internal sealed class TradeScene : IDisposable
             .Where(t => t.def == def)
             .Sum(t => t.stackCount);
 
+    // Does what the player's "renegotiate" button on a landed shuttle does, then changes the amount
+    // sold to this many and accepts. The sale then expects the new amount and payment.
+    internal void RenegotiateSale(int newCount)
+    {
+        var sale = CurrentSale!;
+        var agreement = TradeAgreement!;
+        Utils.BeginRenegotiation(agreement);
+        agreement.tradeShip.TryOpenComms(agreement.negotiator);
+        var dialog = Find.WindowStack.WindowOfType<Dialog_Trade>();
+        Expect.IsNotNull(dialog, "Renegotiating didn't reopen the trade dialog");
+        if (dialog == null)
+        {
+            Utils.EndRenegotiation();
+            return;
+        }
+
+        var silverOwed = SellInOpenDialog(dialog, sale.Def, newCount);
+        if (silverOwed > 0)
+        {
+            sale.Count = newCount;
+            sale.SilverOwed = silverOwed;
+        }
+        else
+        {
+            dialog.Close(doCloseSound: false);
+        }
+    }
+
     // Does what the player's "cancel trade" button on a landed shuttle does.
     internal void CancelTradeFromShuttle()
     {
@@ -297,11 +325,13 @@ internal sealed class TradeScene : IDisposable
         TradeAgreement = TradeShipData.tradeAgreementForQuest;
         Expect.IsNotNull(dialog, "Comms didn't open the trade dialog");
         Expect.IsNotNull(TradeAgreement, "No trade agreement started");
-        if (dialog == null || TradeAgreement == null)
-        {
-            return 0;
-        }
+        return dialog == null || TradeAgreement == null ? 0 : SellInOpenDialog(dialog, def, count);
+    }
 
+    // Sets the open dialog's deal to sell exactly this many and accepts it. Returns the silver the
+    // colony is owed, or 0 after recording why the deal wasn't made.
+    private static int SellInOpenDialog(Dialog_Trade dialog, ThingDef def, int count)
+    {
         var deal = TradeSession.deal;
         var tradeable = deal.AllTradeables.FirstOrDefault(t =>
             t.ThingDef == def && t.CountHeldBy(Transactor.Colony) > 0
@@ -327,6 +357,7 @@ internal sealed class TradeScene : IDisposable
         previousSettings.Apply();
         shuttleTransporter.massCapacity = previousShuttleCapacity;
         TradeShipData.tradeAgreementForQuest = null;
+        Utils.EndRenegotiation();
 
         if (!TradeShip.Departed)
         {
@@ -385,7 +416,7 @@ internal sealed class TradeScene : IDisposable
     )
     {
         internal ThingDef Def { get; } = def;
-        internal int Count { get; } = count;
+        internal int Count { get; set; } = count;
         internal int TraderCountBefore { get; } = traderCountBefore;
         internal int MapCountBefore { get; } = mapCountBefore;
         internal int SilverOnMapBefore { get; } = silverOnMapBefore;
