@@ -45,6 +45,9 @@ internal static class JobDefOf
     public static JobDef ROT_BuyMoreTime;
     public static JobDef ROT_HaulMultipleToTransporter;
 
+    [MayRequire(Settings.BulkLoadForTransportersPackageId)]
+    public static JobDef? LoadTransportersInBulk_Load;
+
     static JobDefOf()
     {
         DefOfHelper.EnsureInitializedInCtor(typeof(JobDefOf));

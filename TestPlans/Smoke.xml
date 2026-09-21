@@ -1,0 +1,17 @@
+<TestPlan>
+    <name>Smoke</name>
+    <jobs>
+        <li>
+            <name>Minimal mod list</name>
+            <commandLineArgs>--test --filter "class == WithCountTests"</commandLineArgs>
+            <loadWithMods>
+                <li>brrainz.harmony</li>
+                <li>ludeon.rimworld</li>
+                <li>ludeon.rimworld.royalty</li>
+                <li>ilyvion.laboratory</li>
+                <li>ilyvion.realisticorbitaltrade</li>
+            </loadWithMods>
+            <timeOut>300000</timeOut>
+        </li>
+    </jobs>
+</TestPlan>

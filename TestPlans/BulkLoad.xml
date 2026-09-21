@@ -1,0 +1,19 @@
+<TestPlan>
+    <name>BulkLoad</name>
+    <jobs>
+        <li>
+            <name>Bulk Load For Transporters loads the shuttle</name>
+            <commandLineArgs>--test --filter "class == BulkLoadCancellationEndToEndTests"</commandLineArgs>
+            <loadWithMods>
+                <li>brrainz.harmony</li>
+                <li>ludeon.rimworld</li>
+                <li>ludeon.rimworld.royalty</li>
+                <li>ilyvion.laboratory</li>
+                <li>mehni.pickupandhaul</li>
+                <li>ilarion.bulkloadfortransporters</li>
+                <li>ilyvion.realisticorbitaltrade</li>
+            </loadWithMods>
+            <timeOut>600000</timeOut>
+        </li>
+    </jobs>
+</TestPlan>

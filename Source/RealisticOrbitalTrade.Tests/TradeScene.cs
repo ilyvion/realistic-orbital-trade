@@ -1,4 +1,5 @@
 using DevTools.Testing;
+using RealisticOrbitalTrade.Comps;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -12,9 +13,7 @@ internal sealed class TradeScene : IDisposable
     private const int TicksPerFrame = 60;
     private const int TradeTimeoutTicks = 20000;
 
-    private readonly bool previousThreshold = Settings._useMinimumTradeThreshold;
-    private readonly bool previousDropPods = Settings._deliverItemsViaDropPod;
-    private readonly bool previousPauseTimer = Settings._activeTradePausesDepartureTimer;
+    private readonly SettingsSnapshot previousSettings = SettingsSnapshot.Capture();
     private readonly CompProperties_Transporter shuttleTransporter =
         TransportShipDefOf.Ship_Shuttle.shipThing.GetCompProperties<CompProperties_Transporter>();
     private readonly float previousShuttleCapacity;
@@ -35,14 +34,13 @@ internal sealed class TradeScene : IDisposable
     internal bool AllToTraderShuttlesHaveLanded =>
         ToTraderShuttles.Any() && ToTraderShuttles.All(ship => ship.shipThing.Spawned);
 
-    internal TradeScene(Map map)
+    // Runs on the mod's default settings unless the test passes its own.
+    internal TradeScene(Map map, SettingsSnapshot? settings = null)
     {
         Map = map;
         Expect.IsNull(FindTradeQuest(), "An earlier test leaked a trade quest");
         previousShuttleCapacity = shuttleTransporter.massCapacity;
-        Settings._useMinimumTradeThreshold = false;
-        Settings._deliverItemsViaDropPod = false;
-        Settings._activeTradePausesDepartureTimer = false;
+        (settings ?? SettingsSnapshot.Defaults).Apply();
 
         var center = map.Center;
         foreach (var cell in CellRect.CenteredOn(center, 12))
@@ -127,6 +125,17 @@ internal sealed class TradeScene : IDisposable
     // work. Sets CurrentSale; check it with ExpectSaleCompleted.
     internal IEnumerator SellAndWaitForCompletion(ThingDef def, int count)
     {
+        yield return SellAndWaitForLanding(def, count);
+        if (CurrentSale?.Quest != null)
+        {
+            yield return WaitForQuestToEnd();
+        }
+    }
+
+    // Sells as SellAndWaitForCompletion does, but stops once every shuttle for the trader has
+    // landed, so a test can interfere with the trade while it is under way.
+    internal IEnumerator SellAndWaitForLanding(ThingDef def, int count)
+    {
         var sale = new Sale(
             def,
             count,
@@ -152,12 +161,59 @@ internal sealed class TradeScene : IDisposable
             yield break;
         }
         sale.Quest = quest;
-        sale.ShuttleCount = ToTraderShuttles.Count();
+        sale.Shuttles = [.. ToTraderShuttles];
+        sale.ShuttleCount = sale.Shuttles.Count;
 
         yield return TickUntil(() => AllToTraderShuttlesHaveLanded);
         Expect.IsTrue(AllToTraderShuttlesHaveLanded, "Trade shuttles never all landed");
+    }
 
+    // Ticks until the current sale's quest is no longer ongoing.
+    internal IEnumerator WaitForQuestToEnd()
+    {
+        var quest = CurrentSale!.Quest!;
         yield return TickUntil(() => quest.State != QuestState.Ongoing);
+    }
+
+    // Ticks until the trader's shuttles have all left the map.
+    internal IEnumerator WaitForShuttlesToLeave()
+    {
+        var shuttles = CurrentSale!.Shuttles;
+        yield return TickUntil(() => shuttles.All(ship => !ship.shipThing.Spawned));
+    }
+
+    // Ticks one tick at a time until some, but not all, of the sold goods are aboard the shuttles,
+    // so a test can act on a half-loaded shuttle.
+    internal IEnumerator WaitForPartialLoad()
+    {
+        var sale = CurrentSale!;
+        while (LoadedInShuttles(sale.Def) == 0 && ticked < TradeTimeoutTicks)
+        {
+            Find.TickManager.DoSingleTick();
+            ticked++;
+            if (ticked % TicksPerFrame == 0)
+            {
+                yield return null;
+            }
+        }
+        var loaded = LoadedInShuttles(sale.Def);
+        Expect.GreaterThan(loaded, 0, "Nothing was ever loaded onto the shuttle");
+        Expect.LessThan(loaded, sale.Count, "The shuttle was fully loaded before it could be cancelled");
+    }
+
+    internal int LoadedInShuttles(ThingDef def) =>
+        CurrentSale!
+            .Shuttles.SelectMany(ship => ship.TransporterComp.innerContainer)
+            .Where(t => t.def == def)
+            .Sum(t => t.stackCount);
+
+    // Does what the player's "cancel trade" button on a landed shuttle does.
+    internal void CancelTradeFromShuttle()
+    {
+        var shuttle = CurrentSale!.Shuttles.First().shipThing;
+        var cancel = shuttle.TryGetComp<CompTradeShuttle>()?.cancelTradeAction;
+        Expect.IsNotNull(cancel, "The landed shuttle offers no way to cancel the trade");
+        cancel?.Invoke();
     }
 
     // The assertions every completed sale shares: the quest succeeded, the goods left the colony
@@ -184,6 +240,37 @@ internal sealed class TradeScene : IDisposable
             sale.SilverOnMapBefore + sale.SilverOwed,
             CountOnMap(SilverDef),
             "Payment didn't arrive"
+        );
+    }
+
+    // The assertions every cancelled sale shares: the quest failed, nothing changed hands, and
+    // the shuttles left.
+    internal void ExpectSaleCancelled()
+    {
+        var sale = CurrentSale!;
+        Expect.AreEqual(QuestState.EndedFailed, sale.Quest?.State, "Trade quest didn't fail");
+        Expect.IsNull(
+            TradeShip.GetData().activeTradeAgreement,
+            "Trade agreement is still active after cancelling"
+        );
+        Expect.IsTrue(
+            sale.Shuttles.All(ship => !ship.shipThing.Spawned),
+            "A trade shuttle didn't leave"
+        );
+        Expect.AreEqual(
+            sale.TraderCountBefore,
+            HeldByTrader(sale.Def),
+            "Trader kept goods from a cancelled trade"
+        );
+        Expect.AreEqual(
+            sale.MapCountBefore,
+            CountOnMap(sale.Def),
+            "Goods from a cancelled trade weren't returned to the colony"
+        );
+        Expect.AreEqual(
+            sale.SilverOnMapBefore,
+            CountOnMap(SilverDef),
+            "Silver arrived for a cancelled trade"
         );
     }
 
@@ -237,9 +324,7 @@ internal sealed class TradeScene : IDisposable
 
     public void Dispose()
     {
-        Settings._useMinimumTradeThreshold = previousThreshold;
-        Settings._deliverItemsViaDropPod = previousDropPods;
-        Settings._activeTradePausesDepartureTimer = previousPauseTimer;
+        previousSettings.Apply();
         shuttleTransporter.massCapacity = previousShuttleCapacity;
         TradeShipData.tradeAgreementForQuest = null;
 
@@ -307,5 +392,81 @@ internal sealed class TradeScene : IDisposable
         internal int SilverOwed { get; set; }
         internal int ShuttleCount { get; set; }
         internal Quest? Quest { get; set; }
+        internal List<TransportShip> Shuttles { get; set; } = [];
+    }
+
+    // Every mod setting, so a test runs on known values instead of whatever the player has saved
+    // in the mod's config file, and the player's values come back afterwards.
+    internal readonly record struct SettingsSnapshot(
+        bool PrintDevMessages,
+        bool RenegotiationWarningShown,
+        bool ActiveTradePausesDepartureTimer,
+        int MinTicksUntilDepartureBeforeGraceTime,
+        int DepartureGraceTimeTicks,
+        int MinimumTradeThreshold,
+        bool UseMinimumTradeThreshold,
+        int MinimumTradeDeviation,
+        bool DeliverItemsViaDropPod,
+        int BuyMoreTimeTicksPerPurchase,
+        int BuyMoreTimeBaseSilverCost,
+        float BuyMoreTimeCostGrowthFactor,
+        bool MultiItemShuttleLoading,
+        int HitPointsTolerancePercent
+    )
+    {
+        // The mod's own defaults.
+        internal static SettingsSnapshot Defaults { get; } =
+            new(
+                PrintDevMessages: false,
+                RenegotiationWarningShown: false,
+                ActiveTradePausesDepartureTimer: false,
+                MinTicksUntilDepartureBeforeGraceTime: 20000,
+                DepartureGraceTimeTicks: 40000,
+                MinimumTradeThreshold: 600,
+                UseMinimumTradeThreshold: false,
+                MinimumTradeDeviation: 15,
+                DeliverItemsViaDropPod: false,
+                BuyMoreTimeTicksPerPurchase: 7500,
+                BuyMoreTimeBaseSilverCost: 200,
+                BuyMoreTimeCostGrowthFactor: 1.5f,
+                MultiItemShuttleLoading: true,
+                HitPointsTolerancePercent: 2
+            );
+
+        internal static SettingsSnapshot Capture() =>
+            new(
+                Settings._printDevMessages,
+                Settings._renegotiationWarningShown,
+                Settings._activeTradePausesDepartureTimer,
+                Settings._minTicksUntilDepartureBeforeGraceTime,
+                Settings._departureGraceTimeTicks,
+                Settings._minimumTradeThreshold,
+                Settings._useMinimumTradeThreshold,
+                Settings._minimumTradeDeviation,
+                Settings._deliverItemsViaDropPod,
+                Settings._buyMoreTimeTicksPerPurchase,
+                Settings._buyMoreTimeBaseSilverCost,
+                Settings._buyMoreTimeCostGrowthFactor,
+                Settings._multiItemShuttleLoading,
+                Settings._hitPointsTolerancePercent
+            );
+
+        internal void Apply()
+        {
+            Settings._printDevMessages = PrintDevMessages;
+            Settings._renegotiationWarningShown = RenegotiationWarningShown;
+            Settings._activeTradePausesDepartureTimer = ActiveTradePausesDepartureTimer;
+            Settings._minTicksUntilDepartureBeforeGraceTime = MinTicksUntilDepartureBeforeGraceTime;
+            Settings._departureGraceTimeTicks = DepartureGraceTimeTicks;
+            Settings._minimumTradeThreshold = MinimumTradeThreshold;
+            Settings._useMinimumTradeThreshold = UseMinimumTradeThreshold;
+            Settings._minimumTradeDeviation = MinimumTradeDeviation;
+            Settings._deliverItemsViaDropPod = DeliverItemsViaDropPod;
+            Settings._buyMoreTimeTicksPerPurchase = BuyMoreTimeTicksPerPurchase;
+            Settings._buyMoreTimeBaseSilverCost = BuyMoreTimeBaseSilverCost;
+            Settings._buyMoreTimeCostGrowthFactor = BuyMoreTimeCostGrowthFactor;
+            Settings._multiItemShuttleLoading = MultiItemShuttleLoading;
+            Settings._hitPointsTolerancePercent = HitPointsTolerancePercent;
+        }
     }
 }
