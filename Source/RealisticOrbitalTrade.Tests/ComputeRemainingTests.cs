@@ -127,8 +127,6 @@ internal sealed class IsRequiredTests
     }
 
     [Test]
-    public static void ToPlayerShuttleClaimsNothing()
-    {
+    public static void ToPlayerShuttleClaimsNothing() =>
         Expect.IsFalse(Comp(false).IsRequired(ThingMaker.MakeThing(RimWorld.ThingDefOf.Silver)));
-    }
 }

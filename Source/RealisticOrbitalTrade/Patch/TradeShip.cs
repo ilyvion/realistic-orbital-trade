@@ -98,28 +98,44 @@ internal static class Rimworld_TradeShip_PassingShipTick
     {
         var tradeShipExtra = __instance.GetData();
         var activeTradeAgreement = tradeShipExtra.activeTradeAgreement;
-        if (
-            (activeTradeAgreement != null && activeTradeAgreement.tradePausesDepartureTimer)
-            || Utils.IsMakingAmends
-        )
+        (__instance.ticksUntilDeparture, tradeShipExtra.ticksUntilCommsClosed) =
+            AdvanceTradeShipTimers(
+                __state,
+                __instance.ticksUntilDeparture,
+                tradeShipExtra.ticksUntilCommsClosed,
+                activeTradeAgreement != null && activeTradeAgreement.tradePausesDepartureTimer,
+                activeTradeAgreement != null,
+                Utils.IsMakingAmends,
+                Constants.AdditionalTicksAfterDeparture
+            );
+    }
+
+    internal static (int ticksUntilDeparture, int ticksUntilCommsClosed) AdvanceTradeShipTimers(
+        int departureBefore,
+        int departureAfterVanillaTick,
+        int commsClosed,
+        bool activeAgreementPauses,
+        bool hasActiveAgreement,
+        bool makingAmends,
+        int additionalTicks
+    )
+    {
+        if (activeAgreementPauses || makingAmends)
         {
-            __instance.ticksUntilDeparture = __state;
+            return (departureBefore, commsClosed);
         }
-        else
+
+        if (commsClosed > 0)
         {
-            if (tradeShipExtra.ticksUntilCommsClosed > 0)
-            {
-                tradeShipExtra.ticksUntilCommsClosed--;
-            }
-            else if (
-                tradeShipExtra.ticksUntilCommsClosed == 0
-                && activeTradeAgreement == null
-                && __instance.ticksUntilDeparture > Constants.AdditionalTicksAfterDeparture
-            )
-            {
-                __instance.ticksUntilDeparture = Constants.AdditionalTicksAfterDeparture;
-            }
+            return (departureAfterVanillaTick, commsClosed - 1);
         }
+
+        if (commsClosed == 0 && !hasActiveAgreement && departureAfterVanillaTick > additionalTicks)
+        {
+            return (additionalTicks, commsClosed);
+        }
+
+        return (departureAfterVanillaTick, commsClosed);
     }
 }
 
@@ -140,55 +156,88 @@ internal static class Rimworld_TradeShip_TryOpenComms
             return true;
         }
 
-        if (tradeShipExtra.ticksUntilCommsClosed == 0)
+        switch (
+            DecideComms(
+                tradeShipExtra.ticksUntilCommsClosed,
+                Utils.IsMakingAmends,
+                RealisticOrbitalTradeGameComponent.Current.Standing,
+                tradeShipExtra.HasActiveTradeAgreement
+            )
+        )
         {
-            Messages.Message(
-                "RealisticOrbitalTrade.NotAnsweringForGraceTime".Translate(__instance.TraderName),
-                MessageTypeDefOf.NeutralEvent,
-                historical: false
-            );
-            return false;
-        }
-        else if (Utils.IsMakingAmends)
-        {
-            Messages.Message(
-                "RealisticOrbitalTrade.NotAnsweringForActiveAmendment".Translate(
-                    __instance.TraderName
-                ),
-                MessageTypeDefOf.NeutralEvent,
-                historical: false
-            );
-            return false;
-        }
-        else if (RealisticOrbitalTradeGameComponent.Current.Standing == Standing.Blacklisted)
-        {
-            Find.WindowStack.Add(new Dialog_PayBlacklistRemovalFee(__instance, negotiator));
+            case CommsOutcome.NotAnsweringForGraceTime:
+                Messages.Message(
+                    "RealisticOrbitalTrade.NotAnsweringForGraceTime".Translate(
+                        __instance.TraderName
+                    ),
+                    MessageTypeDefOf.NeutralEvent,
+                    historical: false
+                );
+                return false;
+            case CommsOutcome.NotAnsweringForActiveAmendment:
+                Messages.Message(
+                    "RealisticOrbitalTrade.NotAnsweringForActiveAmendment".Translate(
+                        __instance.TraderName
+                    ),
+                    MessageTypeDefOf.NeutralEvent,
+                    historical: false
+                );
+                return false;
+            case CommsOutcome.Blacklisted:
+                Find.WindowStack.Add(new Dialog_PayBlacklistRemovalFee(__instance, negotiator));
 
-            var level = negotiator.health.capacities.GetLevel(PawnCapacityDefOf.Talking);
-            var level2 = negotiator.health.capacities.GetLevel(PawnCapacityDefOf.Hearing);
-            if (level < 0.95f || level2 < 0.95f)
-            {
-                var text =
-                    (!(level < 0.95f))
-                        ? "NegotiatorHearingImpaired".Translate(negotiator.LabelShort, negotiator)
-                        : "NegotiatorTalkingImpaired".Translate(negotiator.LabelShort, negotiator);
-                text += "\n\n" + "NegotiatorCapacityImpaired".Translate();
-                Find.WindowStack.Add(new Dialog_MessageBox(text));
-            }
-            return false;
-        }
-        else if (tradeShipExtra.HasActiveTradeAgreement)
-        {
-            Messages.Message(
-                "RealisticOrbitalTrade.NotAnsweringForActiveTrade".Translate(__instance.TraderName),
-                MessageTypeDefOf.NeutralEvent,
-                historical: false
-            );
-            return false;
+                var level = negotiator.health.capacities.GetLevel(PawnCapacityDefOf.Talking);
+                var level2 = negotiator.health.capacities.GetLevel(PawnCapacityDefOf.Hearing);
+                if (level < 0.95f || level2 < 0.95f)
+                {
+                    var text =
+                        (!(level < 0.95f))
+                            ? "NegotiatorHearingImpaired".Translate(
+                                negotiator.LabelShort,
+                                negotiator
+                            )
+                            : "NegotiatorTalkingImpaired".Translate(
+                                negotiator.LabelShort,
+                                negotiator
+                            );
+                    text += "\n\n" + "NegotiatorCapacityImpaired".Translate();
+                    Find.WindowStack.Add(new Dialog_MessageBox(text));
+                }
+                return false;
+            case CommsOutcome.NotAnsweringForActiveTrade:
+                Messages.Message(
+                    "RealisticOrbitalTrade.NotAnsweringForActiveTrade".Translate(
+                        __instance.TraderName
+                    ),
+                    MessageTypeDefOf.NeutralEvent,
+                    historical: false
+                );
+                return false;
         }
 
         tradeShipExtra.activeTradeAgreement = TradeShipData.tradeAgreementForQuest =
             RealisticOrbitalTradeGameComponent.Current.StartTradeAgreement(__instance, negotiator);
         return true;
     }
+
+    internal enum CommsOutcome
+    {
+        StartAgreement,
+        NotAnsweringForGraceTime,
+        NotAnsweringForActiveAmendment,
+        Blacklisted,
+        NotAnsweringForActiveTrade,
+    }
+
+    internal static CommsOutcome DecideComms(
+        int commsClosed,
+        bool makingAmends,
+        Standing standing,
+        bool hasActiveAgreement
+    ) =>
+        commsClosed == 0 ? CommsOutcome.NotAnsweringForGraceTime
+        : makingAmends ? CommsOutcome.NotAnsweringForActiveAmendment
+        : standing == Standing.Blacklisted ? CommsOutcome.Blacklisted
+        : hasActiveAgreement ? CommsOutcome.NotAnsweringForActiveTrade
+        : CommsOutcome.StartAgreement;
 }

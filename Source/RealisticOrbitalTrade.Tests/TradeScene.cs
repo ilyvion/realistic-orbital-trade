@@ -8,6 +8,7 @@ namespace RealisticOrbitalTrade.Tests;
 // directly, so a run doesn't depend on the game speed. Disposing puts back everything a test
 // touched, so the next test on the same map and world sees none of it: settings, shuttle capacity,
 // home area, quests, letters, items, shuttles, pawns and the trader.
+#pragma warning disable CA1506 // CA1506: Avoid excessive class coupling
 internal sealed class TradeScene : IDisposable
 {
     private const int TicksPerFrame = 60;
@@ -655,3 +656,4 @@ internal sealed class TradeScene : IDisposable
         }
     }
 }
+#pragma warning restore CA1506

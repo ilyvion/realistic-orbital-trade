@@ -22,12 +22,14 @@ internal class QuestPart_ExtendTradeShipDepartureIfVeryShort : QuestPart
         if (signal.tag == inSignal)
         {
             // If the trade ship was leaving in less than an hour, make it an hour.
-            if (tradeShip!.ticksUntilDeparture < 2500)
-            {
-                tradeShip.ticksUntilDeparture = 2500;
-            }
+            tradeShip!.ticksUntilDeparture = ExtendIfVeryShort(tradeShip.ticksUntilDeparture);
         }
     }
+
+    internal const int MinimumTicksUntilDeparture = 2500;
+
+    internal static int ExtendIfVeryShort(int ticksUntilDeparture) =>
+        Math.Max(ticksUntilDeparture, MinimumTicksUntilDeparture);
 
     public override void ExposeData()
     {

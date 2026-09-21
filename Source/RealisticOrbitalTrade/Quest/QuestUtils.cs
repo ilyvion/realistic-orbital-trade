@@ -38,11 +38,15 @@ internal class QuestUtils
         //                                                  it can be extended again, but the comms
         //                                                  should close just as early.
 
-        var originalTicksUntilCommsClosed = tradeShip.GetData().ticksUntilCommsClosed;
         var originalTicksUntilDeparture = tradeShip.ticksUntilDeparture;
-        var tradeRequiresGraceTime =
-            originalTicksUntilDeparture < Settings._minTicksUntilDepartureBeforeGraceTime;
-        var tradeShipWasAlreadyInGraceTime = originalTicksUntilCommsClosed != -1;
+        var (newTicksUntilDeparture, newTicksUntilCommsClosed, tradeRequiresGraceTime) =
+            ComputeGraceTime(
+                originalTicksUntilDeparture,
+                tradeShip.GetData().ticksUntilCommsClosed,
+                Settings._minTicksUntilDepartureBeforeGraceTime,
+                Settings._departureGraceTimeTicks,
+                Constants.AdditionalTicksAfterDeparture
+            );
 
         if (tradeRequiresGraceTime)
         {
@@ -67,15 +71,33 @@ internal class QuestUtils
                 label: "[graceTimeLetterLabel]"
             );
 
-            if (!tradeShipWasAlreadyInGraceTime)
-            {
-                tradeShip.GetData().ticksUntilCommsClosed = originalTicksUntilDeparture;
-            }
-            tradeShip.ticksUntilDeparture +=
-                Settings._departureGraceTimeTicks + Constants.AdditionalTicksAfterDeparture;
+            tradeShip.GetData().ticksUntilCommsClosed = newTicksUntilCommsClosed;
+            tradeShip.ticksUntilDeparture = newTicksUntilDeparture;
         }
 
         return tradeShip.ticksUntilDeparture - Constants.AdditionalTicksAfterDeparture;
+    }
+
+    internal static (
+        int newTicksUntilDeparture,
+        int newTicksUntilCommsClosed,
+        bool requiresGrace
+    ) ComputeGraceTime(
+        int ticksUntilDeparture,
+        int ticksUntilCommsClosed,
+        int minTicks,
+        int graceTicks,
+        int additionalTicks
+    )
+    {
+        if (ticksUntilDeparture >= minTicks)
+        {
+            return (ticksUntilDeparture, ticksUntilCommsClosed, false);
+        }
+
+        var newTicksUntilCommsClosed =
+            ticksUntilCommsClosed == -1 ? ticksUntilDeparture : ticksUntilCommsClosed;
+        return (ticksUntilDeparture + graceTicks + additionalTicks, newTicksUntilCommsClosed, true);
     }
 
     public static void CancelTransportShip(Quest quest, TransportShip transportShip)

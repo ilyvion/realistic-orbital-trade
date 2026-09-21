@@ -11,7 +11,6 @@ internal sealed class TradeDealMassAndValueTests
 {
     private static ITrader? _previousTrader;
     private static TradeAgreement? _previousAgreement;
-    private static int _nextThingId = 900_000_000;
 
     [SetUp]
     public static void SetUp()
@@ -46,7 +45,7 @@ internal sealed class TradeDealMassAndValueTests
         return thing;
     }
 
-    private static Tradeable NewTradeable(
+    private static FakeTradeable NewTradeable(
         Transactor side,
         int countToTransfer,
         params Thing[] things
