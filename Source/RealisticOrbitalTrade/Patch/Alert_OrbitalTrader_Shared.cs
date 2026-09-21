@@ -12,31 +12,38 @@ internal static class Alert_OrbitalTrader_Shared
     {
         if (passingShip is TradeShip tradeShip)
         {
-            var ticksUntilCommsClosed = tradeShip.GetData().ticksUntilCommsClosed;
-            if (ticksUntilCommsClosed > 0)
-            {
-                _ = stringBuilder.Remove(
-                    stringBuilder.Length - Environment.NewLine.Length,
-                    Environment.NewLine.Length
-                );
-                _ = stringBuilder.AppendLine(
-                    " "
-                        + "RealisticOrbitalTrade.UntilCommsCloseForTrade".Translate(
-                            ticksUntilCommsClosed.ToStringTicksToPeriod()
-                        )
-                );
-            }
-            else if (ticksUntilCommsClosed == 0)
-            {
-                _ = stringBuilder.Remove(
-                    stringBuilder.Length - Environment.NewLine.Length,
-                    Environment.NewLine.Length
-                );
-                _ = stringBuilder.AppendLine(
-                    " " + "RealisticOrbitalTrade.CommsClosedForTrade".Translate()
-                );
-            }
+            AppendCommsClosedNote(stringBuilder, tradeShip.GetData().ticksUntilCommsClosed);
         }
+    }
+
+    /// <summary>
+    /// Replaces the trailing newline of <paramref name="stringBuilder"/> with the comms-closed
+    /// note; <c>-1</c> (no comms deadline) leaves it untouched.
+    /// </summary>
+    internal static void AppendCommsClosedNote(
+        StringBuilder stringBuilder,
+        int ticksUntilCommsClosed
+    )
+    {
+        string note;
+        if (ticksUntilCommsClosed > 0)
+        {
+            note = "RealisticOrbitalTrade.UntilCommsCloseForTrade".Translate(
+                ticksUntilCommsClosed.ToStringTicksToPeriod()
+            );
+        }
+        else if (ticksUntilCommsClosed == 0)
+        {
+            note = "RealisticOrbitalTrade.CommsClosedForTrade".Translate();
+        }
+        else
+        {
+            return;
+        }
+
+        var newLineLength = Math.Min(Environment.NewLine.Length, stringBuilder.Length);
+        _ = stringBuilder.Remove(stringBuilder.Length - newLineLength, newLineLength);
+        _ = stringBuilder.AppendLine(" " + note);
     }
 
     private static readonly FieldInfo _fieldTicksUntilDeparture = AccessTools.Field(
