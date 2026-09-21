@@ -20,7 +20,7 @@ internal class RealisticOrbitalTradeGameComponent : GameComponent
 
     public static RealisticOrbitalTradeGameComponent Current =>
         VerseCurrent.Game.GetComponent<RealisticOrbitalTradeGameComponent>();
-    private int _nextTradeID;
+    internal int _nextTradeID;
 
     private bool _wasLoaded;
 
@@ -64,16 +64,18 @@ internal class RealisticOrbitalTradeGameComponent : GameComponent
             );
         }
         var result = _nextTradeID;
-        _nextTradeID++;
-        if (_nextTradeID == int.MaxValue)
+        _nextTradeID = AdvanceTradeId(result);
+        if (_nextTradeID == 0 && result != -1)
         {
             RealisticOrbitalTradeMod.Instance.LogWarning(
                 "Next Trade ID is at max value. Resetting to 0. This may cause bugs."
             );
-            _nextTradeID = 0;
         }
         return result;
     }
+
+    /// <summary>The id handed out after <paramref name="id"/>; wraps to 0 before reaching <see cref="int.MaxValue"/>.</summary>
+    internal static int AdvanceTradeId(int id) => id + 1 == int.MaxValue ? 0 : id + 1;
 
     public TradeAgreement StartTradeAgreement(TradeShip tradeShip, Pawn negotiator)
     {

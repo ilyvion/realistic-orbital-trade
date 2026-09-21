@@ -273,12 +273,16 @@ internal class Settings : ModSettings
         bool blftActive
     ) => !multiItemShuttleLoading && blftActive;
 
-    public static int GenerateDeviatingMinimumTradeThreshold()
-    {
-        var baseline = _minimumTradeThreshold;
-        var deviation =
-            baseline * Rand.RangeInclusive(-_minimumTradeDeviation, _minimumTradeDeviation) / 100;
+    public static int GenerateDeviatingMinimumTradeThreshold() =>
+        ApplyDeviation(
+            _minimumTradeThreshold,
+            Rand.RangeInclusive(-_minimumTradeDeviation, _minimumTradeDeviation)
+        );
 
-        return Math.Max(0, baseline + deviation);
-    }
+    /// <summary>
+    /// Offsets <paramref name="baseline"/> by <paramref name="rollPercent"/> percent (integer
+    /// division), never going below zero.
+    /// </summary>
+    internal static int ApplyDeviation(int baseline, int rollPercent) =>
+        Math.Max(0, baseline + baseline * rollPercent / 100);
 }

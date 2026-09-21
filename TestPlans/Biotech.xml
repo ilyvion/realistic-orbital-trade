@@ -1,0 +1,18 @@
+<TestPlan>
+    <name>Biotech</name>
+    <jobs>
+        <li>
+            <name>Genebank haul source registration</name>
+            <commandLineArgs>--test --filter "class == GenepackContainerPatchTests"</commandLineArgs>
+            <loadWithMods>
+                <li>brrainz.harmony</li>
+                <li>ludeon.rimworld</li>
+                <li>ludeon.rimworld.royalty</li>
+                <li>ludeon.rimworld.biotech</li>
+                <li>ilyvion.laboratory</li>
+                <li>ilyvion.realisticorbitaltrade</li>
+            </loadWithMods>
+            <timeOut>300000</timeOut>
+        </li>
+    </jobs>
+</TestPlan>

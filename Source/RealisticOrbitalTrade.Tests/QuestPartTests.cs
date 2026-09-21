@@ -309,7 +309,7 @@ internal sealed class QuestPartTests
         scene.PlaceOnMap(steel, 400);
         yield return scene.SellAndWaitForLanding(steel, 400);
         yield return scene.WaitForPartialLoad();
-        var agreement = scene.TradeAgreement!;
+        var agreement = scene.TradeAgreement;
         scene.CancelTradeFromShuttle();
         yield return scene.WaitForQuestToEnd();
         yield return scene.WaitForShuttlesToLeave();

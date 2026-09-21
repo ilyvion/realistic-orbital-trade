@@ -60,12 +60,24 @@ internal class Dialog_PayBlacklistRemovalFee : Dialog_NodeTree
         );
         var priceGainNegotiator = _negotiator.GetStatValue(StatDefOf.TradePriceImprovement);
 
+        return ComputePartsCost(
+            totalCountMarketValue,
+            priceType.PriceMultiplier(),
+            Find.Storyteller.difficulty.tradePriceFactorLoss,
+            priceGainNegotiator
+        );
+    }
+
+    internal static float ComputePartsCost(
+        float totalCountMarketValue,
+        float priceMultiplier,
+        float tradePriceFactorLoss,
+        float priceImprovement
+    )
+    {
         var partsCost =
-            totalCountMarketValue
-            * 1.4f
-            * priceType.PriceMultiplier()
-            * (1f + Find.Storyteller.difficulty.tradePriceFactorLoss);
-        partsCost *= 1f - priceGainNegotiator;
+            totalCountMarketValue * 1.4f * priceMultiplier * (1f + tradePriceFactorLoss);
+        partsCost *= 1f - priceImprovement;
         partsCost = Mathf.Max(partsCost, 0.5f);
         if (partsCost > 99.5f)
         {

@@ -131,12 +131,13 @@ internal static class Rimworld_CompShuttle_CompInspectStringExtra_RemainingAmoun
         GenLabel.ThingLabel(
             item.ThingDef,
             null,
-            Mathf.Max(
-                0,
-                item.Count
-                    - __instance.Transporter.innerContainer.TotalStackCountOfDef(item.ThingDef)
+            RemainingCount(
+                item.Count,
+                __instance.Transporter.innerContainer.TotalStackCountOfDef(item.ThingDef)
             )
         );
+
+    internal static int RemainingCount(int required, int loaded) => Mathf.Max(0, required - loaded);
 
     private static readonly MethodInfo _methodThingDefCountLabelGetter = AccessTools.PropertyGetter(
         typeof(ThingDefCount),

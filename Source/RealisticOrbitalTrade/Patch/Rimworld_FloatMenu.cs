@@ -76,7 +76,7 @@ internal static class Rimworld_Pawn_JobTracker_TryTakeOrderedJob
         return false;
     }
 
-    private static Thing? FindBlockedTarget(Pawn pawn, Job job)
+    internal static Thing? FindBlockedTarget(Pawn pawn, Job job)
     {
         var tradeAgreements = RealisticOrbitalTradeGameComponent.Current?.ActiveTradeAgreements;
         foreach (var index in TargetIndicesToCheck)
