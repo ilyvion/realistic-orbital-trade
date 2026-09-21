@@ -1035,6 +1035,31 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         reservedTraderThings.Where(t => t.thing is { Spawned: true }).Select(t => t.thing);
 
     /// <summary>
+    /// Releases reservations on the things <paramref name="matches"/> selects until no more than
+    /// <paramref name="stillNeeded"/> units remain reserved across them.
+    /// </summary>
+    private void ReleaseReservationsBeyond(Func<Thing, bool> matches, int stillNeeded)
+    {
+        var excess =
+            reservedTraderThings.Where(t => matches(t.thing)).Sum(t => t.Count) - stillNeeded;
+        foreach (var entry in reservedTraderThings.Where(t => matches(t.thing)).ToList())
+        {
+            if (excess <= 0)
+            {
+                break;
+            }
+
+            var release = Math.Min(entry.Count, excess);
+            entry.Count -= release;
+            excess -= release;
+            if (entry.Count <= 0)
+            {
+                _ = reservedTraderThings.Remove(entry);
+            }
+        }
+    }
+
+    /// <summary>
     /// Releases whatever's left reserved across <paramref name="transferable"/>'s stacks beyond
     /// <paramref name="stillNeeded"/> - the amount hauling jobs (this pawn's included) haven't
     /// already claimed and still intend to come back for. The hauling algorithms treat same-def
@@ -1876,6 +1901,13 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                                     IsThisTradeable
                                 );
                             }
+
+                            // Hauling treats same-def stacks as fungible, so the reservations left
+                            // may sit on different stacks than the ones just taken off the sale.
+                            ReleaseReservationsBeyond(
+                                t => IsThisTradeable(t),
+                                Math.Max(0, countRequiredLoaded - countActuallyLoaded)
+                            );
                         }
                     }
                     break;

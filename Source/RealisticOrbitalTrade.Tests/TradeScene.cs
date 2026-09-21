@@ -18,6 +18,7 @@ internal sealed class TradeScene : IDisposable
     private readonly CompProperties_Transporter shuttleTransporter =
         TransportShipDefOf.Ship_Shuttle.shipThing.GetCompProperties<CompProperties_Transporter>();
     private readonly float previousShuttleCapacity;
+    private readonly TimeSpeed previousTimeSpeed = Find.TickManager.CurTimeSpeed;
     private readonly List<Thing> spawned = [];
     private readonly List<IntVec3> homeCellsAdded = [];
     private readonly HashSet<TransportShip> shipsBefore =
@@ -53,6 +54,9 @@ internal sealed class TradeScene : IDisposable
             "An earlier test leaked trade shuttles onto the map"
         );
         previousShuttleCapacity = shuttleTransporter.massCapacity;
+
+        // Only the test advances time, so the game's own ticking can't land between two of its ticks.
+        Find.TickManager.CurTimeSpeed = TimeSpeed.Paused;
         (settings ?? SettingsSnapshot.Defaults).Apply();
 
         var center = map.Center;
@@ -475,6 +479,7 @@ internal sealed class TradeScene : IDisposable
     {
         previousSettings.Apply();
         shuttleTransporter.massCapacity = previousShuttleCapacity;
+        Find.TickManager.CurTimeSpeed = previousTimeSpeed;
         TradeShipData.tradeAgreementForQuest = null;
         Utils.EndRenegotiation();
         if (FindDepartureExplanation() is { } explanation)
