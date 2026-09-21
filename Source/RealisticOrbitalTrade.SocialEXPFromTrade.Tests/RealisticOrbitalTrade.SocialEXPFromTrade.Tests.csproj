@@ -53,6 +53,10 @@
             <CopyLocal>False</CopyLocal>
             <Private>false</Private>
         </ProjectReference>
+        <Compile
+            Include="..\RealisticOrbitalTrade.Tests\ScribeRoundTrip.cs"
+            Link="ScribeRoundTrip.cs"
+        />
     </ItemGroup>
     <ItemGroup Condition="'$(RimWorldVersion)' != '1.6'">
         <Compile Remove="**/*.cs" />

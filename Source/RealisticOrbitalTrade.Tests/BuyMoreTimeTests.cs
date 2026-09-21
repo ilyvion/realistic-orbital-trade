@@ -7,32 +7,6 @@ namespace RealisticOrbitalTrade.Tests;
 [TestFixture(TestType.MainMenu)]
 internal sealed class BuyMoreTimeTests
 {
-    private sealed class NonClosingStream(Stream inner) : Stream
-    {
-        public override bool CanRead => inner.CanRead;
-        public override bool CanSeek => inner.CanSeek;
-        public override bool CanWrite => inner.CanWrite;
-        public override long Length => inner.Length;
-
-        public override long Position
-        {
-            get => inner.Position;
-            set => inner.Position = value;
-        }
-
-        public override void Flush() => inner.Flush();
-
-        public override int Read(byte[] buffer, int offset, int count) =>
-            inner.Read(buffer, offset, count);
-
-        public override long Seek(long offset, SeekOrigin origin) => inner.Seek(offset, origin);
-
-        public override void SetLength(long value) => inner.SetLength(value);
-
-        public override void Write(byte[] buffer, int offset, int count) =>
-            inner.Write(buffer, offset, count);
-    }
-
     private sealed class CompTradeShuttleHarness : IExposable
     {
         public readonly CompTradeShuttle Comp = new();
@@ -40,56 +14,14 @@ internal sealed class BuyMoreTimeTests
         public void ExposeData() => Comp.PostExposeData();
     }
 
-    private static void RoundTrip<T>(T saveTarget, T loadTarget)
-        where T : IExposable
-    {
-        using var memory = new MemoryStream();
-        using (var nonClosing = new NonClosingStream(memory))
-        {
-            CustomStreamScribeSaver.InitSaving(nonClosing, "root");
-            try
-            {
-                saveTarget.ExposeData();
-                Scribe.saver.FinalizeSaving();
-            }
-            finally
-            {
-                if (Scribe.mode != LoadSaveMode.Inactive)
-                {
-                    Scribe.ForceStop();
-                }
-            }
-        }
-
-        memory.Position = 0;
-        using (var reader = new StreamReader(memory))
-        {
-            CustomStreamReaderScribeLoader.InitLoading(reader);
-        }
-        try
-        {
-            Scribe.loader.curParent = loadTarget;
-            loadTarget.ExposeData();
-            Scribe.loader.FinalizeLoading();
-        }
-        finally
-        {
-            if (Scribe.mode != LoadSaveMode.Inactive)
-            {
-                Scribe.ForceStop();
-            }
-        }
-    }
-
     [Test]
-    [WarningsAllowed("Not all loadIDs which were read were consumed")]
     public static void TimesBoughtMoreTimeSurvivesSaveLoad()
     {
         var saveHarness = new CompTradeShuttleHarness();
         saveHarness.Comp.timesBoughtMoreTime = 3;
         var loadHarness = new CompTradeShuttleHarness();
 
-        RoundTrip(saveHarness, loadHarness);
+        ScribeRoundTrip.Run(saveHarness, loadHarness);
 
         Expect.AreEqual(3, loadHarness.Comp.timesBoughtMoreTime);
     }
