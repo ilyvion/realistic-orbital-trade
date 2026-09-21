@@ -518,11 +518,9 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
     // cargo is fully rebuilt from what remains of thingsSoldToTrader. The player is told to
     // renegotiate, since the deal itself (e.g. silver owed) may still need rebalancing even though
     // the shuttle can now depart without the impossible-to-fulfill requirement.
-    private void PruneDestroyedSoldItems()
+    internal void PruneDestroyedSoldItems()
     {
-        var lostAnything = thingsSoldToTrader.RemoveAll(t => t.thing == null) > 0;
-        lostAnything |= pawnsSoldToTrader.RemoveAll(p => p == null) > 0;
-        _ = reservedTraderThings.RemoveAll(t => t.thing == null);
+        var lostAnything = RemoveUnresolvedSoldEntries();
 
         if (toTraderTransportShip is { } transportShip)
         {
@@ -551,6 +549,18 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         );
         RenegotiationRequired = true;
         SendSoldItemsLostOnLoadLetter();
+    }
+
+    /// <summary>
+    /// Drops sold things, sold pawns and reservations whose reference no longer resolves. Returns
+    /// whether a sold thing or pawn was among them.
+    /// </summary>
+    internal bool RemoveUnresolvedSoldEntries()
+    {
+        var lostAnything = thingsSoldToTrader.RemoveAll(t => t.thing == null) > 0;
+        lostAnything |= pawnsSoldToTrader.RemoveAll(p => p == null) > 0;
+        _ = reservedTraderThings.RemoveAll(t => t.thing == null);
+        return lostAnything;
     }
 
     public static void Notify_ThingDestroyed(Thing thing)
@@ -600,7 +610,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         }
     }
 
-    private void Notify_OwnThingMerged(Thing absorbedThing, Thing survivingThing)
+    internal void Notify_OwnThingMerged(Thing absorbedThing, Thing survivingThing)
     {
         foreach (var thingCount in thingsSoldToTrader.Where(t => t.thing == absorbedThing))
         {
@@ -632,7 +642,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         }
     }
 
-    private void Notify_OwnThingDestroyed(Thing thing)
+    internal void Notify_OwnThingDestroyed(Thing thing)
     {
         if (toTraderTransportShip == null)
         {
@@ -833,31 +843,58 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
     /// the least of it loaded already so loaded cargo is disturbed last. Returns whether any
     /// shuttle had a matching entry.
     /// </summary>
-    private bool ReduceRequiredCargo(Thing thing, ref int leftToTakeOff)
+    internal bool ReduceRequiredCargo(Thing thing, ref int leftToTakeOff)
     {
+        var ships = ToTraderTransportShips.OrderBy(ship => LoadedCountOf(ship, thing)).ToList();
+        if (!thing.HasRequirements())
+        {
+            return ReduceRequiredItemsAcross(
+                ships.Select(ship => ship.ShuttleComp.requiredItems),
+                thing.def,
+                ref leftToTakeOff
+            );
+        }
+
         var reduced = false;
-        foreach (var ship in ToTraderTransportShips.OrderBy(ship => LoadedCountOf(ship, thing)))
+        foreach (var ship in ships)
         {
             if (leftToTakeOff <= 0)
             {
                 break;
             }
-            reduced |= thing.HasRequirements()
-                ? ThingDefCountWithRequirements.TryReduceRequiredCount(
-                    ship.shipThing.TryGetComp<CompTradeShuttle>().requiredSpecificItems,
-                    thing,
-                    ref leftToTakeOff
-                )
-                : Utils.TryReduceRequiredItemsCount(
-                    ship.ShuttleComp.requiredItems,
-                    thing.def,
-                    ref leftToTakeOff
-                );
+            reduced |= ThingDefCountWithRequirements.TryReduceRequiredCount(
+                ship.shipThing.TryGetComp<CompTradeShuttle>().requiredSpecificItems,
+                thing,
+                ref leftToTakeOff
+            );
         }
         return reduced;
     }
 
-    private static int LoadedCountOf(TransportShip ship, Thing thing)
+    /// <summary>
+    /// Takes up to <paramref name="leftToTakeOff"/> units of <paramref name="def"/> off each
+    /// shuttle's required items in turn, moving on once one is exhausted. Returns whether any
+    /// shuttle had a matching entry.
+    /// </summary>
+    internal static bool ReduceRequiredItemsAcross(
+        IEnumerable<List<ThingDefCount>> shuttleRequiredItems,
+        ThingDef def,
+        ref int leftToTakeOff
+    )
+    {
+        var reduced = false;
+        foreach (var requiredItems in shuttleRequiredItems)
+        {
+            if (leftToTakeOff <= 0)
+            {
+                break;
+            }
+            reduced |= Utils.TryReduceRequiredItemsCount(requiredItems, def, ref leftToTakeOff);
+        }
+        return reduced;
+    }
+
+    internal static int LoadedCountOf(TransportShip ship, Thing thing)
     {
         var def = thing.GetInnerIfMinified().def;
         var count = 0;
@@ -1090,27 +1127,57 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
     /// <see cref="pawnsSoldToTrader"/> for a sold pawn.
     /// <see langword="null"/> if something sold can't fit on a shuttle at all.
     /// </summary>
-    internal List<List<(int lineId, int count)>>? PlanShuttleLoads(float capacity)
+    internal List<List<(int lineId, int count)>>? PlanShuttleLoads(float capacity) =>
+        ShuttleLoadPlanner.Plan(
+            capacity,
+            0f,
+            BuildLines(
+                [
+                    .. thingsSoldToTrader.Select(t =>
+                        (
+                            unitMass: IsSoldThingLost(t)
+                                ? 0f
+                                : t.thing.GetStatValue(StatDefOf.Mass),
+                            count: t.Count,
+                            lost: IsSoldThingLost(t)
+                        )
+                    ),
+                ],
+                [
+                    .. pawnsSoldToTrader.Select(p =>
+                        (mass: IsSoldPawnLost(p) ? 0f : PawnCargoMass(p), lost: IsSoldPawnLost(p))
+                    ),
+                ]
+            )
+        );
+
+    /// <summary>
+    /// The planner's lines for what's sold: each surviving thing under its index, each surviving
+    /// pawn under <see cref="PawnLineIdBase"/> plus its index.
+    /// </summary>
+    internal static List<ShuttleLoadPlanner.Line> BuildLines(
+        IReadOnlyList<(float unitMass, int count, bool lost)> things,
+        IReadOnlyList<(float mass, bool lost)> pawns
+    )
     {
         List<ShuttleLoadPlanner.Line> lines = [];
-        for (var i = 0; i < thingsSoldToTrader.Count; i++)
+        for (var i = 0; i < things.Count; i++)
         {
-            var soldThing = thingsSoldToTrader[i];
-            if (!IsSoldThingLost(soldThing))
+            if (!things[i].lost)
             {
-                lines.Add(new(i, soldThing.thing.GetStatValue(StatDefOf.Mass), soldThing.Count));
+                lines.Add(new(i, things[i].unitMass, things[i].count));
             }
         }
 
-        for (var i = 0; i < pawnsSoldToTrader.Count; i++)
+        for (var i = 0; i < pawns.Count; i++)
         {
-            if (!IsSoldPawnLost(pawnsSoldToTrader[i]))
+            if (!pawns[i].lost)
             {
-                lines.Add(new(PawnLineIdBase + i, PawnCargoMass(pawnsSoldToTrader[i]), 1));
+                lines.Add(new(PawnLineIdBase + i, pawns[i].mass, 1));
             }
         }
 
-        return ShuttleLoadPlanner.Plan(capacity, 0f, lines);
+        return lines;
     }
 
     /// <summary>
@@ -1178,32 +1245,55 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
     private void AddRequiredCargoToShuttles(ThingCountClass thingCount)
     {
         var ships = ToTraderTransportShips.ToList();
-        var unitMass = thingCount.thing.GetStatValue(StatDefOf.Mass);
-        var remaining = thingCount.Count;
-        for (var i = 0; i < ships.Count && remaining > 0; i++)
+        var shares = DistributeByFreeMass(
+            [.. ships.Select(FreeMass)],
+            thingCount.thing.GetStatValue(StatDefOf.Mass),
+            thingCount.Count
+        );
+        for (var i = 0; i < ships.Count; i++)
         {
-            var take =
-                i == ships.Count - 1 || unitMass <= 0f
-                    ? remaining
-                    : Math.Min(
-                        remaining,
-                        (int)Math.Floor(Math.Max(0f, FreeMass(ships[i])) / unitMass)
-                    );
-            if (take <= 0)
+            if (shares[i] <= 0)
             {
                 continue;
             }
 
             Utils.AddThingToLoadToShuttle(
-                new ThingCountClass(thingCount.thing, take),
+                new ThingCountClass(thingCount.thing, shares[i]),
                 ships[i].shipThing.TryGetComp<CompTradeShuttle>(),
                 ships[i].ShuttleComp
             );
-            remaining -= take;
         }
     }
 
-    private float FreeMass(TransportShip ship)
+    /// <summary>
+    /// Splits <paramref name="count"/> units of <paramref name="unitMass"/> kg across shuttles with
+    /// the given free mass: each takes what fits, and the last takes everything left. A
+    /// weightless unit all goes on the first shuttle.
+    /// </summary>
+    internal static List<int> DistributeByFreeMass(
+        IReadOnlyList<float> freeMass,
+        float unitMass,
+        int count
+    )
+    {
+        List<int> shares = [.. freeMass.Select(_ => 0)];
+        var remaining = count;
+        for (var i = 0; i < freeMass.Count && remaining > 0; i++)
+        {
+            var take =
+                i == freeMass.Count - 1 || unitMass <= 0f
+                    ? remaining
+                    : Math.Min(
+                        remaining,
+                        (int)Math.Floor((Math.Max(0f, freeMass[i]) + 0.0001f) / unitMass)
+                    );
+            shares[i] = take;
+            remaining -= take;
+        }
+        return shares;
+    }
+
+    internal float FreeMass(TransportShip ship)
     {
         var compTradeShuttle = ship.shipThing.TryGetComp<CompTradeShuttle>();
         var required =
@@ -1815,31 +1905,52 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
     // that isn't already part of this deal, stack by stack.
     private void SellUnsoldStock(Tradeable tradeable, int amount, Action<Thing, int> sell)
     {
+        var (allocation, shortfall) = AllocateUnsoldStock(
+            tradeable.thingsColony.Select(thing => (thing, UnsoldCount(thing))),
+            amount
+        );
+        foreach (var (thing, count) in allocation)
+        {
+            sell(thing, count);
+        }
+
+        if (shortfall > 0)
+        {
+            RealisticOrbitalTradeMod.Instance.LogError(
+                $"Needed to sell {amount} {tradeable.LabelCap} in the renegotiation, but only {amount - shortfall} was available."
+            );
+        }
+    }
+
+    /// <summary>
+    /// Takes <paramref name="amount"/> from the stacks' unsold counts, stack by stack, and reports
+    /// how much of it no stack could supply.
+    /// </summary>
+    internal static (List<(Thing thing, int count)> allocation, int shortfall) AllocateUnsoldStock(
+        IEnumerable<(Thing thing, int unsold)> stock,
+        int amount
+    )
+    {
+        List<(Thing thing, int count)> allocation = [];
         var left = amount;
-        foreach (var thing in tradeable.thingsColony)
+        foreach (var (thing, unsold) in stock)
         {
             if (left <= 0)
             {
                 break;
             }
 
-            var count = Math.Min(left, UnsoldCount(thing));
+            var count = Math.Min(left, unsold);
             if (count > 0)
             {
-                sell(thing, count);
+                allocation.Add((thing, count));
                 left -= count;
             }
         }
-
-        if (left > 0)
-        {
-            RealisticOrbitalTradeMod.Instance.LogError(
-                $"Needed to sell {amount} {tradeable.LabelCap} in the renegotiation, but only {amount - left} was available."
-            );
-        }
+        return (allocation, left);
     }
 
-    private int UnsoldCount(Thing thing) =>
+    internal int UnsoldCount(Thing thing) =>
         thing is Pawn pawn
             ? (pawnsSoldToTrader.Contains(pawn) ? 0 : 1)
             : Math.Max(

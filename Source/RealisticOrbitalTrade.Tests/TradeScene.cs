@@ -19,6 +19,10 @@ internal sealed class TradeScene : IDisposable
     private readonly float previousShuttleCapacity;
     private readonly List<Thing> spawned = [];
     private readonly List<IntVec3> homeCellsAdded = [];
+    private readonly HashSet<TransportShip> shipsBefore =
+    [
+        .. Find.TransportShipManager.AllTransportShips,
+    ];
     private readonly HashSet<Letter> lettersBefore = [.. Find.LetterStack.LettersListForReading];
     private int ticked;
 
@@ -39,6 +43,14 @@ internal sealed class TradeScene : IDisposable
     {
         Map = map;
         Expect.IsNull(FindTradeQuest(), "An earlier test leaked a trade quest");
+        Expect.IsEmpty(
+            map.listerThings.AllThings.Where(t => t.def.category == ThingCategory.Item),
+            "An earlier test leaked items onto the map"
+        );
+        Expect.IsEmpty(
+            map.listerThings.AllThings.Where(t => t.TryGetComp<CompTradeShuttle>() != null),
+            "An earlier test leaked trade shuttles onto the map"
+        );
         previousShuttleCapacity = shuttleTransporter.massCapacity;
         (settings ?? SettingsSnapshot.Defaults).Apply();
 
@@ -88,6 +100,15 @@ internal sealed class TradeScene : IDisposable
             StatDefOf.TradePriceImprovement.Worker.IsDisabledFor(pawn)
             || pawn.WorkTypeIsDisabled(WorkTypeDefOf.Hauling)
         );
+        return pawn;
+    }
+
+    // Puts an extra colonist on the map, cleaned up with the rest of the scene.
+    internal Pawn SpawnPawn()
+    {
+        var pawn = GenerateCapableColonist();
+        _ = GenSpawn.Spawn(pawn, Map.Center + new IntVec3(3, 0, 3), Map);
+        spawned.Add(pawn);
         return pawn;
     }
 
@@ -414,6 +435,28 @@ internal sealed class TradeScene : IDisposable
         return silverToReceive;
     }
 
+    // The alerts readout only drops a quest part's alert while it can still find the quest in the
+    // quest manager, so removing the quest first would leave the alert on screen for good.
+    private static void RemoveQuestAlerts(Quest quest)
+    {
+        if (
+            Find.UIRoot is not UIRoot_Play root
+            || AccessTools.Field(typeof(AlertsReadout), "activeAlerts").GetValue(root.alerts)
+                is not List<Alert> activeAlerts
+        )
+        {
+            return;
+        }
+
+        foreach (var part in quest.PartsListForReading.OfType<QuestPartActivable>())
+        {
+            if (part.CachedAlert is { } alert)
+            {
+                _ = activeAlerts.Remove(alert);
+            }
+        }
+    }
+
     public void Dispose()
     {
         previousSettings.Apply();
@@ -439,6 +482,7 @@ internal sealed class TradeScene : IDisposable
             {
                 quest.End(QuestEndOutcome.Unknown, sendLetter: false);
             }
+            RemoveQuestAlerts(quest);
             Find.QuestManager.Remove(quest);
         }
         foreach (var letter in Find.LetterStack.LettersListForReading.ToList())
@@ -448,20 +492,26 @@ internal sealed class TradeScene : IDisposable
                 Find.LetterStack.RemoveLetter(letter);
             }
         }
+        // Nothing destroyed from here on is a loss to a trade that no longer exists.
+        if (TradeAgreement != null)
+        {
+            TradeAgreement.toTraderTransportShip = null;
+            TradeAgreement.additionalToTraderTransportShips.Clear();
+        }
+        foreach (
+            var ship in Find
+                .TransportShipManager.AllTransportShips.Where(ship => !shipsBefore.Contains(ship))
+                .ToList()
+        )
+        {
+            if (!ship.Disposed)
+            {
+                ship.Dispose();
+            }
+        }
         foreach (var cell in homeCellsAdded)
         {
             Map.areaManager.Home[cell] = false;
-        }
-        var shuttleDef = TransportShipDefOf.Ship_Shuttle.shipThing;
-        foreach (var thing in Map.listerThings.AllThings.ToList())
-        {
-            if (
-                !thing.Destroyed
-                && (thing.def.category == ThingCategory.Item || thing.def == shuttleDef)
-            )
-            {
-                thing.Destroy();
-            }
         }
         foreach (var thing in spawned)
         {
@@ -470,6 +520,44 @@ internal sealed class TradeScene : IDisposable
                 thing.Destroy();
             }
         }
+        // Destroying a shuttle or a pawn drops whatever it holds onto the map, so sweep until
+        // nothing is left.
+        var shuttleDef = TransportShipDefOf.Ship_Shuttle.shipThing;
+        for (var pass = 0; pass < 5; pass++)
+        {
+            var leftovers = Map
+                .listerThings.AllThings.Where(thing =>
+                    !thing.Destroyed
+                    && (
+                        thing.def.category == ThingCategory.Item
+                        || thing.def == shuttleDef
+                        || thing.TryGetComp<CompTradeShuttle>() != null
+                    )
+                )
+                .ToList();
+            if (leftovers.Count == 0)
+            {
+                break;
+            }
+            foreach (var thing in leftovers)
+            {
+                if (!thing.Destroyed)
+                {
+                    thing.Destroy();
+                }
+            }
+        }
+        Expect.IsFalse(
+            Map.listerThings.AllThings.Any(thing =>
+                !thing.Destroyed
+                && (
+                    thing.def.category == ThingCategory.Item
+                    || thing.def == shuttleDef
+                    || thing.TryGetComp<CompTradeShuttle>() != null
+                )
+            ),
+            "Could not clean leftover items from the map"
+        );
     }
 
     // What a sale started with, and what it was agreed to be worth.
