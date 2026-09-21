@@ -289,31 +289,46 @@ internal class CompTradeShuttle : ThingComp
     private void CalculateRemainingRequiredItems()
     {
         tmpRequiredSpecificItems.Clear();
-        tmpRequiredSpecificItems.AddRange(requiredSpecificItems);
+        tmpRequiredSpecificItems.AddRange(
+            ComputeRemaining(requiredSpecificItems, Transporter.innerContainer)
+        );
+    }
 
-        var innerContainer = Transporter.innerContainer;
-        foreach (var storedItem in innerContainer)
+    /// <summary>
+    /// Each entry of <paramref name="required"/> reduced by what <paramref name="loaded"/> covers
+    /// (pawns ignored); a loaded stack's leftover carries on to later matching entries. Entries
+    /// keep their position and may end at a count of 0.
+    /// </summary>
+    internal static List<ThingDefCountWithRequirements> ComputeRemaining(
+        IReadOnlyList<ThingDefCountWithRequirements> required,
+        IEnumerable<Thing> loaded
+    )
+    {
+        var remaining = new List<ThingDefCountWithRequirements>(required);
+        foreach (var storedItem in loaded)
         {
             if (storedItem is Pawn)
             {
                 continue;
             }
             var stackCount = storedItem.stackCount;
-            for (var i = 0; i < tmpRequiredSpecificItems.Count; i++)
+            for (var i = 0; i < remaining.Count; i++)
             {
-                var requiredSpecificItem = tmpRequiredSpecificItems[i];
+                var requiredSpecificItem = remaining[i];
                 if (requiredSpecificItem.Matches(storedItem))
                 {
                     var additionalItemsNeeded = Mathf.Min(requiredSpecificItem.count, stackCount);
                     if (additionalItemsNeeded > 0)
                     {
-                        tmpRequiredSpecificItems[i] = tmpRequiredSpecificItems[i]
-                            .WithCount(tmpRequiredSpecificItems[i].count - additionalItemsNeeded);
+                        remaining[i] = requiredSpecificItem.WithCount(
+                            requiredSpecificItem.count - additionalItemsNeeded
+                        );
                         stackCount -= additionalItemsNeeded;
                     }
                 }
             }
         }
+        return remaining;
     }
 
     public override void PostExposeData()
