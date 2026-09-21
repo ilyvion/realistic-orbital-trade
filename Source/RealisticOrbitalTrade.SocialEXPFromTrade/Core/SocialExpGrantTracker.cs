@@ -22,6 +22,18 @@ internal static class SocialExpGrantTracker
     /// </summary>
     internal static void Reset() => _pending.Clear();
 
+    internal static int PendingCount => _pending.Count;
+
+    internal static bool TryGetPending(
+        TradeAgreement tradeAgreement,
+        out PendingSocialExpGain pending
+    ) => _pending.TryGetValue(tradeAgreement, out pending);
+
+    /// <summary>
+    /// Replaces the actual experience grant; set by tests so no live pawn is needed.
+    /// </summary>
+    internal static Action<Pawn, PendingSocialExpGain>? GrantOverride;
+
     internal static void Defer(
         TradeAgreement tradeAgreement,
         float buyValue,
@@ -44,7 +56,7 @@ internal static class SocialExpGrantTracker
             return;
         }
 
-        Grant(tradeAgreement.negotiator, pending);
+        (GrantOverride ?? Grant)(tradeAgreement.negotiator, pending);
     }
 
     private static void Grant(Pawn negotiator, PendingSocialExpGain pending)

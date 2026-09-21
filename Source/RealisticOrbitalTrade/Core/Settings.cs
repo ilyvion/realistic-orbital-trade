@@ -284,5 +284,5 @@ internal class Settings : ModSettings
     /// division), never going below zero.
     /// </summary>
     internal static int ApplyDeviation(int baseline, int rollPercent) =>
-        Math.Max(0, baseline + baseline * rollPercent / 100);
+        Math.Max(0, baseline + (baseline * rollPercent / 100));
 }

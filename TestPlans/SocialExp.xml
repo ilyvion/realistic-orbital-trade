@@ -1,0 +1,18 @@
+<TestPlan>
+    <name>SocialExp</name>
+    <jobs>
+        <li>
+            <name>Social Experience from Trade integration</name>
+            <commandLineArgs>--test --filter "class == SocialExpGrantTrackerTests"</commandLineArgs>
+            <loadWithMods>
+                <li>brrainz.harmony</li>
+                <li>ludeon.rimworld</li>
+                <li>ludeon.rimworld.royalty</li>
+                <li>ilyvion.laboratory</li>
+                <li>krelinos.socialexpfromtrade</li>
+                <li>ilyvion.realisticorbitaltrade</li>
+            </loadWithMods>
+            <timeOut>600000</timeOut>
+        </li>
+    </jobs>
+</TestPlan>

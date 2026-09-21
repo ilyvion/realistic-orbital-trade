@@ -1,5 +1,4 @@
 using DevTools.Testing;
-using Verse.AI;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -9,12 +8,13 @@ internal sealed class HaulJobEndingEndToEndTests
 {
     private const int SteelToSell = 400;
 
-    private static Thing? HauledThing(Pawn pawn) =>
-        pawn.carryTracker.CarriedThing
-        ?? pawn.CurJob.targetA.Thing
-        ?? (
-            pawn.jobs.curDriver as JobDriver_HaulMultipleToTransporter
-        )?.CarriedThings.FirstOrDefault();
+    private static Thing? HauledThing(Pawn pawn)
+    {
+        var carried = (pawn.jobs.curDriver as JobDriver_HaulMultipleToTransporter)?.CarriedThings;
+        return pawn.carryTracker.CarriedThing
+            ?? pawn.CurJob.targetA.Thing
+            ?? (carried is { Count: > 0 } ? carried[0] : null);
+    }
 
     [Test]
     public static IEnumerator OnlyTheHaulerOfTheMatchingThingHasItsJobEnded()
@@ -40,7 +40,10 @@ internal sealed class HaulJobEndingEndToEndTests
         {
             yield break;
         }
-        bool Matches(Thing t) => t == target;
+        bool Matches(Thing t)
+        {
+            return t == target;
+        }
         var expectedEnded = haulers.Where(p => Utils.IsHauling(p, Matches)).ToList();
         var expectedKept = haulers.Except(expectedEnded).ToList();
         Expect.IsTrue(

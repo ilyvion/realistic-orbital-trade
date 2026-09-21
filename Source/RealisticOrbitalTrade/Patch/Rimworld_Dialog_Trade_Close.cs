@@ -54,12 +54,9 @@ internal static class Rimworld_Dialog_Trade_Close
         return false;
     }
 
-    private static void Postfix()
-    {
-        // Harmony runs Postfix even when Prefix returned false and skipped the original method;
-        // ApplyClose ignores BlockAndConfirm, which is the case where the close never happened.
-        ApplyClose(CurrentAction());
-    }
+    // Harmony runs Postfix even when Prefix returned false and skipped the original method;
+    // ApplyClose ignores BlockAndConfirm, which is the case where the close never happened.
+    private static void Postfix() => ApplyClose(CurrentAction());
 
     // Applies the trade-state consequences of a trade window having closed.
     internal static void ApplyClose(CloseAction action)
@@ -95,6 +92,8 @@ internal static class Rimworld_Dialog_Trade_Close
                 return;
             case CloseAction.EndAgreement:
                 TradeShipData.EndTradeAgreementIfExists();
+                return;
+            default:
                 return;
         }
     }

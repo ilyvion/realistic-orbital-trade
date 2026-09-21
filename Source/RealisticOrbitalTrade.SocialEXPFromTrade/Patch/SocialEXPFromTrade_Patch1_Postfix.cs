@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using SocialEXPFromTrade;
 
 namespace RealisticOrbitalTrade.SocialEXPFromTrade.Patch;
@@ -32,7 +33,7 @@ internal static class SocialEXPFromTrade_Patch1_Postfix
         // Not a ROT-managed trade (e.g. ordinary caravan trading), the trade failed outright, or
         // Social Experience from Trade itself determined nothing should be granted (state[3]:
         // trading with favor currency) - let it run its own postfix unmodified in every case.
-        if (tradeAgreement == null || !result || (bool)state[3])
+        if (!ShouldDefer(tradeAgreement, result, (bool)state[3]))
         {
             return true;
         }
@@ -45,4 +46,10 @@ internal static class SocialEXPFromTrade_Patch1_Postfix
         );
         return false;
     }
+
+    internal static bool ShouldDefer(
+        [NotNullWhen(true)] TradeAgreement? tradeAgreement,
+        bool result,
+        bool favorCurrency
+    ) => tradeAgreement != null && result && !favorCurrency;
 }

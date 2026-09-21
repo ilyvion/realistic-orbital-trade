@@ -165,6 +165,8 @@ internal static class Rimworld_TradeShip_TryOpenComms
             )
         )
         {
+            case CommsOutcome.StartAgreement:
+                break;
             case CommsOutcome.NotAnsweringForGraceTime:
                 Messages.Message(
                     "RealisticOrbitalTrade.NotAnsweringForGraceTime".Translate(
@@ -213,6 +215,8 @@ internal static class Rimworld_TradeShip_TryOpenComms
                     historical: false
                 );
                 return false;
+            default:
+                break;
         }
 
         tradeShipExtra.activeTradeAgreement = TradeShipData.tradeAgreementForQuest =

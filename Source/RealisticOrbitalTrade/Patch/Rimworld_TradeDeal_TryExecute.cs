@@ -221,6 +221,9 @@ internal static class Rimworld_TradeDeal_TryExecute
                     )
                 );
                 break;
+
+            default:
+                break;
         }
 
         if (rejection != AcceptRejection.None)
@@ -246,8 +249,10 @@ internal static class Rimworld_TradeDeal_TryExecute
 
         return true;
 
-        static void Reject(TaggedString message) =>
+        static void Reject(TaggedString message)
+        {
             Messages.Message(message, MessageTypeDefOf.RejectInput, historical: false);
+        }
     }
 
     internal enum AcceptRejection
@@ -281,42 +286,22 @@ internal static class Rimworld_TradeDeal_TryExecute
         bool isFullCancellation
     )
     {
-        if (useMinimumTradeThreshold && combinedTradeValue < minimumTradeThreshold)
-        {
-            return AcceptRejection.BelowThreshold;
-        }
+        var belowThreshold = useMinimumTradeThreshold && combinedTradeValue < minimumTradeThreshold;
+        var overOutgoing = Rimworld_Dialog_Trade_DoWindowContents.IsOutgoingCargoOverCapacity(
+            outgoingPlan,
+            shuttleLimit
+        );
+        var overIncoming = incomingMass > massCapacity;
+        var cantChangeLoadedGoods = renegotiatingBecauseDeparting && increasesLoadedGoods;
 
-        if (
-            Rimworld_Dialog_Trade_DoWindowContents.IsOutgoingCargoOverCapacity(
-                outgoingPlan,
-                shuttleLimit
-            )
-        )
-        {
-            return AcceptRejection.OverOutgoingCapacity;
-        }
-
-        if (incomingMass > massCapacity)
-        {
-            return AcceptRejection.OverIncomingCapacity;
-        }
-
-        if (!isRenegotiation)
-        {
-            return AcceptRejection.None;
-        }
-
-        if (!canAfford)
-        {
-            return AcceptRejection.CannotAfford;
-        }
-
-        if (renegotiatingBecauseDeparting && increasesLoadedGoods)
-        {
-            return AcceptRejection.CantChangeLoadedGoods;
-        }
-
-        return isFullCancellation ? AcceptRejection.FullCancellation : AcceptRejection.None;
+        return belowThreshold ? AcceptRejection.BelowThreshold
+            : overOutgoing ? AcceptRejection.OverOutgoingCapacity
+            : overIncoming ? AcceptRejection.OverIncomingCapacity
+            : !isRenegotiation ? AcceptRejection.None
+            : !canAfford ? AcceptRejection.CannotAfford
+            : cantChangeLoadedGoods ? AcceptRejection.CantChangeLoadedGoods
+            : isFullCancellation ? AcceptRejection.FullCancellation
+            : AcceptRejection.None;
     }
 
     private static void Postfix(bool __result, bool actuallyTraded)
