@@ -36,6 +36,7 @@ Replaces vanilla's instant orbital trading with a physical flow: accepting a dea
     - `Map.resourceCounter` only counts items in storage; loose items read as 0. Sum `Map.listerThings.ThingsOfDef(def)` stack counts instead.
 - **Expect vs failure lines:** `Expect.*` doesn't throw, so one run can list several failures. `AreEqual(expected, actual)` prints `Expected <expected> == <actual>`.
 - **Debugging a failing run:** `Log.Message` output goes to `Player.log`; test results go to `.savedatafolder/1.6/Test.log`. Logging state each loop iteration when it changes shows where a value diverges. Remove it before finishing.
+- **Tests only run through launch inputs.** Start the game with the GABS `games_start` tool, `gameId: "RealisticOrbitalTrade"`, and `launchInputs`; a start without `runTests` (or `testPlan`) just opens the game. `{"runTests": true}` runs the whole suite, `{"runTests": true, "testFilter": "class == <FixtureName>"}` (or `"method == <TestName>"`) a subset, and `{"testPlan": "<name>"}` a plan from `TestPlans/`.
 - Run only the new fixture with `runTests` plus `testFilter: "class == <FixtureName>"`, and rebuild with `.vscode/build.sh 1.6` before each relaunch since the game loads the built mod. Stop the running game before relaunching.
 - The runner exits when it finishes, so `games_start` can report exit code 1 for a failing run; the result is in `.savedatafolder/1.6/Test.log`. Wait for its `Test runner finished. Result:` line with a backgrounded `until grep -q` loop instead of sleeping.
 

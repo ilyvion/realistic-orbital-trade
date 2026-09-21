@@ -136,13 +136,7 @@ internal sealed class TradeScene : IDisposable
     // landed, so a test can interfere with the trade while it is under way.
     internal IEnumerator SellAndWaitForLanding(ThingDef def, int count)
     {
-        var sale = new Sale(
-            def,
-            count,
-            HeldByTrader(def),
-            CountOnMap(def),
-            CountOnMap(SilverDef)
-        );
+        var sale = new Sale(def, count, HeldByTrader(def), CountOnMap(def), CountOnMap(SilverDef));
         CurrentSale = sale;
 
         sale.SilverOwed = OpenCommsAndSell(def, count);
@@ -152,10 +146,7 @@ internal sealed class TradeScene : IDisposable
         }
         var quest = FindTradeQuest();
         Expect.IsNotNull(quest, "Accepting the trade didn't generate the shuttle quest");
-        Expect.IsNotNull(
-            TradeAgreement!.tradeDeliveryMethod,
-            "No delivery arranged for payment"
-        );
+        Expect.IsNotNull(TradeAgreement!.tradeDeliveryMethod, "No delivery arranged for payment");
         if (quest == null)
         {
             yield break;
@@ -198,7 +189,11 @@ internal sealed class TradeScene : IDisposable
         }
         var loaded = LoadedInShuttles(sale.Def);
         Expect.GreaterThan(loaded, 0, "Nothing was ever loaded onto the shuttle");
-        Expect.LessThan(loaded, sale.Count, "The shuttle was fully loaded before it could be cancelled");
+        Expect.LessThan(
+            loaded,
+            sale.Count,
+            "The shuttle was fully loaded before it could be cancelled"
+        );
     }
 
     internal int LoadedInShuttles(ThingDef def) =>

@@ -1780,7 +1780,11 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                                 {
                                     continue;
                                 }
-                                Utils.EndHaulJobsFor(ship.TransporterComp, shipMap, IsThisTradeable);
+                                Utils.EndHaulJobsFor(
+                                    ship.TransporterComp,
+                                    shipMap,
+                                    IsThisTradeable
+                                );
                             }
                         }
                     }

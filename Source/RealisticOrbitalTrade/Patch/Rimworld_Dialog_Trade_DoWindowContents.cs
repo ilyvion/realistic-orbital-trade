@@ -524,10 +524,13 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
             .Ship_Shuttle.shipThing.GetCompProperties<CompProperties_Transporter>()
             .massCapacity;
 
-    internal static float CalculateCombinedTradeValue()
+    internal static float CalculateCombinedTradeValue() =>
+        CalculateCombinedTradeValue(TradeSession.deal);
+
+    internal static float CalculateCombinedTradeValue(TradeDeal deal)
     {
         var combinedTradeValue = 0f;
-        foreach (var item in TradeSession.deal.AllTradeables.Where(t => t.CountToTransfer != 0))
+        foreach (var item in deal.AllTradeables.Where(t => t.CountToTransfer != 0))
         {
             if (item.IsCurrency)
             {

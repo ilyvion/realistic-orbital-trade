@@ -11,11 +11,12 @@ internal sealed class TradeExpirationEndToEndTests
     private const int SteelToSell = 400;
     private const int TicksBeforeDeparture = 2000;
 
-    private static readonly TradeScene.SettingsSnapshot NoGraceTime =
-        TradeScene.SettingsSnapshot.Defaults with
-        {
-            MinTicksUntilDepartureBeforeGraceTime = 0,
-        };
+    private static readonly TradeScene.SettingsSnapshot NoGraceTime = TradeScene
+        .SettingsSnapshot
+        .Defaults with
+    {
+        MinTicksUntilDepartureBeforeGraceTime = 0,
+    };
 
     [Test]
     public static IEnumerator ExpiringWithNothingLoadedFailsTheTrade()

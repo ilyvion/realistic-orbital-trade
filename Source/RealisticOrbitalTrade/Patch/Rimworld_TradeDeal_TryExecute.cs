@@ -15,38 +15,14 @@ internal static class Rimworld_TradeDeal_TryExecute
             return true;
         }
 
-        if (Settings._useMinimumTradeThreshold)
-        {
-            var combinedTradeValue = 0f;
-            foreach (var item in __instance.AllTradeables.Where(t => t.CountToTransfer != 0))
-            {
-                if (item.IsCurrency)
-                {
-                    continue;
-                }
-                combinedTradeValue += Math.Abs(item.CurTotalCurrencyCostForDestination);
-            }
-
-            var minimumTradeThreshold = tradeAgreementForQuest
-                .tradeShip.GetData()
-                .minimumTradeThreshold;
-            if (combinedTradeValue < minimumTradeThreshold)
-            {
-                Rimworld_Dialog_Trade_DoWindowContents.lastTradeValueFlashTime = Time.time;
-                Messages.Message(
-                    "RealisticOrbitalTrade.TradeLessThanMinimumTradeThreshold".Translate(
-                        combinedTradeValue.ToStringMoney(),
-                        ((float)minimumTradeThreshold).ToStringMoney()
-                    ),
-                    MessageTypeDefOf.RejectInput,
-                    historical: false
-                );
-
-                actuallyTraded = false;
-                __result = false;
-                return false;
-            }
-        }
+        var isRenegotiation = tradeAgreementForQuest.tradeDeliveryMethod != null;
+        var useThreshold = Settings._useMinimumTradeThreshold;
+        var combinedTradeValue = useThreshold
+            ? Rimworld_Dialog_Trade_DoWindowContents.CalculateCombinedTradeValue(__instance)
+            : 0f;
+        var minimumTradeThreshold = useThreshold
+            ? tradeAgreementForQuest.tradeShip.GetData().minimumTradeThreshold
+            : 0;
 
         // What the colony sells is divided across as many shuttles as it takes, but each shuttle
         // has a real, fixed mass capacity (CompProperties_Transporter.massCapacity on the Shuttle
@@ -56,63 +32,23 @@ internal static class Rimworld_TradeDeal_TryExecute
         var massCapacity = Rimworld_Dialog_Trade_DoWindowContents.ShuttleMassCapacity;
         var outgoingPlan = Rimworld_Dialog_Trade_DoWindowContents.PlanOutgoingShuttles(__instance);
         var shuttleLimit = Rimworld_Dialog_Trade_DoWindowContents.OutgoingShuttleLimit;
-        if (
-            Rimworld_Dialog_Trade_DoWindowContents.IsOutgoingCargoOverCapacity(
-                outgoingPlan,
-                shuttleLimit
-            )
-        )
-        {
-            Rimworld_Dialog_Trade_DoWindowContents.lastMassFlashTime = Time.time;
-            Messages.Message(
-                shuttleLimit is { } limit
-                    ? "RealisticOrbitalTrade.TradeExceedsShuttleMassCapacity".Translate(
-                        outgoingMass.ToStringEnsureThreshold(limit * massCapacity, 1),
-                        (limit * massCapacity).ToString("F0", CultureInfo.CurrentCulture)
-                    )
-                    : "RealisticOrbitalTrade.TradeContainsItemTooHeavyForShuttle".Translate(
-                        massCapacity.ToString("F0", CultureInfo.CurrentCulture)
-                    ),
-                MessageTypeDefOf.RejectInput,
-                historical: false
-            );
-
-            actuallyTraded = false;
-            __result = false;
-            return false;
-        }
 
         // Items bought from the trader also arrive by shuttle, and are subject to the same mass
         // capacity - unless the player has opted to receive them via drop pods instead, which
         // aren't mass-limited.
-        if (!tradeAgreementForQuest.deliverItemsViaDropPod)
-        {
-            var incomingMass = Rimworld_Dialog_Trade_DoWindowContents.CalculateIncomingMass(
-                __instance
-            );
-            if (incomingMass > massCapacity)
-            {
-                Rimworld_Dialog_Trade_DoWindowContents.lastIncomingMassFlashTime = Time.time;
-                Messages.Message(
-                    "RealisticOrbitalTrade.TradeExceedsIncomingShuttleMassCapacity".Translate(
-                        incomingMass.ToStringEnsureThreshold(massCapacity, 1),
-                        massCapacity.ToString("F0", CultureInfo.CurrentCulture)
-                    ),
-                    MessageTypeDefOf.RejectInput,
-                    historical: false
-                );
+        var deliverViaDropPod = tradeAgreementForQuest.deliverItemsViaDropPod;
+        var incomingMass = deliverViaDropPod
+            ? 0f
+            : Rimworld_Dialog_Trade_DoWindowContents.CalculateIncomingMass(__instance);
 
-                actuallyTraded = false;
-                __result = false;
-                return false;
-            }
-        }
-
-        // Renegotiation reopens the real trade dialog over an *existing* deal, so it can't let
-        // original TryExecute/ResolveTrade run: those always transfer a tradeable's absolute
-        // CountToTransfer from current availability, with no concept of "part of this was already
-        // delivered" - see TradeAgreement.ApplyRenegotiation for the delta-based replacement.
-        if (tradeAgreementForQuest.tradeDeliveryMethod != null)
+        var canAfford = true;
+        var increasesLoadedGoods = false;
+        var isFullCancellation = false;
+        List<Tradeable> newTradeables = [];
+        List<Tradeable> originalTradeables = [];
+        Tradeable? loadedGoodsTradeable = null;
+        var blockingAmount = 0;
+        if (isRenegotiation)
         {
             // Vanilla's Dialog_Trade recalculates the silver tradeable every frame
             // (TradeDeal.UpdateCurrencyCount, called from Dialog_Trade.DoWindowContents) so it's
@@ -129,33 +65,15 @@ internal static class Rimworld_TradeDeal_TryExecute
 
             // Vanilla's own TradeDeal.TryExecute refuses to run at all once the colony can't
             // cover what's owed (CurrencyTradeable.CountPostDealFor(Colony) < 0) - but that check
-            // lives inside the very method body this branch replaces wholesale (see the big
-            // comment above), so without repeating it here a renegotiation the player can't
-            // afford sails straight into ApplyRenegotiation and tries to pull more silver off the
-            // colony than it actually has.
-            if (
-                __instance.CurrencyTradeable == null
-                || __instance.CurrencyTradeable.CountPostDealFor(Transactor.Colony) < 0
-            )
-            {
-                // Setting the static directly (rather than Dialog_Trade.FlashSilver(), an instance
-                // method) flashes the currency row under DTI too - DTI's own Window_DynamicTrade.
-                // DrawCurrencyRow reads this exact same vanilla field, and WindowOfType<Dialog_Trade>
-                // finds nothing to call FlashSilver() on when DTI, not the vanilla dialog, is open.
-                Dialog_Trade.lastCurrencyFlashTime = Time.time;
-                Messages.Message(
-                    "MessageColonyCannotAfford".Translate(),
-                    MessageTypeDefOf.RejectInput,
-                    historical: false
-                );
+            // lives inside the very method body this branch replaces wholesale, so without
+            // repeating it here a renegotiation the player can't afford sails straight into
+            // ApplyRenegotiation and tries to pull more silver off the colony than it has.
+            canAfford =
+                __instance.CurrencyTradeable != null
+                && __instance.CurrencyTradeable.CountPostDealFor(Transactor.Colony) >= 0;
 
-                actuallyTraded = false;
-                __result = false;
-                return false;
-            }
-
-            var newTradeables = __instance.AllTradeables;
-            var originalTradeables =
+            newTradeables = __instance.AllTradeables;
+            originalTradeables =
                 Utils.RenegotiationOriginalTradeables ?? tradeAgreementForQuest.AllTradeables;
 
             // A departure-triggered renegotiation only offers the player a chance to adjust what
@@ -182,47 +100,106 @@ internal static class Rimworld_TradeDeal_TryExecute
                         + $"changes=[{string.Join(", ", allChanges.Select(c => $"{c.direction}:{c.tradeable.ThingDef?.defName}:{c.amount}"))}]"
                 );
 
-                var (_, loadedGoodsTradeable, blockingAmount) = allChanges.FirstOrDefault(change =>
+                (_, loadedGoodsTradeable, blockingAmount) = allChanges.FirstOrDefault(change =>
                     change.direction == TradeAgreement.TransferDirection.ToTrader
                     && change.amount > 0
                 );
-                if (loadedGoodsTradeable != null)
-                {
-                    var originalCount = originalTradeables
-                        .FirstOrDefault(t => t.ThingDef == loadedGoodsTradeable.ThingDef)
-                        ?.CountToTransfer;
-                    RealisticOrbitalTradeMod.Instance.LogDevMessage(
-                        $"Blocking departure renegotiation accept: {loadedGoodsTradeable.LabelCap} "
-                            + $"blocked by {blockingAmount} (original CountToTransfer="
-                            + $"{originalCount}, new CountToTransfer="
-                            + $"{loadedGoodsTradeable.CountToTransfer})"
-                    );
-
-                    // Silver's own row never shows this ceiling on its own (see MaxPayableSilver) -
-                    // flash it here the same way the affordability check above does, so the player
-                    // has some visual cue pointing at which row is actually blocking Accept.
-                    if (loadedGoodsTradeable.IsCurrency)
-                    {
-                        Dialog_Trade.lastCurrencyFlashTime = Time.time;
-                    }
-
-                    Messages.Message(
-                        "RealisticOrbitalTrade.CantChangeLoadedGoods".Translate(
-                            loadedGoodsTradeable.LabelCap,
-                            Math.Abs(originalCount ?? 0)
-                        ),
-                        MessageTypeDefOf.RejectInput,
-                        historical: false
-                    );
-
-                    actuallyTraded = false;
-                    __result = false;
-                    return false;
-                }
+                increasesLoadedGoods = loadedGoodsTradeable != null;
             }
 
-            if (TradeAgreement.IsFullCancellation(newTradeables))
-            {
+            isFullCancellation = TradeAgreement.IsFullCancellation(newTradeables);
+        }
+
+        var rejection = EvaluateAcceptGates(
+            useThreshold,
+            combinedTradeValue,
+            minimumTradeThreshold,
+            outgoingPlan,
+            shuttleLimit,
+            incomingMass,
+            massCapacity,
+            isRenegotiation,
+            canAfford,
+            Utils.RenegotiatingBecauseDeparting,
+            increasesLoadedGoods,
+            isFullCancellation
+        );
+        switch (rejection)
+        {
+            case AcceptRejection.None:
+                break;
+
+            case AcceptRejection.BelowThreshold:
+                Rimworld_Dialog_Trade_DoWindowContents.lastTradeValueFlashTime = Time.time;
+                Reject(
+                    "RealisticOrbitalTrade.TradeLessThanMinimumTradeThreshold".Translate(
+                        combinedTradeValue.ToStringMoney(),
+                        ((float)minimumTradeThreshold).ToStringMoney()
+                    )
+                );
+                break;
+
+            case AcceptRejection.OverOutgoingCapacity:
+                Rimworld_Dialog_Trade_DoWindowContents.lastMassFlashTime = Time.time;
+                Reject(
+                    shuttleLimit is { } limit
+                        ? "RealisticOrbitalTrade.TradeExceedsShuttleMassCapacity".Translate(
+                            outgoingMass.ToStringEnsureThreshold(limit * massCapacity, 1),
+                            (limit * massCapacity).ToString("F0", CultureInfo.CurrentCulture)
+                        )
+                        : "RealisticOrbitalTrade.TradeContainsItemTooHeavyForShuttle".Translate(
+                            massCapacity.ToString("F0", CultureInfo.CurrentCulture)
+                        )
+                );
+                break;
+
+            case AcceptRejection.OverIncomingCapacity:
+                Rimworld_Dialog_Trade_DoWindowContents.lastIncomingMassFlashTime = Time.time;
+                Reject(
+                    "RealisticOrbitalTrade.TradeExceedsIncomingShuttleMassCapacity".Translate(
+                        incomingMass.ToStringEnsureThreshold(massCapacity, 1),
+                        massCapacity.ToString("F0", CultureInfo.CurrentCulture)
+                    )
+                );
+                break;
+
+            case AcceptRejection.CannotAfford:
+                // Setting the static directly (rather than Dialog_Trade.FlashSilver(), an instance
+                // method) flashes the currency row under DTI too - DTI's own Window_DynamicTrade.
+                // DrawCurrencyRow reads this exact same vanilla field, and WindowOfType<Dialog_Trade>
+                // finds nothing to call FlashSilver() on when DTI, not the vanilla dialog, is open.
+                Dialog_Trade.lastCurrencyFlashTime = Time.time;
+                Reject("MessageColonyCannotAfford".Translate());
+                break;
+
+            case AcceptRejection.CantChangeLoadedGoods:
+                var originalCount = originalTradeables
+                    .FirstOrDefault(t => t.ThingDef == loadedGoodsTradeable!.ThingDef)
+                    ?.CountToTransfer;
+                RealisticOrbitalTradeMod.Instance.LogDevMessage(
+                    $"Blocking departure renegotiation accept: {loadedGoodsTradeable!.LabelCap} "
+                        + $"blocked by {blockingAmount} (original CountToTransfer="
+                        + $"{originalCount}, new CountToTransfer="
+                        + $"{loadedGoodsTradeable.CountToTransfer})"
+                );
+
+                // Silver's own row never shows this ceiling on its own (see MaxPayableSilver) -
+                // flash it here the same way the affordability check does, so the player has some
+                // visual cue pointing at which row is actually blocking Accept.
+                if (loadedGoodsTradeable.IsCurrency)
+                {
+                    Dialog_Trade.lastCurrencyFlashTime = Time.time;
+                }
+
+                Reject(
+                    "RealisticOrbitalTrade.CantChangeLoadedGoods".Translate(
+                        loadedGoodsTradeable.LabelCap,
+                        Math.Abs(originalCount ?? 0)
+                    )
+                );
+                break;
+
+            case AcceptRejection.FullCancellation:
                 var toTraderCompTradeShuttle =
                     tradeAgreementForQuest.toTraderTransportShip?.shipThing.TryGetComp<CompTradeShuttle>();
                 Find.WindowStack.Add(
@@ -243,11 +220,22 @@ internal static class Rimworld_TradeDeal_TryExecute
                         }
                     )
                 );
-                actuallyTraded = false;
-                __result = false;
-                return false;
-            }
+                break;
+        }
 
+        if (rejection != AcceptRejection.None)
+        {
+            actuallyTraded = false;
+            __result = false;
+            return false;
+        }
+
+        // Renegotiation reopens the real trade dialog over an *existing* deal, so it can't let
+        // original TryExecute/ResolveTrade run: those always transfer a tradeable's absolute
+        // CountToTransfer from current availability, with no concept of "part of this was already
+        // delivered" - see TradeAgreement.ApplyRenegotiation for the delta-based replacement.
+        if (isRenegotiation)
+        {
             actuallyTraded = tradeAgreementForQuest.ApplyRenegotiation(
                 originalTradeables,
                 newTradeables
@@ -257,6 +245,78 @@ internal static class Rimworld_TradeDeal_TryExecute
         }
 
         return true;
+
+        static void Reject(TaggedString message) =>
+            Messages.Message(message, MessageTypeDefOf.RejectInput, historical: false);
+    }
+
+    internal enum AcceptRejection
+    {
+        None,
+        BelowThreshold,
+        OverOutgoingCapacity,
+        OverIncomingCapacity,
+        CannotAfford,
+        CantChangeLoadedGoods,
+        FullCancellation,
+    }
+
+    /// <summary>
+    /// The first reason accepting a deal must be refused, in the order the checks run, or
+    /// <see cref="AcceptRejection.None"/>. The last three only apply to a renegotiation, and
+    /// <paramref name="increasesLoadedGoods"/> only to one triggered by the trader departing.
+    /// </summary>
+    internal static AcceptRejection EvaluateAcceptGates(
+        bool useMinimumTradeThreshold,
+        float combinedTradeValue,
+        float minimumTradeThreshold,
+        List<List<(int lineId, int count)>>? outgoingPlan,
+        int? shuttleLimit,
+        float incomingMass,
+        float massCapacity,
+        bool isRenegotiation,
+        bool canAfford,
+        bool renegotiatingBecauseDeparting,
+        bool increasesLoadedGoods,
+        bool isFullCancellation
+    )
+    {
+        if (useMinimumTradeThreshold && combinedTradeValue < minimumTradeThreshold)
+        {
+            return AcceptRejection.BelowThreshold;
+        }
+
+        if (
+            Rimworld_Dialog_Trade_DoWindowContents.IsOutgoingCargoOverCapacity(
+                outgoingPlan,
+                shuttleLimit
+            )
+        )
+        {
+            return AcceptRejection.OverOutgoingCapacity;
+        }
+
+        if (incomingMass > massCapacity)
+        {
+            return AcceptRejection.OverIncomingCapacity;
+        }
+
+        if (!isRenegotiation)
+        {
+            return AcceptRejection.None;
+        }
+
+        if (!canAfford)
+        {
+            return AcceptRejection.CannotAfford;
+        }
+
+        if (renegotiatingBecauseDeparting && increasesLoadedGoods)
+        {
+            return AcceptRejection.CantChangeLoadedGoods;
+        }
+
+        return isFullCancellation ? AcceptRejection.FullCancellation : AcceptRejection.None;
     }
 
     private static void Postfix(bool __result, bool actuallyTraded)
