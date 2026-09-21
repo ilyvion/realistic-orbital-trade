@@ -82,6 +82,7 @@ internal sealed class BuyMoreTimeTests
     }
 
     [Test]
+    [WarningsAllowed("Not all loadIDs which were read were consumed")]
     public static void TimesBoughtMoreTimeSurvivesSaveLoad()
     {
         var saveHarness = new CompTradeShuttleHarness();

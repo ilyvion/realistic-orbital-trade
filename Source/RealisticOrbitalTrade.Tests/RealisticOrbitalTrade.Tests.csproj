@@ -5,7 +5,8 @@
         <AssemblyName>RealisticOrbitalTrade.Tests</AssemblyName>
     </PropertyGroup>
     <!--
-        Dev-only test assembly, run in-game via DevTools (https://github.com/SmashPhil/DevTools).
+        Dev-only test assembly, run in-game via DevTools
+        (https://github.com/ilyvion/SmashPhil-DevTools.git).
         It builds into the same <version>/Assemblies folder as the mod assembly, next to the
         DevTools.dll that the DevTools reference below also builds into that folder.
 

@@ -1,13 +1,4 @@
 <TestConfig>
     <!-- A fixed seed makes every run generate the same pawns, trader stock and random events. -->
     <randSeed>1218943160</randSeed>
-    <!-- DevTools fails a test on any logged warning/error unless it matches one of these. -->
-    <warningsAllowed>
-        <!-- Scribe round-trip tests load harness objects that leave nulled references unconsumed. -->
-        <li>Not all loadIDs which were read were consumed</li>
-    </warningsAllowed>
-    <errorsAllowed>
-        <!-- GetMassBoundsTests.ReturnsNullBoundsWhenTradeableHasNoThing exercises this path on purpose. -->
-        <li>Tradeable lacks AnyThing</li>
-    </errorsAllowed>
 </TestConfig>

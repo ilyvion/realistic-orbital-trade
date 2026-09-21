@@ -71,6 +71,7 @@ internal sealed class GetMassBoundsTests
     }
 
     [Test]
+    [ErrorsAllowed("Tradeable lacks AnyThing")]
     public static void ReturnsNullBoundsWhenTradeableHasNoThing()
     {
         TradeShipData.tradeAgreementForQuest = new TradeAgreement();

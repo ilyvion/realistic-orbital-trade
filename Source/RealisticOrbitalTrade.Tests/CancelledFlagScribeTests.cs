@@ -92,6 +92,7 @@ internal sealed class CancelledFlagScribeTests
     }
 
     [Test]
+    [WarningsAllowed("Not all loadIDs which were read were consumed")]
     public static void CompTradeShuttleCancelledSurvivesSaveLoadWhenTrue()
     {
         var saveHarness = new CompTradeShuttleHarness();
@@ -104,6 +105,7 @@ internal sealed class CancelledFlagScribeTests
     }
 
     [Test]
+    [WarningsAllowed("Not all loadIDs which were read were consumed")]
     public static void CompTradeShuttleCancelledSurvivesSaveLoadWhenFalse()
     {
         var saveHarness = new CompTradeShuttleHarness();
@@ -116,6 +118,7 @@ internal sealed class CancelledFlagScribeTests
     }
 
     [Test]
+    [WarningsAllowed("Not all loadIDs which were read were consumed")]
     public static void ShipJobCancelLoadDoneSurvivesSaveLoadWhenTrue()
     {
         var saveJob = new ShipJob_CancelLoad { done = true };

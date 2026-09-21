@@ -16,7 +16,7 @@
     </PropertyGroup>
     <!--
         Dev-only test assembly for the Social Experience from Trade integration, built and run
-        in-game via DevTools (https://github.com/SmashPhil/DevTools). Its output is
+        in-game via DevTools (https://github.com/ilyvion/SmashPhil-DevTools.git). Its output is
         deployed alongside RealisticOrbitalTrade.SocialEXPFromTrade.dll into
         Integrations/SocialEXPFromTrade/<version>/Assemblies, which LoadFolders.xml only loads
         when Social Experience from Trade (krelinos.socialexpfromtrade) is active, so these tests
