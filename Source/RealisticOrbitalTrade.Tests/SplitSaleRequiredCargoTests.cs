@@ -26,8 +26,8 @@ internal sealed class SplitSaleRequiredCargoTests
         var steel = RimWorld.ThingDefOf.Steel;
         scene.LimitShuttleCapacity(ShuttleCapacityKg);
         scene.PlaceOnMap(steel, SteelToSell);
-        yield return scene.SellAndWaitForLanding(steel, SteelToSell);
         scene.StopColonistsHauling();
+        yield return scene.SellAndWaitForLanding(steel, SteelToSell);
         Expect.GreaterThan(
             scene.TradeAgreement!.ToTraderTransportShips.Count(),
             2,
