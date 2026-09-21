@@ -100,6 +100,18 @@ internal static class Rimworld_TradeUI_DrawTradeableRow
             ? ((int? massMin, int? massMax))(null, null)
             : ComputeMassBounds(trad, trad.AnyThing.GetStatValue(StatDefOf.Mass));
 
+    // Caps a max buy/sell count by the mass bounds; massMin is negative (a sell count), so it is
+    // negated for PlayerSells.
+    internal static int ClampMaxAmount(
+        int result,
+        TradeAction action,
+        int? massMin,
+        int? massMax
+    ) =>
+        action == TradeAction.PlayerBuys && massMax.HasValue ? Math.Min(result, massMax.Value)
+        : action == TradeAction.PlayerSells && massMin.HasValue ? Math.Min(result, -massMin.Value)
+        : result;
+
     // The direction-gating half of GetMassBounds, split out so it can be exercised with a
     // pre-computed unitMass instead of going through Thing.GetStatValue (which needs a live game
     // to resolve, unlike everything below).

@@ -23,11 +23,24 @@ internal static class Rimworld_Dialog_Trade_Close
         : renegotiating ? CloseAction.NoOp
         : CloseAction.EndAgreement;
 
-    private static CloseAction CurrentAction() =>
+    internal static CloseAction CurrentAction() =>
         DecideClose(
             Utils.RenegotiatingBecauseDeparting,
             Utils.DepartureRenegotiationCancelConfirmed,
             Utils.RenegotiatingAgreement != null
+        );
+
+    // Shared with the DTI trade window's close patches.
+    internal static void ShowCancelConfirmation(Window window) =>
+        Find.WindowStack.Add(
+            Dialog_MessageBox.CreateConfirmation(
+                "RealisticOrbitalTrade.ConfirmDepartureRenegotiationCancel".Translate(),
+                () =>
+                {
+                    Utils.DepartureRenegotiationCancelConfirmed = true;
+                    window.Close();
+                }
+            )
         );
 
     private static bool Prefix(Dialog_Trade __instance)
@@ -37,68 +50,52 @@ internal static class Rimworld_Dialog_Trade_Close
             return true;
         }
 
-        Find.WindowStack.Add(
-            Dialog_MessageBox.CreateConfirmation(
-                "RealisticOrbitalTrade.ConfirmDepartureRenegotiationCancel".Translate(),
-                () =>
-                {
-                    Utils.DepartureRenegotiationCancelConfirmed = true;
-                    __instance.Close();
-                }
-            )
-        );
+        ShowCancelConfirmation(__instance);
         return false;
     }
 
     private static void Postfix()
     {
-        // Harmony runs Postfix even when Prefix returned false and skipped the original method -
-        // when Prefix blocked this call to show the confirmation dialog above, the real Close()
-        // never ran and nothing below should either; it'll run for real once the player confirms
-        // and Prefix lets __instance.Close() through on its own.
-        var action = CurrentAction();
-        if (action == CloseAction.BlockAndConfirm)
+        // Harmony runs Postfix even when Prefix returned false and skipped the original method;
+        // ApplyClose ignores BlockAndConfirm, which is the case where the close never happened.
+        ApplyClose(CurrentAction());
+    }
+
+    // Applies the trade-state consequences of a trade window having closed.
+    internal static void ApplyClose(CloseAction action)
+    {
+        switch (action)
         {
-            return;
+            case CloseAction.BlockAndConfirm:
+                return;
+            case CloseAction.FailTrade:
+                // Fires the same outSignalFailed that Utils.TryBeginDepartureRenegotiation's other
+                // decline paths use, so the quest's usual dump-and-fail parts run (unloading the
+                // shuttle, sending the expired-trade letter, etc.).
+                var failedSignal = Utils.DepartureRenegotiationFailedSignal;
+                TradeShipData.tradeAgreementForQuest = null;
+                Utils.EndRenegotiation();
+
+                if (failedSignal != null)
+                {
+                    Find.SignalManager.SendSignal(new Signal(failedSignal));
+                }
+                else
+                {
+                    RealisticOrbitalTradeMod.Instance.LogError(
+                        "Can't fail trade after declining a departure renegotiation; DepartureRenegotiationFailedSignal is null!"
+                    );
+                }
+                return;
+            case CloseAction.NoOp:
+                // An ordinary renegotiation's agreement is a real, in-progress trade (possibly
+                // with cargo already loaded), so closing only drops the renegotiation.
+                TradeShipData.tradeAgreementForQuest = null;
+                Utils.EndRenegotiation();
+                return;
+            case CloseAction.EndAgreement:
+                TradeShipData.EndTradeAgreementIfExists();
+                return;
         }
-
-        // Closing a departure-triggered renegotiation without accepting means the player chose
-        // (and, per Prefix, confirmed) to let the trade fail rather than take partial payment -
-        // firing the same outSignalFailed that Utils.TryBeginDepartureRenegotiation's other
-        // decline paths use lets QuestPart_TryBeginDepartureRenegotiation's caller run its usual
-        // dump-and-fail quest parts (properly unloading the shuttle, sending the expired-trade
-        // letter, etc.) instead of duplicating that logic - and instead of the manual "cancel
-        // trade" gizmo's action, which skips all of that and just lets the trader keep whatever's
-        // already loaded.
-        if (action == CloseAction.FailTrade)
-        {
-            var failedSignal = Utils.DepartureRenegotiationFailedSignal;
-            TradeShipData.tradeAgreementForQuest = null;
-            Utils.EndRenegotiation();
-
-            if (failedSignal != null)
-            {
-                Find.SignalManager.SendSignal(new Signal(failedSignal));
-            }
-            else
-            {
-                RealisticOrbitalTradeMod.Instance.LogError(
-                    "Can't fail trade after declining a departure renegotiation; DepartureRenegotiationFailedSignal is null!"
-                );
-            }
-            return;
-        }
-
-        // Closing without accepting is a no-op for an ordinary renegotiation - unlike a fresh
-        // trade, the agreement is already a real, in-progress trade (possibly with cargo already
-        // loaded), not something safe to discard.
-        if (action == CloseAction.NoOp)
-        {
-            TradeShipData.tradeAgreementForQuest = null;
-            Utils.EndRenegotiation();
-            return;
-        }
-
-        TradeShipData.EndTradeAgreementIfExists();
     }
 }

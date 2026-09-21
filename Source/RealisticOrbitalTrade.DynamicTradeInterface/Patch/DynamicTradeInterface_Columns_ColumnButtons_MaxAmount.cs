@@ -36,19 +36,12 @@ internal static class DynamicTradeInterface_Columns_ColumnButtons_MaxAmount
 
     private static void Postfix(Tradeable row, TradeAction action, ref int __result)
     {
-        if (TradeShipData.tradeAgreementForQuest == null)
-        {
-            return;
-        }
-
         var (massMin, massMax) = Rimworld_TradeUI_DrawTradeableRow.GetMassBounds(row);
-        if (action == TradeAction.PlayerBuys && massMax.HasValue)
-        {
-            __result = Math.Min(__result, massMax.Value);
-        }
-        else if (action == TradeAction.PlayerSells && massMin.HasValue)
-        {
-            __result = Math.Min(__result, -massMin.Value);
-        }
+        __result = Rimworld_TradeUI_DrawTradeableRow.ClampMaxAmount(
+            __result,
+            action,
+            massMin,
+            massMax
+        );
     }
 }
