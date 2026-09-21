@@ -26,6 +26,10 @@
         <NoWarn>$(NoWarn);CS0436</NoWarn>
     </PropertyGroup>
     <ItemGroup>
+        <Publicize Include="Assembly-CSharp:RimWorld.TradeShip.things" />
+        <Publicize Include="Assembly-CSharp:RimWorld.TradeShip.soldPrisoners" />
+    </ItemGroup>
+    <ItemGroup>
         <ProjectReference Include="..\RealisticOrbitalTrade\RealisticOrbitalTrade.csproj">
             <CopyLocal>False</CopyLocal>
             <Private>false</Private>

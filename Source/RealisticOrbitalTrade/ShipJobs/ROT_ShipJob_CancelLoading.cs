@@ -39,10 +39,7 @@ internal class ShipJob_CancelLoad : ShipJob
             // own single-item hauling and this mod's bulk-haul job (JobDefOf.ROT_HaulMultipleToTransporter,
             // the default loading path per Settings._multiItemShuttleLoading) target the shuttle
             // thing itself via targetB, so both are matched the same way.
-            var soldDefs = compTradeShuttle
-                .tradeAgreement?.thingsSoldToTrader.Select(t => t.thing?.def)
-                .OfType<ThingDef>()
-                .ToHashSet();
+            var soldDefs = SoldDefs(compTradeShuttle.tradeAgreement);
             foreach (var humanLike in transportShip.shipThing.Map.mapPawns.GetAllHumanLike())
             {
                 if (IsLoadingCancelledShip(humanLike.CurJob, transportShip.shipThing))
@@ -63,7 +60,10 @@ internal class ShipJob_CancelLoad : ShipJob
     // Loading jobs from other mods (Bulk Load For Transporters) stash sold items in the pawn's
     // hands and inventory and don't hand them back when they're ended. Anything of a sold kind the
     // pawn still holds goes back on the ground so the goods stay in the colony.
-    private static void DropSoldItems(Pawn pawn, HashSet<ThingDef> soldDefs)
+    internal static HashSet<ThingDef>? SoldDefs(TradeAgreement? tradeAgreement) =>
+        tradeAgreement?.thingsSoldToTrader.Select(t => t.thing?.def).OfType<ThingDef>().ToHashSet();
+
+    internal static void DropSoldItems(Pawn pawn, HashSet<ThingDef> soldDefs)
     {
         if (pawn.carryTracker.CarriedThing is { } carried && soldDefs.Contains(carried.def))
         {

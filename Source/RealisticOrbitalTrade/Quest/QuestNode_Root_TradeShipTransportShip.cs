@@ -439,7 +439,7 @@ internal class QuestNode_Root_TradeShipTransportShip : QuestNode
         return (shuttle, transportShip);
     }
 
-    private static void PreTrade(TradeAgreement tradeAgreement)
+    internal static void PreTrade(TradeAgreement tradeAgreement)
     {
         foreach (var thing in tradeAgreement.thingsSoldToPlayer)
         {

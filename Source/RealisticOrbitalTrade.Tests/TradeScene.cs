@@ -77,7 +77,12 @@ internal sealed class TradeScene : IDisposable
         for (var i = 0; i < 2; i++)
         {
             var pawn = GenerateCapableColonist();
-            _ = GenSpawn.Spawn(pawn, center + new IntVec3(-3 + i, 0, 3), map);
+            var cell = CellFinder.RandomClosewalkCellNear(
+                center + new IntVec3(-3 + i, 0, 3),
+                map,
+                8
+            );
+            _ = GenSpawn.Spawn(pawn, cell, map);
             for (var hour = 0; hour < 24; hour++)
             {
                 pawn.timetable.SetAssignment(hour, TimeAssignmentDefOf.Anything);
@@ -108,7 +113,8 @@ internal sealed class TradeScene : IDisposable
     internal Pawn SpawnPawn()
     {
         var pawn = GenerateCapableColonist();
-        _ = GenSpawn.Spawn(pawn, Map.Center + new IntVec3(3, 0, 3), Map);
+        var cell = CellFinder.RandomClosewalkCellNear(Map.Center + new IntVec3(3, 0, 3), Map, 8);
+        _ = GenSpawn.Spawn(pawn, cell, Map);
         spawned.Add(pawn);
         return pawn;
     }
@@ -384,6 +390,13 @@ internal sealed class TradeScene : IDisposable
             CountOnMap(SilverDef),
             "Silver arrived for a cancelled trade"
         );
+    }
+
+    // Lets this many ticks pass.
+    internal IEnumerator TickFor(int ticks)
+    {
+        var until = ticked + ticks;
+        yield return TickUntil(() => ticked >= until);
     }
 
     // Ticks the game a frame's worth at a time until the condition holds or the trade times out.
