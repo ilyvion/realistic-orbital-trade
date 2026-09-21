@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed renegotiating a trade for more silver than the trader has left reporting an error. You now receive as much as the trader can pay, just like when the trade was first made.
+- Fixed colonists sometimes loading a few more items than were sold when two of them were loading at the same time, most often after increasing a sale. The extra items were lost to the trader without payment.
 
 ## [0.12.2] - 2026-09-20
 

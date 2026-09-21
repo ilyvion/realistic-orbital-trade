@@ -415,14 +415,18 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
             {
                 var otherJob = otherPawn.CurJob;
                 var targetThing = otherJob.GetTarget(TargetIndex.A).Thing;
+                var carriedThing = otherPawn.carryTracker?.CarriedThing;
                 AddCommitted(
                     targetThing,
-                    CommittedCountForTarget(
-                        targetThing,
-                        otherPawn.carryTracker?.CarriedThing,
-                        otherJob.count
-                    )
+                    CommittedCountForTarget(targetThing, carriedThing, otherJob.count)
                 );
+
+                // Between hand-carry pickups the target is the next stack to gather, while what
+                // is already in the pawn's hands still isn't in the transporter.
+                if (carriedThing != null && carriedThing != targetThing)
+                {
+                    AddCommitted(carriedThing, carriedThing.stackCount);
+                }
 
                 var queueA = otherJob.GetTargetQueue(TargetIndex.A);
                 var countQueue = otherJob.countQueue;
