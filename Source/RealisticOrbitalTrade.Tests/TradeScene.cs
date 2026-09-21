@@ -235,6 +235,73 @@ internal sealed class TradeScene : IDisposable
         }
     }
 
+    // Makes the trader leave this many ticks from now, so the shuttles' departure timer, which
+    // follows it, runs out within the test. Call before selling.
+    internal void ShortenTraderStay(int ticks) =>
+        TradeShip.ticksUntilDeparture = ticks + Constants.AdditionalTicksAfterDeparture;
+
+    // Lets the shuttles' departure timer run down to a minute from now, so it runs out while the
+    // shuttles are partly loaded.
+    internal void RunDownDepartureTimer()
+    {
+        var delay = CurrentSale!
+            .Quest!.PartsListForReading.OfType<Quests.QuestPart_TradeShuttleLeaveDelay>()
+            .First();
+        delay.delayTicks -= delay.TicksLeft - 60;
+    }
+
+    // Turns hauling off for the colonists, so nothing gets loaded.
+    internal void StopColonistsHauling()
+    {
+        foreach (var pawn in spawned.OfType<Pawn>())
+        {
+            pawn.workSettings.SetPriority(WorkTypeDefOf.Hauling, 0);
+        }
+    }
+
+    // Ticks until the shuttles' departure timer has run out and the trader is asking the player to
+    // renegotiate down to what is loaded.
+    internal IEnumerator WaitForDepartureRenegotiation()
+    {
+        yield return TickUntil(() => FindDepartureExplanation() != null);
+        Expect.IsNotNull(
+            FindDepartureExplanation(),
+            "The expired departure timer didn't offer to renegotiate"
+        );
+    }
+
+    // Does what the player does after the departure explanation: reopens comms with the deal cut
+    // down to what is loaded, and accepts. The sale then expects only what was loaded.
+    internal void AcceptDepartureRenegotiation()
+    {
+        var sale = CurrentSale!;
+        var explanation = FindDepartureExplanation();
+        if (explanation == null)
+        {
+            return;
+        }
+        var loaded = LoadedInShuttles(sale.Def);
+        _ = Find.WindowStack.TryRemove(explanation, doCloseSound: false);
+        TradeShip.TryOpenComms(TradeAgreement!.negotiator);
+        var dialog = Find.WindowStack.WindowOfType<Dialog_Trade>();
+        Expect.IsNotNull(dialog, "The departure renegotiation didn't reopen the trade dialog");
+        if (dialog == null)
+        {
+            return;
+        }
+
+        var deal = TradeSession.deal;
+        deal.UpdateCurrencyCount();
+        var silverOwed = deal.CurrencyTradeable.CountToTransfer;
+        Expect.IsTrue(deal.TryExecute(out _), "The departure renegotiation was rejected");
+        dialog.Close(doCloseSound: false);
+        sale.Count = loaded;
+        sale.SilverOwed = silverOwed;
+    }
+
+    private static Dialog_MessageBox? FindDepartureExplanation() =>
+        Find.WindowStack.WindowOfType<Dialog_MessageBox>();
+
     // Does what the player's "cancel trade" button on a landed shuttle does.
     internal void CancelTradeFromShuttle()
     {
@@ -358,6 +425,10 @@ internal sealed class TradeScene : IDisposable
         shuttleTransporter.massCapacity = previousShuttleCapacity;
         TradeShipData.tradeAgreementForQuest = null;
         Utils.EndRenegotiation();
+        if (FindDepartureExplanation() is { } explanation)
+        {
+            _ = Find.WindowStack.TryRemove(explanation, doCloseSound: false);
+        }
 
         if (!TradeShip.Departed)
         {

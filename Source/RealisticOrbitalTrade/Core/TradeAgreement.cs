@@ -965,7 +965,10 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         }
 
         var reduced = Math.Min(existing.Count, count);
-        existing.Count -= reduced;
+
+        // Hauling pawns take parts of the stack, so what's left of it can be less than what's
+        // still tracked.
+        existing.Count = Math.Min(existing.Count - reduced, thing.stackCount);
         if (existing.Count <= 0)
         {
             _ = reservedTraderThings.Remove(existing);
@@ -1284,10 +1287,11 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
     /// <summary>
     /// Whether <paramref name="newTradeables"/> (a renegotiation's edited deal) amounts to
     /// reducing everything to zero - offered to the player as "did you mean to cancel the trade?"
-    /// rather than silently applying a no-op-looking deal.
+    /// rather than silently applying a no-op-looking deal. Silver only balances the deal, so it doesn't
+    /// count.
     /// </summary>
     internal static bool IsFullCancellation(List<Tradeable> newTradeables) =>
-        newTradeables.Sum(t => Math.Abs(t.CountToTransfer)) == 0;
+        newTradeables.Where(t => !t.IsCurrency).Sum(t => Math.Abs(t.CountToTransfer)) == 0;
 
     /// <summary>
     /// The most silver the colony can still pay the trader during a departure renegotiation - like
@@ -1653,7 +1657,12 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                                 }
                                 if (thingCount.Count > leftToTakeOff)
                                 {
-                                    thingCount.Count -= leftToTakeOff;
+                                    // Hauling pawns take parts of the stack, so what's left of it can
+                                    // be less than what's still sold from it.
+                                    thingCount.Count = Math.Min(
+                                        thingCount.Count - leftToTakeOff,
+                                        thingCount.thing.stackCount
+                                    );
                                     _ = ReduceReservation(thingCount.thing, leftToTakeOff);
                                     leftToTakeOff = 0;
                                 }
