@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed animals you bought never arriving when the wait for delivery, by shuttle or drop pods, was long enough for the game to clean up creatures nothing was keeping track of. They were discarded while waiting, but were still removed from the trader's stock. Trades already in progress from before this fix are not protected.
 - Fixed renegotiating a trade for more silver than the trader has left reporting an error. You now receive as much as the trader can pay, just like when the trade was first made.
 - Fixed colonists sometimes loading a few more items than were sold when two of them were loading at the same time, most often after increasing a sale. The extra items were lost to the trader without payment.
 - Fixed items left over after reducing a sale, including when the trader offers to renegotiate down to what was already loaded, staying protected from colony jobs and causing a warning in the log when the shuttle took off.

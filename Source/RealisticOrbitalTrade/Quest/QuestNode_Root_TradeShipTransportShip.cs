@@ -119,6 +119,8 @@ internal class QuestNode_Root_TradeShipTransportShip : QuestNode
                 .debugLabel = "toPlayerDropPods delay";
         }
 
+        _ = quest.ReserveBoughtPawns(tradeAgreement);
+
         foreach (var shuttle in toTraderShuttles)
         {
             _ = quest.CancelTrade(

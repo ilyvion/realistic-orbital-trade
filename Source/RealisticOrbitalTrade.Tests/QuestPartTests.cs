@@ -182,6 +182,24 @@ internal sealed class QuestPartTests
         Discard(pawn);
     }
 
+    [Test]
+    public static IEnumerator BoughtAnimalsSurviveTheWorldPawnCleanupWhileAwaitingDelivery()
+    {
+        using var scene = new TradeScene(Find.CurrentMap);
+        yield return Landed(scene);
+        var agreement = scene.TradeAgreement!;
+        var delivery = agreement.tradeDeliveryMethod!.Things;
+        var animal = PawnGenerator.GeneratePawn(PawnKindDefOf.Muffalo, Faction.OfPlayer);
+        Find.WorldPawns.PassToWorld(animal);
+        _ = delivery.TryAdd(animal);
+
+        Find.WorldPawns.gc.RunGC();
+
+        Expect.IsFalse(animal.Discarded, "The bought animal was discarded before delivery");
+        _ = delivery.Remove(animal);
+        Discard(animal);
+    }
+
     private static int IncomingPods(Map map) =>
         map.listerThings.ThingsOfDef(RimWorld.ThingDefOf.DropPodIncoming).Count;
 
