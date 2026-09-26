@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-09-26
+
 ### Added
 
 - A sale no longer has to fit on a single trade shuttle. If what you're selling is heavier than one shuttle can carry, the trader now sends as many shuttles as it takes, all at once. Colonists load them all, and they take off together once every one of them is fully loaded. Cancelling the trade, running out of time, or renegotiating applies to all the shuttles together. Any single thing you buy still has to fit on one shuttle, so a single item or creature too heavy for one shuttle still can't be sold.
@@ -256,7 +258,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.12.2...HEAD
+[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.13.0...HEAD
+[0.13.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.12.2..v0.13.0
 [0.12.2]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.12.1..v0.12.2
 [0.12.1]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.12.0..v0.12.1
 [0.12.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.11.4..v0.12.0
