@@ -403,60 +403,81 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
 
         foreach (var otherPawn in transporter.parent.Map.mapPawns.AllPawnsSpawned)
         {
-            if (otherPawn == excluding)
+            if (otherPawn == excluding || HaulingTransporter(otherPawn) != transporter.parent)
             {
                 continue;
             }
 
-            if (
-                otherPawn.jobs?.curDriver is JobDriver_HaulMultipleToTransporter otherDriver
-                && otherDriver.Transporter?.parent == transporter.parent
-            )
+            foreach (var (thing, count) in ClaimedThings(otherPawn))
             {
-                var otherJob = otherPawn.CurJob;
-                var targetThing = otherJob.GetTarget(TargetIndex.A).Thing;
-                var carriedThing = otherPawn.carryTracker?.CarriedThing;
-                AddCommitted(
-                    targetThing,
-                    CommittedCountForTarget(targetThing, carriedThing, otherJob.count)
-                );
-
-                // Between hand-carry pickups the target is the next stack to gather, while what
-                // is already in the pawn's hands still isn't in the transporter.
-                if (carriedThing != null && carriedThing != targetThing)
-                {
-                    AddCommitted(carriedThing, carriedThing.stackCount);
-                }
-
-                var queueA = otherJob.GetTargetQueue(TargetIndex.A);
-                var countQueue = otherJob.countQueue;
-                if (queueA != null && countQueue != null)
-                {
-                    for (var i = 0; i < queueA.Count && i < countQueue.Count; i++)
-                    {
-                        AddCommitted(queueA[i].Thing, countQueue[i]);
-                    }
-                }
-
-                foreach (var carried in otherDriver._carriedThings)
-                {
-                    AddCommitted(carried, carried.stackCount);
-                }
-            }
-            else if (
-                otherPawn.CurJobDef == RimWorld.JobDefOf.HaulToTransporter
-                && otherPawn.jobs?.curDriver is JobDriver_HaulToContainer otherVanillaDriver
-                && otherVanillaDriver.job.GetTarget(TargetIndex.B).Thing == transporter.parent
-            )
-            {
-                AddCommitted(
-                    otherVanillaDriver.job.GetTarget(TargetIndex.A).Thing,
-                    otherVanillaDriver.job.count
-                );
+                AddCommitted(thing, count);
             }
         }
 
         return committed;
+    }
+
+    /// <summary>
+    /// The transporter <paramref name="pawn"/> is currently loading, through either this driver or
+    /// vanilla's <see cref="JobDriver_HaulToTransporter"/>.
+    /// </summary>
+    internal static Thing? HaulingTransporter(Pawn pawn) =>
+        pawn.jobs?.curDriver switch
+        {
+            JobDriver_HaulMultipleToTransporter driver => driver.Transporter?.parent,
+            JobDriver_HaulToContainer vanillaDriver
+                when pawn.CurJobDef == RimWorld.JobDefOf.HaulToTransporter => vanillaDriver
+                .job.GetTarget(TargetIndex.B)
+                .Thing,
+            _ => null,
+        };
+
+    /// <summary>
+    /// What <paramref name="pawn"/>'s current <see cref="HaulingTransporter"/> job has claimed and
+    /// not yet deposited: stacks it has yet to pick up, with the count it will take from each, and
+    /// what it already carries.
+    /// </summary>
+    internal static IEnumerable<(Thing? thing, int count)> ClaimedThings(Pawn pawn)
+    {
+        if (pawn.jobs?.curDriver is JobDriver_HaulMultipleToTransporter driver)
+        {
+            var job = pawn.CurJob;
+            var targetThing = job.GetTarget(TargetIndex.A).Thing;
+            var carriedThing = pawn.carryTracker?.CarriedThing;
+            yield return (
+                targetThing,
+                CommittedCountForTarget(targetThing, carriedThing, job.count)
+            );
+
+            // Between hand-carry pickups the target is the next stack to gather, while what
+            // is already in the pawn's hands still isn't in the transporter.
+            if (carriedThing != null && carriedThing != targetThing)
+            {
+                yield return (carriedThing, carriedThing.stackCount);
+            }
+
+            var queueA = job.GetTargetQueue(TargetIndex.A);
+            var countQueue = job.countQueue;
+            if (queueA != null && countQueue != null)
+            {
+                for (var i = 0; i < queueA.Count && i < countQueue.Count; i++)
+                {
+                    yield return (queueA[i].Thing, countQueue[i]);
+                }
+            }
+
+            foreach (var carried in driver._carriedThings)
+            {
+                yield return (carried, carried.stackCount);
+            }
+        }
+        else if (pawn.jobs?.curDriver is JobDriver_HaulToContainer vanillaDriver)
+        {
+            yield return (
+                vanillaDriver.job.GetTarget(TargetIndex.A).Thing,
+                vanillaDriver.job.count
+            );
+        }
     }
 
     // Thing.SplitOff hands back a brand-new Thing instance whenever it splits off part (rather

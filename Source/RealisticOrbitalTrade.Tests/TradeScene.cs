@@ -7,7 +7,7 @@ namespace RealisticOrbitalTrade.Tests;
 // bulk-goods trader in orbit, for the end-to-end trade tests. Time is advanced by ticking the game
 // directly, so a run doesn't depend on the game speed. Disposing puts back everything a test
 // touched, so the next test on the same map and world sees none of it: settings, shuttle capacity,
-// home area, quests, letters, items, shuttles, pawns and the trader.
+// home area, quests, letters, items, shuttles, pawns and the traders.
 #pragma warning disable CA1506 // CA1506: Avoid excessive class coupling
 internal sealed class TradeScene : IDisposable
 {
@@ -26,6 +26,7 @@ internal sealed class TradeScene : IDisposable
         .. Find.TransportShipManager.AllTransportShips,
     ];
     private readonly HashSet<Letter> lettersBefore = [.. Find.LetterStack.LettersListForReading];
+    private readonly List<TradeShip> otherTraders = [];
     private int ticked;
 
     internal Map Map { get; }
@@ -121,6 +122,46 @@ internal sealed class TradeScene : IDisposable
         _ = GenSpawn.Spawn(pawn, cell, Map);
         spawned.Add(pawn);
         return pawn;
+    }
+
+    // Puts a second bulk-goods trader in orbit, sent away with the rest of the scene.
+    internal TradeShip AddTrader()
+    {
+        var trader = new TradeShip(DefDatabase<TraderKindDef>.GetNamed("Orbital_BulkGoods"));
+        Map.passingShipManager.AddShip(trader);
+        trader.GenerateThings();
+        otherTraders.Add(trader);
+        return trader;
+    }
+
+    // Opens comms with another trader and reports how much of the colony's stock of this def its
+    // trade dialog offers for sale, then closes the dialog without trading.
+    internal int OfferedForSaleTo(TradeShip trader, ThingDef def)
+    {
+        trader.TryOpenComms(spawned.OfType<Pawn>().First());
+        var dialog = Find.WindowStack.WindowOfType<Dialog_Trade>();
+        Expect.IsNotNull(dialog, "Comms didn't open the trade dialog");
+        if (dialog == null)
+        {
+            return 0;
+        }
+        var offered = TradeSession
+            .deal.AllTradeables.Where(t => t.ThingDef == def)
+            .Sum(t => t.CountHeldBy(Transactor.Colony));
+        dialog.Close(doCloseSound: false);
+        return offered;
+    }
+
+    // Sells this many to another trader through its trade dialog and accepts.
+    internal void SellTo(TradeShip trader, ThingDef def, int count)
+    {
+        trader.TryOpenComms(spawned.OfType<Pawn>().First());
+        var dialog = Find.WindowStack.WindowOfType<Dialog_Trade>();
+        Expect.IsNotNull(dialog, "Comms didn't open the trade dialog");
+        if (dialog != null)
+        {
+            _ = SellInOpenDialog(dialog, def, count);
+        }
     }
 
     // Makes one shuttle able to carry only this much, so a modest sale needs several.
@@ -487,9 +528,18 @@ internal sealed class TradeScene : IDisposable
             _ = Find.WindowStack.TryRemove(explanation, doCloseSound: false);
         }
 
-        if (!TradeShip.Departed)
+        List<TradeAgreement> agreements =
+        [
+            .. new[] { TradeAgreement }
+                .Concat(otherTraders.Select(trader => trader.GetData().activeTradeAgreement))
+                .OfType<TradeAgreement>(),
+        ];
+        foreach (var trader in otherTraders.Prepend(TradeShip))
         {
-            TradeShip.Depart();
+            if (!trader.Departed)
+            {
+                trader.Depart();
+            }
         }
         foreach (var quest in Find.QuestManager.QuestsListForReading.ToList())
         {
@@ -512,10 +562,10 @@ internal sealed class TradeScene : IDisposable
             }
         }
         // Nothing destroyed from here on is a loss to a trade that no longer exists.
-        if (TradeAgreement != null)
+        foreach (var agreement in agreements)
         {
-            TradeAgreement.toTraderTransportShip = null;
-            TradeAgreement.additionalToTraderTransportShips.Clear();
+            agreement.toTraderTransportShip = null;
+            agreement.additionalToTraderTransportShips.Clear();
         }
         foreach (
             var ship in Find

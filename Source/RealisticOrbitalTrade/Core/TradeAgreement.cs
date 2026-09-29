@@ -9,7 +9,7 @@ namespace RealisticOrbitalTrade;
 [HotSwappable]
 internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
 {
-    private class Tradeable_Capped(TradeAgreement owner, int cap) : Tradeable
+    private class Tradeable_Capped(TradeAgreement owner, int cap) : Tradeable_Withheld
     {
         public int cap = cap;
 
@@ -66,6 +66,47 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
             .Where(thing => !tradeable.thingsColony.Contains(thing));
 
         return SumMatchingStackCounts(tradeable, notAlreadyCounted);
+    }
+
+    /// <summary>
+    /// How much of <paramref name="tradeable"/>'s colony stock this trade still has to take from
+    /// the colony: what is reserved for it until its shuttles land, then what the landed shuttles
+    /// still need loaded beyond what haulers are already carrying to them.
+    /// </summary>
+    internal int StillNeededFromColony(Tradeable tradeable)
+    {
+        if (!ToTraderTransportShips.Any(ship => ship.shipThing.Spawned))
+        {
+            return tradeable.thingsColony.Sum(thing =>
+                Math.Min(ReservedCountFor(thing), thing.stackCount)
+            );
+        }
+
+        var needed = 0;
+        foreach (var ship in ToTraderTransportShips)
+        {
+            var loaded = ship.TransporterComp.innerContainer;
+            var remaining = CompTradeShuttle
+                .CalculateRemainingGenericItems(ship.ShuttleComp.requiredItems, loaded)
+                .Where(item => item.ThingDef == tradeable.ThingDef)
+                .Sum(item => item.Count);
+            if (ship.shipThing.TryGetComp<CompTradeShuttle>() is { } tradeShuttle)
+            {
+                remaining += CompTradeShuttle
+                    .ComputeRemaining(tradeShuttle.requiredSpecificItems, loaded)
+                    .Where(item => item.Matches(tradeable.AnyThing))
+                    .Sum(item => item.count);
+            }
+            if (ship.shipThing.Map is { } map)
+            {
+                remaining -= SumMatchingStackCounts(
+                    tradeable,
+                    Utils.ThingsCarriedTowardTransporter(ship.TransporterComp, map)
+                );
+            }
+            needed += Math.Max(0, remaining);
+        }
+        return needed;
     }
 
     /// <summary>
@@ -1934,12 +1975,17 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
     }
 
     // Hands <paramref name="sell"/> up to <paramref name="amount"/> of the tradeable's colony stock
-    // that isn't already part of this deal, stack by stack.
+    // that isn't already part of this deal, stack by stack, preferring stock no other deal has
+    // claimed.
     private void SellUnsoldStock(Tradeable tradeable, int amount, Action<Thing, int> sell)
     {
+        Func<Thing, int>? claimedElsewhere = tradeable is Tradeable_Withheld withheld
+            ? withheld.ClaimedElsewhere
+            : null;
         var (allocation, shortfall) = AllocateUnsoldStock(
             tradeable.thingsColony.Select(thing => (thing, UnsoldCount(thing))),
-            amount
+            amount,
+            claimedElsewhere
         );
         foreach (var (thing, count) in allocation)
         {
@@ -1956,27 +2002,40 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
 
     /// <summary>
     /// Takes <paramref name="amount"/> from the stacks' unsold counts, stack by stack, and reports
-    /// how much of it no stack could supply.
+    /// how much of it no stack could supply. With <paramref name="claimedElsewhere"/>, the part of
+    /// each stack it names is only taken once every stack's unclaimed part is used up.
     /// </summary>
     internal static (List<(Thing thing, int count)> allocation, int shortfall) AllocateUnsoldStock(
         IEnumerable<(Thing thing, int unsold)> stock,
-        int amount
+        int amount,
+        Func<Thing, int>? claimedElsewhere = null
     )
     {
-        List<(Thing thing, int count)> allocation = [];
+        var stacks = stock.ToList();
+        var taken = new int[stacks.Count];
         var left = amount;
-        foreach (var (thing, unsold) in stock)
+        bool[] passes = claimedElsewhere == null ? [false] : [true, false];
+        foreach (var avoidClaimed in passes)
         {
-            if (left <= 0)
+            for (var i = 0; i < stacks.Count && left > 0; i++)
             {
-                break;
+                var (thing, unsold) = stacks[i];
+                var available = unsold - taken[i] - (avoidClaimed ? claimedElsewhere!(thing) : 0);
+                var count = Math.Min(left, available);
+                if (count > 0)
+                {
+                    taken[i] += count;
+                    left -= count;
+                }
             }
+        }
 
-            var count = Math.Min(left, unsold);
-            if (count > 0)
+        List<(Thing thing, int count)> allocation = [];
+        for (var i = 0; i < stacks.Count; i++)
+        {
+            if (taken[i] > 0)
             {
-                allocation.Add((thing, count));
-                left -= count;
+                allocation.Add((stacks[i].thing, taken[i]));
             }
         }
         return (allocation, left);

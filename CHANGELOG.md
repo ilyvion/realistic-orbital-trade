@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed being able to sell the same items to two traders at once. Items and creatures you've already sold in an ongoing trade, including silver you've agreed to pay, are no longer offered when trading with another trader, whether in orbit or visiting. If only part of a stack was sold, only the rest of it is offered.
+
 ## [0.13.0] - 2026-09-26
 
 ### Added

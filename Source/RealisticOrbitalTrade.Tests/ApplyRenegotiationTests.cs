@@ -233,4 +233,23 @@ internal sealed class ApplyRenegotiationTests
         Expect.IsTrue(ReferenceEquals(second, allocation[0].thing));
         Expect.AreEqual(0, shortfall);
     }
+
+    [Test]
+    public static void StockClaimedByAnotherTradeIsTakenLast()
+    {
+        var claimed = new Pawn { stackCount = 100 };
+        var unclaimed = new Pawn { stackCount = 100 };
+
+        var (allocation, shortfall) = TradeAgreement.AllocateUnsoldStock(
+            [(claimed, 30), (unclaimed, 20)],
+            40,
+            thing => thing == claimed ? 25 : 0
+        );
+
+        Expect.AreEqual(2, allocation.Count);
+        Expect.IsTrue(ReferenceEquals(claimed, allocation[0].thing));
+        Expect.AreEqual(20, allocation[0].count, "Took more of the claimed stack than needed");
+        Expect.AreEqual(20, allocation[1].count, "Didn't take all of the unclaimed stack first");
+        Expect.AreEqual(0, shortfall);
+    }
 }
