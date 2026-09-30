@@ -52,6 +52,10 @@ internal sealed class TradeScene : IDisposable
         Map = map;
         Expect.IsNull(FindTradeQuest(), "An earlier test leaked a trade quest");
         Expect.IsEmpty(
+            RealisticOrbitalTradeGameComponent.Current.ActiveTradeAgreements,
+            "An earlier test leaked a trade agreement"
+        );
+        Expect.IsEmpty(
             map.listerThings.AllThings.Where(t => t.def.category == ThingCategory.Item),
             "An earlier test leaked items onto the map"
         );
@@ -576,6 +580,29 @@ internal sealed class TradeScene : IDisposable
         }
     }
 
+    private static void EndTradeQuestsAndAgreements()
+    {
+        foreach (var quest in Find.QuestManager.QuestsListForReading.ToList())
+        {
+            if (quest.root != QuestScriptDefOf.ROT_TradeShipTransportShip)
+            {
+                continue;
+            }
+            if (quest.State == QuestState.Ongoing)
+            {
+                quest.End(QuestEndOutcome.Unknown, sendLetter: false);
+            }
+            RemoveQuestAlerts(quest);
+            Find.QuestManager.Remove(quest);
+        }
+        // Ending a quest early skips the part that ends its trade agreement.
+        var gameComponent = RealisticOrbitalTradeGameComponent.Current;
+        foreach (var agreement in gameComponent.ActiveTradeAgreements.ToList())
+        {
+            gameComponent.EndTradeAgreement(agreement);
+        }
+    }
+
     public void Dispose()
     {
         previousSettings.Apply();
@@ -602,19 +629,7 @@ internal sealed class TradeScene : IDisposable
                 trader.Depart();
             }
         }
-        foreach (var quest in Find.QuestManager.QuestsListForReading.ToList())
-        {
-            if (quest.root != QuestScriptDefOf.ROT_TradeShipTransportShip)
-            {
-                continue;
-            }
-            if (quest.State == QuestState.Ongoing)
-            {
-                quest.End(QuestEndOutcome.Unknown, sendLetter: false);
-            }
-            RemoveQuestAlerts(quest);
-            Find.QuestManager.Remove(quest);
-        }
+        EndTradeQuestsAndAgreements();
         foreach (var letter in Find.LetterStack.LettersListForReading.ToList())
         {
             if (!lettersBefore.Contains(letter))
