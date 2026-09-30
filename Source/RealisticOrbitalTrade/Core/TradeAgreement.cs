@@ -1068,6 +1068,40 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
     }
 
     /// <summary>
+    /// Re-protects <paramref name="count"/> units of <paramref name="placed"/>, sold goods a hauler
+    /// dropped back onto the map without delivering them to <paramref name="transporter"/>, as
+    /// long as that shuttle still needs them. Hauling released their protection when they were
+    /// claimed (see <see cref="ReduceReservation"/>), so without this they'd be free for any
+    /// colony job until re-hauled.
+    /// </summary>
+    internal void ProtectDroppedCargo(CompTransporter transporter, Thing placed, int count)
+    {
+        if (
+            count <= 0
+            || placed is Pawn
+            || !placed.Spawned
+            || !transporter.parent.Spawned
+            || transporter.parent.TryGetComp<CompTradeShuttle>() is not { cancelled: false }
+            || transporter.leftToLoad == null
+            || JobDriver_HaulMultipleToTransporter.FindCommittedTransferable(
+                placed,
+                transporter.leftToLoad
+            )
+                is not { CountToTransfer: > 0 }
+        )
+        {
+            return;
+        }
+
+        var toProtect = Math.Min(count, placed.stackCount - ReservedCountFor(placed));
+        if (toProtect > 0)
+        {
+            AddReservation(placed, toProtect);
+            ReleaseReservationsBeyondNeed();
+        }
+    }
+
+    /// <summary>
     /// Reserved-for-protection things still sitting untouched on the map - anything left here once
     /// the shuttle departs means a sold item never got claimed by a hauling job, which shouldn't
     /// happen if the mod's own hauling logic ran to completion.

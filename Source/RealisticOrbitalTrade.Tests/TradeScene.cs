@@ -6,19 +6,24 @@ namespace RealisticOrbitalTrade.Tests;
 // A colony with a powered trade beacon, a home area to load from and two colonists, plus a
 // bulk-goods trader in orbit, for the end-to-end trade tests. Time is advanced by ticking the game
 // directly, so a run doesn't depend on the game speed. Disposing puts back everything a test
-// touched, so the next test on the same map and world sees none of it: settings, shuttle capacity,
-// home area, quests, letters, items, shuttles, pawns and the traders.
+// touched, so the next test on the same map and world sees none of it: settings, autosave interval,
+// shuttle capacity, home area, quests, letters, items, shuttles, pawns and the traders.
 #pragma warning disable CA1506 // CA1506: Avoid excessive class coupling
 internal sealed class TradeScene : IDisposable
 {
     private const int TicksPerFrame = 60;
     private const int TradeTimeoutTicks = 20000;
 
+    // Far enough out that no autosave happens during a test. Saving the shared test world logs
+    // warnings about what earlier tests removed, which would fail whichever test it lands in.
+    private const float NoAutosaveIntervalDays = 1000f;
+
     private readonly SettingsSnapshot previousSettings = SettingsSnapshot.Capture();
     private readonly CompProperties_Transporter shuttleTransporter =
         TransportShipDefOf.Ship_Shuttle.shipThing.GetCompProperties<CompProperties_Transporter>();
     private readonly float previousShuttleCapacity;
     private readonly TimeSpeed previousTimeSpeed = Find.TickManager.CurTimeSpeed;
+    private readonly float previousAutosaveIntervalDays = Prefs.AutosaveIntervalDays;
     private readonly List<Thing> spawned = [];
     private readonly List<IntVec3> homeCellsAdded = [];
     private readonly HashSet<TransportShip> shipsBefore =
@@ -58,6 +63,7 @@ internal sealed class TradeScene : IDisposable
 
         // Only the test advances time, so the game's own ticking can't land between two of its ticks.
         Find.TickManager.CurTimeSpeed = TimeSpeed.Paused;
+        Prefs.AutosaveIntervalDays = NoAutosaveIntervalDays;
         (settings ?? SettingsSnapshot.Defaults).Apply();
 
         var center = map.Center;
@@ -298,6 +304,30 @@ internal sealed class TradeScene : IDisposable
         yield return TickUntil(inAnInventory);
         Expect.IsTrue(inAnInventory(), "No colonist ever carried the sold goods in inventory");
     }
+
+    // Ticks one tick at a time until one of the scene's colonists meets the condition, and returns
+    // it through the callback, so a test can act on a hauler mid-trip.
+    internal IEnumerator WaitForColonist(Func<Pawn, bool> condition, Action<Pawn?> found)
+    {
+        Pawn? match()
+        {
+            return spawned.OfType<Pawn>().FirstOrDefault(condition);
+        }
+        while (match() == null && ticked < TradeTimeoutTicks)
+        {
+            Find.TickManager.DoSingleTick();
+            ticked++;
+            if (ticked % TicksPerFrame == 0)
+            {
+                yield return null;
+            }
+        }
+        found(match());
+    }
+
+    // How much of this def lying on the map the trade protects from other colony jobs.
+    internal int ProtectedOnMap(ThingDef def) =>
+        Map.listerThings.ThingsOfDef(def).Sum(t => TradeAgreement!.ReservedCountFor(t));
 
     internal int LoadedInShuttles(ThingDef def) =>
         CurrentSale!
@@ -551,6 +581,7 @@ internal sealed class TradeScene : IDisposable
         previousSettings.Apply();
         shuttleTransporter.massCapacity = previousShuttleCapacity;
         Find.TickManager.CurTimeSpeed = previousTimeSpeed;
+        Prefs.AutosaveIntervalDays = previousAutosaveIntervalDays;
         TradeShipData.tradeAgreementForQuest = null;
         Utils.EndRenegotiation();
         if (FindDepartureExplanation() is { } explanation)

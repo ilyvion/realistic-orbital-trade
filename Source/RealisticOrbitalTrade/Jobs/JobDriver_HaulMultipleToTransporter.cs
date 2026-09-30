@@ -214,8 +214,13 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
     }
 #endif
 
+    // Drops what's still waiting in inventory, protected from other colony jobs until it's hauled
+    // again - see Patch/Rimworld_DroppedHauledCargo.cs.
+    internal void DropUndeliveredCargo() => EjectUndeliveredCargoCore();
+
     private void EjectUndeliveredCargoCore()
     {
+        var placedAction = Patch.DroppedHauledCargo.ProtectingPlacedAction(pawn, null);
         foreach (var thing in _carriedThings)
         {
             if (thing.DestroyedOrNull() || !pawn.inventory.innerContainer.Contains(thing))
@@ -229,7 +234,8 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
                 pawn.MapHeld,
                 ThingPlaceMode.Near,
                 thing.stackCount,
-                out _
+                out _,
+                placedAction
             );
         }
         _carriedThings.Clear();
