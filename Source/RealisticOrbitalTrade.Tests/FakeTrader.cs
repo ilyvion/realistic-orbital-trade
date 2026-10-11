@@ -1,10 +1,10 @@
 namespace RealisticOrbitalTrade.Tests;
 
-// RimWorld.TransferableUtility.TradeableMatching dereferences TradeSession.trader.TraderKind (via
-// Tradeable.TraderWillTrade) even just to compare whether two things can stack into the same
-// tradeable - a live TradeSession isn't otherwise needed for that comparison, but the static field
-// still has to be non-null or it NREs. This fake exists purely to satisfy that dependency in
-// tests; nothing here needs to behave like a real trader.
+// TradeAgreement.MatchingTradeable and RimWorld.TransferableUtility.TradeableMatching dereference
+// TradeSession.trader.TraderKind (via Tradeable.TraderWillTrade) even just to compare whether two
+// things can stack into the same tradeable - a live TradeSession isn't otherwise needed for that
+// comparison, but the static field still has to be non-null or it NREs. This fake exists purely
+// to satisfy that dependency in tests; nothing here needs to behave like a real trader.
 internal sealed class FakeTrader : ITrader
 {
     public TraderKindDef TraderKind { get; } = new();

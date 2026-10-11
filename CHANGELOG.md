@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed renegotiating a trade while Bulk Load For Transporters was loading the shuttle not offering the goods its loaders were carrying.
 - Fixed items left over after Bulk Load For Transporters loaded a trade shuttle staying protected from colony jobs until the trade ended, and causing a warning in the log when the shuttle took off.
 - Fixed sold items that a colonist dropped on the way to the trade shuttle, for example when interrupted or downed, being free for other colonists to eat, wear or use before they were carried to the shuttle again. They now stay set aside for the trade.
+- Fixed renegotiating a trade with GTG Trader Core installed mixing up damaged items of the same kind, such as several flak vests with slightly different condition. Renegotiating could take sold items off the deal or try to sell more than the colony had, and reported an error, even when nothing was changed in the dialog.
 
 ## [0.13.0] - 2026-09-26
 

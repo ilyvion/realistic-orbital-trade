@@ -99,7 +99,7 @@ internal static class Utils
     /// "original" side of the diff <see cref="TradeAgreement.ApplyRenegotiation"/> applies against.
     /// Captured by <see cref="Patch.Rimworld_TradeDeal_AddAllTradeables"/> rather than
     /// <see cref="BeginRenegotiation"/> itself, since <see cref="TradeAgreement.AllTradeables"/>
-    /// dereferences <c>TradeSession.trader</c> (via <c>TransferableUtility.TradeableMatching</c>),
+    /// dereferences <c>TradeSession.trader</c> (via <see cref="TradeAgreement.MatchingTradeable"/>),
     /// which isn't assigned until comms are actually opened.
     /// </summary>
     public static List<Tradeable>? RenegotiationOriginalTradeables { get; internal set; }

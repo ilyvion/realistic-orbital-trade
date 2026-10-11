@@ -111,21 +111,49 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
 
     /// <summary>
     /// Sums the stack counts of every entry in <paramref name="things"/> that belongs to
-    /// <paramref name="tradeable"/> under the same matching rules
-    /// <see cref="TransferableUtility.TradeableMatching"/> already uses everywhere else in this
-    /// merge (same def/stuff/quality bucket).
+    /// <paramref name="tradeable"/> under the same matching rules <see cref="MatchingTradeable"/>
+    /// already uses everywhere else in this merge (same def/stuff/quality bucket).
     /// </summary>
     internal static int SumMatchingStackCounts(Tradeable tradeable, IEnumerable<Thing> things)
     {
         var count = 0;
         foreach (var thing in things)
         {
-            if (TransferableUtility.TradeableMatching(thing, [tradeable]) == tradeable)
+            if (MatchingTradeable(thing, [tradeable]) == tradeable)
             {
                 count += thing.stackCount;
             }
         }
         return count;
+    }
+
+    /// <summary>
+    /// The first of <paramref name="tradeables"/> that <paramref name="thing"/> would be traded as
+    /// one with, by the same rules as <see cref="TransferableUtility.TradeableMatching"/>. Unlike
+    /// that method, which other mods patch to return cached tradeables from earlier calls, this
+    /// only ever returns an entry of <paramref name="tradeables"/>.
+    /// </summary>
+    internal static Tradeable? MatchingTradeable(Thing? thing, IReadOnlyList<Tradeable> tradeables)
+    {
+        if (thing == null)
+        {
+            return null;
+        }
+        foreach (var tradeable in tradeables)
+        {
+            if (tradeable is not { HasAnyThing: true })
+            {
+                continue;
+            }
+            var mode = tradeable.TraderWillTrade
+                ? TransferAsOneMode.Normal
+                : TransferAsOneMode.InactiveTradeable;
+            if (TransferableUtility.TransferAsOne(thing, tradeable.AnyThing, mode))
+            {
+                return tradeable;
+            }
+        }
+        return null;
     }
 
     protected int loadID = -1;
@@ -262,7 +290,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
     {
         foreach (var item in tradeDeliveryMethod!.Things)
         {
-            var tradeable = TransferableUtility.TradeableMatching(item, tradeables);
+            var tradeable = MatchingTradeable(item, tradeables);
             if (tradeable == null)
             {
                 tradeable = (item is not Pawn) ? new Tradeable() : new Tradeable_Pawn();
@@ -285,7 +313,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                 continue;
             }
 
-            var tradeable = TransferableUtility.TradeableMatching(item.thing, tradeables);
+            var tradeable = MatchingTradeable(item.thing, tradeables);
             if (tradeable == null)
             {
                 tradeable = new Tradeable_Capped(this, item.Count);
@@ -301,7 +329,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                 // loose stock of the same item elsewhere on the map, or - for silver - the single
                 // currency tradeable TradeDeal always seeds) - upgrade it in place to a capped one
                 // so the amount already committed here isn't lost to whatever vanilla happened to
-                // find reachable. TradeableMatching matches purely by AnyThing, not by Tradeable
+                // find reachable. MatchingTradeable matches purely by AnyThing, not by Tradeable
                 // subtype, so later items sharing this def still find this same upgraded entry
                 // rather than creating a duplicate.
                 var index = tradeables.IndexOf(tradeable);
@@ -327,7 +355,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                 continue;
             }
 
-            var tradeable = TransferableUtility.TradeableMatching(item, tradeables);
+            var tradeable = MatchingTradeable(item, tradeables);
             if (tradeable == null)
             {
                 tradeable = new Tradeable_Pawn();
@@ -1134,7 +1162,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
                 _ = reservedTraderThings.Remove(entry);
                 continue;
             }
-            if (TransferableUtility.TradeableMatching(thing, groups) is { } group)
+            if (MatchingTradeable(thing, groups) is { } group)
             {
                 group.AddThing(thing, Transactor.Colony);
             }
@@ -1568,10 +1596,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
             var tradedThingDef = originalTradeable.ThingDef;
             var newTradeable =
                 tradedThingDef != RimWorld.ThingDefOf.Silver
-                    ? TransferableUtility.TradeableMatching(
-                        originalTradeable.AnyThing,
-                        newTradeables
-                    )
+                    ? MatchingTradeable(originalTradeable.AnyThing, newTradeables)
                     : newTradeables.FirstOrDefault(t => t.IsCurrency);
             if (newTradeable == null)
             {

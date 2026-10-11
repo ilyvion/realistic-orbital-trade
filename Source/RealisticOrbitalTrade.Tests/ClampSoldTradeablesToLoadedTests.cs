@@ -9,7 +9,7 @@ namespace RealisticOrbitalTrade.Tests;
 [TestFixture(TestType.MainMenu)]
 internal sealed class ClampSoldTradeablesToLoadedTests
 {
-    // TransferableUtility.TradeableMatching dereferences TradeSession.trader - see FakeTrader.
+    // TradeAgreement.MatchingTradeable dereferences TradeSession.trader - see FakeTrader.
     [SetUp]
     public static void SetUpTradeSession() => TradeSession.trader = new FakeTrader();
 
