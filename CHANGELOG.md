@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.1] - 2026-10-11
+
 ### Fixed
 
 - Fixed being able to sell the same items to two traders at once. Items and creatures you've already sold in an ongoing trade, including silver you've agreed to pay, are no longer offered when trading with another trader, whether in orbit or visiting. If only part of a stack was sold, only the rest of it is offered.
@@ -266,7 +268,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.13.0...HEAD
+[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.13.1...HEAD
+[0.13.1]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.13.0..v0.13.1
 [0.13.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.12.2..v0.13.0
 [0.12.2]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.12.1..v0.12.2
 [0.12.1]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.12.0..v0.12.1
