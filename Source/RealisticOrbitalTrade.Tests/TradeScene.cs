@@ -139,6 +139,21 @@ internal sealed class TradeScene : IDisposable
     internal int OfferedForSaleTo(TradeShip trader, ThingDef def)
     {
         trader.TryOpenComms(spawned.OfType<Pawn>().First());
+        return OfferedInOpenDialog(def);
+    }
+
+    // Opens the renegotiation dialog the way RenegotiateSale does and reports how much of the
+    // colony's stock of this def it offers for sale, then closes it without changing the deal.
+    internal int OfferedInRenegotiation(ThingDef def)
+    {
+        var agreement = TradeAgreement!;
+        Utils.BeginRenegotiation(agreement);
+        agreement.tradeShip.TryOpenComms(agreement.negotiator);
+        return OfferedInOpenDialog(def);
+    }
+
+    private static int OfferedInOpenDialog(ThingDef def)
+    {
         var dialog = Find.WindowStack.WindowOfType<Dialog_Trade>();
         Expect.IsNotNull(dialog, "Comms didn't open the trade dialog");
         if (dialog == null)
@@ -267,6 +282,21 @@ internal sealed class TradeScene : IDisposable
             sale.Count,
             "The shuttle was fully loaded before it could be cancelled"
         );
+    }
+
+    // Ticks until a colonist carries some of the sold goods in their inventory, as a bulk loader
+    // does between picking them up and loading them.
+    internal IEnumerator WaitForSoldGoodsInAnInventory()
+    {
+        var def = CurrentSale!.Def;
+        bool inAnInventory()
+        {
+            return spawned
+                .OfType<Pawn>()
+                .Any(pawn => pawn.inventory.innerContainer.Any(thing => thing.def == def));
+        }
+        yield return TickUntil(inAnInventory);
+        Expect.IsTrue(inAnInventory(), "No colonist ever carried the sold goods in inventory");
     }
 
     internal int LoadedInShuttles(ThingDef def) =>

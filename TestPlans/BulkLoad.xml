@@ -2,8 +2,8 @@
     <name>BulkLoad</name>
     <jobs>
         <li>
-            <name>Bulk Load For Transporters loads the shuttle</name>
-            <commandLineArgs>--test --filter "class == BulkLoadCancellationEndToEndTests"</commandLineArgs>
+            <name>Bulk Load For Transporters E2E</name>
+            <commandLineArgs>--test --filter "class =~ BulkLoad"</commandLineArgs>
             <loadWithMods>
                 <li>brrainz.harmony</li>
                 <li>ludeon.rimworld</li>
