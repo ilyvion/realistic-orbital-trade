@@ -244,6 +244,12 @@ internal static class Rimworld_CompTransporter_SubtractFromToLoadList
 
         return codeMatcher.Instructions();
     }
+
+    // Runs for every deposit into the shuttle, whichever job or mod made it.
+    private static void Postfix(CompTransporter __instance) =>
+        __instance
+            .parent.TryGetComp<CompTradeShuttle>()
+            ?.tradeAgreement?.ReleaseReservationsBeyondNeed();
 }
 
 // These two fix not hauling books out of book cases:

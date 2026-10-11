@@ -1076,6 +1076,52 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         reservedTraderThings.Where(t => t.thing is { Spawned: true }).Select(t => t.thing);
 
     /// <summary>
+    /// Releases the reservations on stock still on the map beyond what the landed shuttles still
+    /// need from the colony (see <see cref="StillNeededFromColony"/>), so stacks a loader other
+    /// than this mod's own hauling jobs left behind don't stay protected.
+    /// </summary>
+    internal void ReleaseReservationsBeyondNeed()
+    {
+        if (!ToTraderTransportShips.Any(ship => ship.shipThing.Spawned))
+        {
+            return;
+        }
+
+        List<Tradeable> groups = [];
+        foreach (var entry in reservedTraderThings.ToList())
+        {
+            if (entry.thing is not { Spawned: true } thing)
+            {
+                continue;
+            }
+            entry.Count = Math.Min(entry.Count, thing.stackCount);
+            if (entry.Count <= 0)
+            {
+                _ = reservedTraderThings.Remove(entry);
+                continue;
+            }
+            if (TransferableUtility.TradeableMatching(thing, groups) is { } group)
+            {
+                group.AddThing(thing, Transactor.Colony);
+            }
+            else
+            {
+                Tradeable newGroup = new();
+                newGroup.AddThing(thing, Transactor.Colony);
+                groups.Add(newGroup);
+            }
+        }
+
+        foreach (var group in groups)
+        {
+            ReleaseReservationsBeyond(
+                thing => thing is { Spawned: true } && group.thingsColony.Contains(thing),
+                StillNeededFromColony(group)
+            );
+        }
+    }
+
+    /// <summary>
     /// Releases reservations on the things <paramref name="matches"/> selects until no more than
     /// <paramref name="stillNeeded"/> units remain reserved across them.
     /// </summary>

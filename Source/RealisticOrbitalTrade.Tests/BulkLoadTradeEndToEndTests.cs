@@ -22,6 +22,18 @@ internal sealed class BulkLoadTradeEndToEndTests
         );
 
     [Test]
+    public static IEnumerator ASaleLoadedByBulkLoadCompletes()
+    {
+        var steel = RimWorld.ThingDefOf.Steel;
+        using var scene = NewScene();
+        scene.PlaceOnMap(steel, SteelOnMap);
+
+        yield return scene.SellAndWaitForCompletion(steel, SteelSold);
+
+        scene.ExpectSaleCompleted();
+    }
+
+    [Test]
     public static IEnumerator RenegotiatingOffersGoodsBulkLoadIsCarrying()
     {
         var steel = RimWorld.ThingDefOf.Steel;

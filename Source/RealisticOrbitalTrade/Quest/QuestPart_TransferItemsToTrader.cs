@@ -60,8 +60,10 @@ internal class QuestPart_TransferItemsToTrader : QuestPart
     // this point every sold item should either be loaded or gone from
     // tradeAgreement.reservedTraderThings (see JobDriver_HaulMultipleToTransporter/
     // Rimworld_JobDriver_HaulToTransporter_Notify_Starting, which shrink it as hauling jobs claim
-    // real reservations). Anything still sitting untouched on the map here means a sold item never
-    // got claimed by a hauling job - a bug in the mod's own logic, not something the player did.
+    // real reservations, and TradeAgreement.ReleaseReservationsBeyondNeed, which shrinks it to
+    // what's still needed on every deposit). Anything still sitting untouched on the map here
+    // means a sold item was never released - a bug in the mod's own logic, not something the
+    // player did.
     private void WarnIfAnyStillReserved()
     {
         var stuck = tradeAgreement!.StillReservedSpawnedThings().ToList();
