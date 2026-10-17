@@ -15,10 +15,9 @@ internal sealed class SoldItemDestroyedTests
     // state, so it can't run outside an actual loaded game. Thing.Destroyed is just a read of the
     // private mapIndexOrState field though, so it's faked directly here rather than routing
     // through the real (heavily side-effecting) Destroy() method.
-    private static readonly FieldInfo MapIndexOrStateField = typeof(Thing).GetField(
-        "mapIndexOrState",
-        BindingFlags.NonPublic | BindingFlags.Instance
-    );
+    private static readonly FieldInfo MapIndexOrStateField =
+        typeof(Thing).GetField("mapIndexOrState", BindingFlags.NonPublic | BindingFlags.Instance)
+        ?? throw new MissingFieldException(nameof(Thing), "mapIndexOrState");
 
     private static void MarkDestroyed(Thing thing) =>
         MapIndexOrStateField.SetValue(thing, (sbyte)-2);

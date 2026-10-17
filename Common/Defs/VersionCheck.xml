@@ -4,6 +4,6 @@
         <defName>RealisticOrbitalTrade_VersionCheck</defName>
         <modName>Realistic Orbital Trade</modName>
         <majorVersion>0</majorVersion>
-        <minorVersion>23</minorVersion>
+        <minorVersion>25</minorVersion>
     </ilyvion.Laboratory.VersionCheckDef>
 </Defs>

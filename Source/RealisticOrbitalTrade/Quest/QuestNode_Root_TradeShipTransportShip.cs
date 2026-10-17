@@ -464,10 +464,7 @@ internal class QuestNode_Root_TradeShipTransportShip : QuestNode
     /// <inheritdoc/>
     protected override bool TestRunInt(Slate slate)
     {
-        if (slate == null)
-        {
-            throw new ArgumentNullException(nameof(slate));
-        }
+        ArgumentNullException.ThrowIfNull(slate);
         var tradeAgreement = slate.Get<TradeAgreement>("tradeAgreement");
 
         return tradeAgreement.tradeShip.GetData().ticksUntilCommsClosed != 0;

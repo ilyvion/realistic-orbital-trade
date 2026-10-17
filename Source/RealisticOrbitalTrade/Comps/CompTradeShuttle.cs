@@ -959,10 +959,7 @@ internal class CompTradeShuttle : ThingComp
 
     public override IEnumerable<FloatMenuOption> CompFloatMenuOptions(Pawn selPawn)
     {
-        if (selPawn == null)
-        {
-            throw new ArgumentNullException(nameof(selPawn));
-        }
+        ArgumentNullException.ThrowIfNull(selPawn);
 
         if (cancelled)
         {

@@ -4,10 +4,7 @@ internal static class TransportShipExtensions
 {
     public static IntVec3 GetDropLocation(this TransportShip transportShip)
     {
-        if (transportShip == null)
-        {
-            throw new ArgumentNullException(nameof(transportShip));
-        }
+        ArgumentNullException.ThrowIfNull(transportShip);
 #if v1_6_OR_GREATER
         var dropLoc = transportShip.shipThing.InteractionCell;
 #else

@@ -9,11 +9,6 @@ internal sealed class ApplyRenegotiationTests
 {
     private const int SteelOnMap = 400;
 
-    private static readonly FieldInfo TraderThingsField = typeof(TradeShip).GetField(
-        "things",
-        BindingFlags.NonPublic | BindingFlags.Instance
-    );
-
     private static Tradeable PawnTradeable(Pawn pawn, Transactor owner, int count)
     {
         var tradeable = new Tradeable();
@@ -174,7 +169,7 @@ internal sealed class ApplyRenegotiationTests
         yield return scene.SellAndWaitForLanding(steel, 100);
         var agreement = scene.TradeAgreement!;
         var pawn = PawnGenerator.GeneratePawn(PawnKindDefOf.Colonist);
-        _ = ((ThingOwner)TraderThingsField.GetValue(agreement.tradeShip)).TryAdd(pawn);
+        _ = agreement.tradeShip.things.TryAdd(pawn);
 
         _ = agreement.ApplyRenegotiation([], [PawnTradeable(pawn, Transactor.Trader, 1)]);
 

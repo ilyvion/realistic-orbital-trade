@@ -28,4 +28,14 @@
         <li IfModActive="supes.autoseller.core">Integrations/AutoSeller/1.6</li>
         <li IfModActive="krelinos.socialexpfromtrade">Integrations/SocialEXPFromTrade/1.6</li>
     </v1.6>
+    <v1.7>
+        <li>Common</li>
+        <li>1.7</li>
+        <li IfModActive="mlie.wehadatrader">Integrations/WeHadATrader/1.7</li>
+        <li IfModActive="neronix17.tweaksgalore">Integrations/TweaksGalore/1.7</li>
+        <li IfModActive="zeracronius.dynamictradeinterface"
+            >Integrations/DynamicTradeInterface/1.7</li>
+        <li IfModActive="supes.autoseller.core">Integrations/AutoSeller/1.7</li>
+        <li IfModActive="krelinos.socialexpfromtrade">Integrations/SocialEXPFromTrade/1.7</li>
+    </v1.7>
 </loadFolders>

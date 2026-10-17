@@ -51,6 +51,34 @@ internal sealed class GenepackContainerPatchTests
         }
     }
 
+#if v1_7_OR_GREATER
+    // On CoreCLR the JIT can inline these small patched methods into their callers, so the
+    // patches are checked through vanilla callers instead of being called directly.
+    [Test]
+    public static void VanillaCallersSeeAGenepackInAGenebankAsHaulableAndStored()
+    {
+        var map = Find.CurrentMap;
+        var genebank = SpawnGenebank(map);
+        try
+        {
+            var genepack = ThingMaker.MakeThing(RimWorld.ThingDefOf.Genepack);
+            Expect.IsTrue(
+                genebank.TryGetComp<CompGenepackContainer>().innerContainer.TryAdd(genepack)
+            );
+
+            Expect.AreEqual(
+                genepack,
+                GenClosest.ClosestThing_Global(genebank.Position, new List<Thing> { genepack })
+            );
+            Expect.IsTrue(genepack.IsInAnyStorage());
+        }
+        finally
+        {
+            genebank.Destroy();
+        }
+    }
+#endif
+
     [Test]
     public static void UnregisteringAContainerThatWasNeverRegisteredDoesNothing()
     {

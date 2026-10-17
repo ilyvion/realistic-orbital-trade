@@ -5,8 +5,8 @@
 Replaces vanilla's instant orbital trading with a physical flow: accepting a deal starts a quest, a trade shuttle lands, colonists haul the sold goods aboard, the shuttle takes off, and payment and bought goods arrive on a second shuttle.
 
 - `Source/RealisticOrbitalTrade/` — the mod. `Patch/` holds the Harmony patches, `Core/` the trade state (`TradeAgreement`, `TradeShipData`, `Settings`), `Quest/` the quest nodes and parts, `Comps/`, `Jobs/` and `WorkGivers/` the shuttle loading logic.
-- `Source/RealisticOrbitalTrade.Tests/` — DevTools tests (`internal sealed` fixtures, `InternalsVisibleTo("RealisticOrbitalTrade.Tests")`). The project is empty on 1.4 and 1.5; tests only exist for 1.6.
-- Supported versions: 1.4, 1.5, 1.6. Build each with `.vscode/build.sh <version>`.
+- `Source/RealisticOrbitalTrade.Tests/` — DevTools tests (`internal sealed` fixtures, `InternalsVisibleTo("RealisticOrbitalTrade.Tests")`). The project is empty on 1.4 and 1.5; tests only exist for 1.6 and 1.7.
+- Supported versions: 1.4, 1.5, 1.6, 1.7. Build each with `.vscode/build.sh <version>`.
 
 ### Trade flow
 
@@ -36,9 +36,9 @@ Replaces vanilla's instant orbital trading with a physical flow: accepting a dea
     - `TradeShip.CountHeldOf` doesn't include stacks added by `QuestPart_TransferItemsToTrader`; sum `TradeShip.Goods` stack counts by def instead.
     - `Map.resourceCounter` only counts items in storage; loose items read as 0. Sum `Map.listerThings.ThingsOfDef(def)` stack counts instead.
 - **Expect vs failure lines:** `Expect.*` doesn't throw, so one run can list several failures. `AreEqual(expected, actual)` prints `Expected <expected> == <actual>`.
-- **Debugging a failing run:** `Log.Message` output goes to `Player.log`; test results go to `.savedatafolder/1.6/Test.log`. Logging state each loop iteration when it changes shows where a value diverges. Remove it before finishing.
-- **Tests only run through launch inputs.** Start the game with the GABS `games_start` tool, `gameId: "RealisticOrbitalTrade"`, and `launchInputs`; a start without `runTests` (or `testPlan`) just opens the game. `{"runTests": true}` runs the whole suite, `{"runTests": true, "testFilter": "class == <FixtureName>"}` (or `"method == <TestName>"`) a subset, and `{"testPlan": "<name>"}` a plan from `TestPlans/`.
-- Run only the new fixture with `runTests` plus `testFilter: "class == <FixtureName>"`, and rebuild with `.vscode/build.sh 1.6` before each relaunch since the game loads the built mod. Stop the running game before relaunching.
-- The runner exits when it finishes, so `games_start` can report exit code 1 for a failing run; the result is in `.savedatafolder/1.6/Test.log`. Wait for its `Test runner finished. Result:` line with a backgrounded `until grep -q` loop instead of sleeping.
+- **Debugging a failing run:** `Log.Message` output goes to `Player.log`; test results go to `.savedatafolder/<version>/Test.log`. Logging state each loop iteration when it changes shows where a value diverges. Remove it before finishing.
+- **Tests only run through launch inputs.** Start the game with the GABS `games_start` tool, `gameId: "RealisticOrbitalTrade"`, and `launchInputs`; a start without `runTests` (or `testPlan`) just opens the game. `{"runTests": true}` runs the whole suite, `{"runTests": true, "testFilter": "class == <FixtureName>"}` (or `"method == <TestName>"`) a subset, and `{"testPlan": "<name>"}` a plan from `TestPlans/`. The game runs 1.7 unless `launchInputs` adds `"rimworldVersion": "1.6"`.
+- Run only the new fixture with `runTests` plus `testFilter: "class == <FixtureName>"`, and rebuild with `.vscode/build.sh <version>` before each relaunch since the game loads the built mod. Stop the running game before relaunching.
+- The runner exits when it finishes, so `games_start` can report exit code 1 for a failing run; the result is in `.savedatafolder/<version>/Test.log`. Wait for its `Test runner finished. Result:` line with a backgrounded `until grep -q` loop instead of sleeping.
 
 @CLAUDE.SHARED.md

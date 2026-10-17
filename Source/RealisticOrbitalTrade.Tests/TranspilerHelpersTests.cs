@@ -8,10 +8,11 @@ internal sealed class TranspilerHelpersTests
 {
     private static void Target() { }
 
-    private static readonly MethodInfo TargetMethod = typeof(TranspilerHelpersTests).GetMethod(
-        nameof(Target),
-        BindingFlags.NonPublic | BindingFlags.Static
-    );
+    private static readonly MethodInfo TargetMethod =
+        typeof(TranspilerHelpersTests).GetMethod(
+            nameof(Target),
+            BindingFlags.NonPublic | BindingFlags.Static
+        ) ?? throw new MissingMethodException(nameof(TranspilerHelpersTests), nameof(Target));
 
     [Test]
     public static void InjectsDirectlyBeforeLastMatchWithExtrasBeforeCall()

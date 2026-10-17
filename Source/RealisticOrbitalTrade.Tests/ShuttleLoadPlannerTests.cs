@@ -38,7 +38,9 @@ internal sealed class ShuttleLoadPlannerTests
             [new(0, 0.5f, 777), new(1, 3f, 91), new(2, 40f, 7)]
         );
 
-        var totals = plan.SelectMany(s => s)
+        Expect.IsNotNull(plan);
+        var totals = (plan ?? [])
+            .SelectMany(s => s)
             .GroupBy(s => s.lineId)
             .ToDictionary(g => g.Key, g => g.Sum(s => s.count));
         Expect.AreEqual(777, totals[0]);

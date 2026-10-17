@@ -12,6 +12,7 @@
         Mod compatibility is probably generally good, but there might be issues with mods that modify how orbital traders work or how vanilla shuttles work.
     </description>
     <supportedVersions>
+        <li>1.7</li>
         <li>1.6</li>
         <li>1.5</li>
         <li>1.4</li>

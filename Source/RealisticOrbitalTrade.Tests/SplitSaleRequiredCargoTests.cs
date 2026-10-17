@@ -15,11 +15,16 @@ internal sealed class SplitSaleRequiredCargoTests
         typeof(TradeAgreement).GetField(
             "checkingDepartureClearance",
             BindingFlags.NonPublic | BindingFlags.Instance
-        );
+        ) ?? throw new MissingFieldException(nameof(TradeAgreement), "checkingDepartureClearance");
 
-    private static readonly MethodInfo SetRenegotiatingBecauseDeparting = typeof(Utils)
-        .GetProperty(nameof(Utils.RenegotiatingBecauseDeparting))
-        .GetSetMethod(nonPublic: true);
+    private static readonly MethodInfo SetRenegotiatingBecauseDeparting =
+        typeof(Utils)
+            .GetProperty(nameof(Utils.RenegotiatingBecauseDeparting))
+            ?.GetSetMethod(nonPublic: true)
+        ?? throw new MissingMethodException(
+            nameof(Utils),
+            "set_" + nameof(Utils.RenegotiatingBecauseDeparting)
+        );
 
     private static IEnumerator SellSplitAcrossShuttles(TradeScene scene)
     {
