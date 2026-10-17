@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.1] - 2026-10-17
+
 ### Fixed
 
 - Fixed loading a save failing with an error when it was saved after a trade shuttle had flown off but before the trade had finished, such as while waiting for the payment shuttle or just after it left.
@@ -291,7 +293,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.14.0...HEAD
+[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.14.1...HEAD
+[0.14.1]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.14.0..v0.14.1
 [0.14.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.13.1..v0.14.0
 [0.13.1]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.13.0..v0.13.1
 [0.13.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.12.2..v0.13.0
