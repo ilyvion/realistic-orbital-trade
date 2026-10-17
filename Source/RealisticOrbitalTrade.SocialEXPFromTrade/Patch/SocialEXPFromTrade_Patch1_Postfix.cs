@@ -23,12 +23,20 @@ internal static class SocialEXPFromTrade_Patch1_Postfix
     // pointing Harmony at the original's positional special names (__0, __1, ...) instead, which
     // bind by index rather than by name.
     internal static bool Prefix(
-        [HarmonyArgument("__0")] object[] state,
+        [HarmonyArgument("__0")] object[]? state,
         [HarmonyArgument("__1")] ref bool result
     )
     {
         var tradeAgreement = Rimworld_TradeDeal_TryExecute.PendingTradeAgreement;
         Rimworld_TradeDeal_TryExecute.PendingTradeAgreement = null;
+
+        // Their prefix didn't run, so there's no state for their postfix to read: ROT's own
+        // TryExecute prefix skipped the original (a renegotiation or a refused accept), and Harmony
+        // skips every later prefix that takes a by-ref argument, as theirs does, along with it.
+        if (state == null)
+        {
+            return false;
+        }
 
         // Not a ROT-managed trade (e.g. ordinary caravan trading), the trade failed outright, or
         // Social Experience from Trade itself determined nothing should be granted (state[3]:

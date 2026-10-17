@@ -132,4 +132,24 @@ internal sealed class SocialExpGrantTrackerTests
         Expect.IsFalse(SocialEXPFromTrade_Patch1_Postfix.ShouldDefer(agreement, false, false));
         Expect.IsFalse(SocialEXPFromTrade_Patch1_Postfix.ShouldDefer(agreement, true, true));
     }
+
+    [Test]
+    public static void MissingStateSkipsTheirPostfixWithoutDeferring()
+    {
+        Begin();
+        try
+        {
+            Rimworld_TradeDeal_TryExecute.PendingTradeAgreement = NewAgreement();
+            var result = true;
+
+            Expect.IsFalse(SocialEXPFromTrade_Patch1_Postfix.Prefix(null, ref result));
+            Expect.AreEqual(0, SocialExpGrantTracker.PendingCount);
+            Expect.IsNull(Rimworld_TradeDeal_TryExecute.PendingTradeAgreement);
+        }
+        finally
+        {
+            Rimworld_TradeDeal_TryExecute.PendingTradeAgreement = null;
+            End();
+        }
+    }
 }
