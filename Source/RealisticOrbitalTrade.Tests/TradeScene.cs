@@ -555,6 +555,9 @@ internal sealed class TradeScene : IDisposable
         Expect.IsTrue(deal.TryExecute(out var actuallyTraded), "Trade was rejected");
         Expect.IsTrue(actuallyTraded, "Trade didn't execute");
         dialog.Close(doCloseSound: false);
+        // Other mods close the session once a trade is made so the rest of the trade must not
+        // depend on it.
+        TradeSession.Close();
         return silverToReceive;
     }
 

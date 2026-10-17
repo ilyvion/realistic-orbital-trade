@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed an error with Social Experience from Trade installed when accepting a renegotiated trade, or when the trade dialog refused a deal (for example, one below the minimum trade value or too heavy for the shuttles).
 - Fixed renegotiating a trade with Social Experience from Trade installed not changing the social experience the negotiator gets when the trade completes, or adding the whole renegotiated deal on top of the original one. The experience now matches the renegotiated deal.
+- Fixed an error when colonists loaded items into a trade shuttle after another mod had closed the trade session.
 
 ## [0.13.1] - 2026-10-11
 

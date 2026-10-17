@@ -131,7 +131,9 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
     /// The first of <paramref name="tradeables"/> that <paramref name="thing"/> would be traded as
     /// one with, by the same rules as <see cref="TransferableUtility.TradeableMatching"/>. Unlike
     /// that method, which other mods patch to return cached tradeables from earlier calls, this
-    /// only ever returns an entry of <paramref name="tradeables"/>.
+    /// only ever returns an entry of <paramref name="tradeables"/>, and also works without a trader
+    /// in <see cref="TradeSession"/> (as once another mod closes it), matching as if the trader
+    /// will trade everything.
     /// </summary>
     internal static Tradeable? MatchingTradeable(Thing? thing, IReadOnlyList<Tradeable> tradeables)
     {
@@ -145,9 +147,10 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
             {
                 continue;
             }
-            var mode = tradeable.TraderWillTrade
-                ? TransferAsOneMode.Normal
-                : TransferAsOneMode.InactiveTradeable;
+            var mode =
+                TradeSession.trader == null || tradeable.TraderWillTrade
+                    ? TransferAsOneMode.Normal
+                    : TransferAsOneMode.InactiveTradeable;
             if (TransferableUtility.TransferAsOne(thing, tradeable.AnyThing, mode))
             {
                 return tradeable;
