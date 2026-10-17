@@ -203,6 +203,52 @@ internal sealed class TradeAgreementInFlightTests
         );
     }
 
+    // Sells and waits for the shuttles to fly off, then puts them in the state saving leaves a
+    // departed shuttle in: TransportShip.ExposeData nulls a destroyed shipThing.
+    private static IEnumerator SoldAndDepartedAsAfterASave(TradeScene scene)
+    {
+        var steel = RimWorld.ThingDefOf.Steel;
+        scene.PlaceOnMap(steel, 100);
+        yield return scene.SellAndWaitForLanding(steel, 100);
+        yield return scene.WaitForShuttlesToLeave();
+        foreach (var ship in scene.ToTraderShuttles)
+        {
+            ship.shipThing = null;
+        }
+    }
+
+    [Test]
+    public static IEnumerator PruningAfterTheShuttleDepartedDoesNotRequireRenegotiation()
+    {
+        using var scene = new TradeScene(Find.CurrentMap);
+        yield return SoldAndDepartedAsAfterASave(scene);
+        var agreement = scene.TradeAgreement!;
+        Expect.IsTrue(agreement.ToTraderShuttlesDeparted, "The shuttle never departed");
+        agreement.thingsSoldToTrader.Add(new ThingCountClass(null, 10));
+        var lettersBefore = Find.LetterStack.LettersListForReading.Count;
+
+        agreement.PruneDestroyedSoldItems();
+
+        Expect.IsFalse(agreement.RenegotiationRequired, "Delivered goods forced a renegotiation");
+        Expect.AreEqual(lettersBefore, Find.LetterStack.LettersListForReading.Count);
+        Expect.IsFalse(agreement.thingsSoldToTrader.Any(t => t.thing == null));
+    }
+
+    [Test]
+    public static IEnumerator DestroyingDeliveredGoodsAfterTheShuttleDepartedChangesNothing()
+    {
+        using var scene = new TradeScene(Find.CurrentMap);
+        yield return SoldAndDepartedAsAfterASave(scene);
+        var agreement = scene.TradeAgreement!;
+        var lettersBefore = Find.LetterStack.LettersListForReading.Count;
+
+        agreement.thingsSoldToTrader.First().thing.Destroy();
+
+        Expect.IsFalse(agreement.RenegotiationRequired, "Delivered goods forced a renegotiation");
+        Expect.IsEmpty(agreement.lostSoldItems);
+        Expect.AreEqual(lettersBefore, Find.LetterStack.LettersListForReading.Count);
+    }
+
     [Test]
     public static IEnumerator UnsoldCountIsWhatIsLeftOfAStackAfterWhatWasSoldFromIt()
     {

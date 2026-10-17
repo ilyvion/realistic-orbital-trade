@@ -1,4 +1,5 @@
 using DevTools.Testing;
+using RealisticOrbitalTrade.Core;
 using RealisticOrbitalTrade.Quests;
 using RealisticOrbitalTrade.ShipJobs;
 
@@ -198,6 +199,22 @@ internal sealed class QuestPartTests
         Expect.IsFalse(animal.Discarded, "The bought animal was discarded before delivery");
         _ = delivery.Remove(animal);
         Discard(animal);
+    }
+
+    // Saving nulls the shipThing of a to-player shuttle that has already delivered and flown off.
+    [Test]
+    public static IEnumerator ADepartedDeliveryShuttleReservesNothing()
+    {
+        using var scene = new TradeScene(Find.CurrentMap);
+        var agreement = new TradeAgreement(scene.TradeShip, scene.SpawnPawn(), false, false)
+        {
+            tradeDeliveryMethod = new TradeDeliveryMethod_TransportShip(new TransportShip()),
+        };
+        var part = new QuestPart_ReserveBoughtPawns { tradeAgreement = agreement };
+
+        Expect.IsEmpty(agreement.tradeDeliveryMethod.Things);
+        Expect.IsFalse(part.QuestPartReserves(MakeStrangerPawn()));
+        yield break;
     }
 
     private static int IncomingPods(Map map) =>

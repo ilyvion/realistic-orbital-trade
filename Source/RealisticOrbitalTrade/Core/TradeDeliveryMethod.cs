@@ -14,7 +14,11 @@ internal class TradeDeliveryMethod_TransportShip(TransportShip toPlayerTransport
     public TradeDeliveryMethod_TransportShip()
         : this(null!) { }
 
-    public override ThingOwner Things => toPlayerTransportShip.TransporterComp.innerContainer;
+    private ThingOwner<Thing>? departedShipThings;
+
+    // Saving nulls a departed shuttle's shipThing, leaving nothing to deliver.
+    public override ThingOwner Things =>
+        toPlayerTransportShip.TransporterComp?.innerContainer ?? (departedShipThings ??= new());
 
     public override void ExposeData() =>
         Scribe_References.Look(ref toPlayerTransportShip, "toPlayerTransportShip");

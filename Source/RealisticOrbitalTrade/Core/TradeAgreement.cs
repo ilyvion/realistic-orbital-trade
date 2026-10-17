@@ -232,6 +232,13 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
         }
     }
 
+    /// <summary>
+    /// Whether the to-trader shuttles have flown off with the sold goods. A departed shuttle's
+    /// <see cref="TransportShip.shipThing"/> is destroyed, and saving sets it to null.
+    /// </summary>
+    internal bool ToTraderShuttlesDeparted =>
+        ToTraderTransportShips.Any(ship => ship.shipThing is not { Destroyed: false });
+
     private IEnumerable<CompTradeShuttle> ToTraderTradeShuttleComps =>
         ToTraderTransportShips
             .Select(ship => ship.shipThing.TryGetComp<CompTradeShuttle>())
@@ -594,6 +601,12 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
     {
         var lostAnything = RemoveUnresolvedSoldEntries();
 
+        // The sold goods left with the shuttles, so nothing missing can affect the deal.
+        if (ToTraderShuttlesDeparted)
+        {
+            return;
+        }
+
         if (toTraderTransportShip is { } transportShip)
         {
             // A single shuttle has its requiredPawns aliased directly to pawnsSoldToTrader at deal
@@ -716,7 +729,7 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
 
     internal void Notify_OwnThingDestroyed(Thing thing)
     {
-        if (toTraderTransportShip == null)
+        if (toTraderTransportShip == null || ToTraderShuttlesDeparted)
         {
             return;
         }

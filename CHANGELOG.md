@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed loading a save failing with an error when it was saved after a trade shuttle had flown off but before the trade had finished, such as while waiting for the payment shuttle or just after it left.
+
 ## [0.14.0] - 2026-10-17
 
 ### Dependencies
