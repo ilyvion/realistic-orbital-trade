@@ -13,5 +13,18 @@ internal static class Rimworld_TradeDeal_TryExecute
     /// </summary>
     internal static TradeAgreement? PendingTradeAgreement;
 
-    private static void Prefix() => PendingTradeAgreement = TradeShipData.tradeAgreementForQuest;
+    /// <summary>
+    /// The deal being executed when it renegotiates <see cref="PendingTradeAgreement"/>, otherwise
+    /// <see langword="null"/>. Captured here for the same reason, since ROT's postfix gives a new
+    /// trade's agreement the <see cref="TradeAgreement.tradeDeliveryMethod"/> that marks a
+    /// renegotiation.
+    /// </summary>
+    internal static TradeDeal? PendingRenegotiatedDeal;
+
+    private static void Prefix(TradeDeal __instance)
+    {
+        PendingTradeAgreement = TradeShipData.tradeAgreementForQuest;
+        PendingRenegotiatedDeal =
+            PendingTradeAgreement?.tradeDeliveryMethod != null ? __instance : null;
+    }
 }

@@ -46,6 +46,111 @@ internal sealed class SocialExpGrantTrackerTests
     }
 
     [Test]
+    public static void RenegotiateReplacesValuesAndKeepsInspired()
+    {
+        Begin();
+        try
+        {
+            var agreement = NewAgreement();
+            SocialExpGrantTracker.Defer(agreement, 10f, 20f, true);
+
+            SocialExpGrantTracker.Renegotiate(agreement, 3f, 4f);
+
+            Expect.AreEqual(1, SocialExpGrantTracker.PendingCount);
+            Expect.IsTrue(SocialExpGrantTracker.TryGetPending(agreement, out var pending));
+            Expect.AreEqual(3f, pending.BuyValue);
+            Expect.AreEqual(4f, pending.SellValue);
+            Expect.IsTrue(pending.Inspired);
+        }
+        finally
+        {
+            End();
+        }
+    }
+
+    [Test]
+    public static void RenegotiateOfUnknownAgreementDefersNothing()
+    {
+        Begin();
+        try
+        {
+            SocialExpGrantTracker.Renegotiate(NewAgreement(), 3f, 4f);
+
+            Expect.AreEqual(0, SocialExpGrantTracker.PendingCount);
+        }
+        finally
+        {
+            End();
+        }
+    }
+
+    [Test]
+    public static void HoldingBackARenegotiationReplacesTheEntry()
+    {
+        Begin();
+        try
+        {
+            var agreement = NewAgreement();
+            SocialExpGrantTracker.Defer(agreement, 10f, 20f, false);
+
+            SocialEXPFromTrade_Patch1_Postfix.HoldBack(agreement, true, [3f, 4f, true, false]);
+
+            Expect.IsTrue(SocialExpGrantTracker.TryGetPending(agreement, out var pending));
+            Expect.AreEqual(3f, pending.BuyValue);
+            Expect.AreEqual(4f, pending.SellValue);
+            Expect.IsFalse(pending.Inspired);
+        }
+        finally
+        {
+            End();
+        }
+    }
+
+    [Test]
+    public static void HoldingBackANewDealDefersIt()
+    {
+        Begin();
+        try
+        {
+            var agreement = NewAgreement();
+
+            SocialEXPFromTrade_Patch1_Postfix.HoldBack(agreement, false, [3f, 4f, true, false]);
+
+            Expect.IsTrue(SocialExpGrantTracker.TryGetPending(agreement, out var pending));
+            Expect.AreEqual(3f, pending.BuyValue);
+            Expect.AreEqual(4f, pending.SellValue);
+            Expect.IsTrue(pending.Inspired);
+        }
+        finally
+        {
+            End();
+        }
+    }
+
+    [Test]
+    public static void RefusedAcceptLeavesTheDeferredEntryAsItWas()
+    {
+        Begin();
+        try
+        {
+            var agreement = NewAgreement();
+            SocialExpGrantTracker.Defer(agreement, 1f, 2f, false);
+            Rimworld_TradeDeal_TryExecute.PendingTradeAgreement = agreement;
+            var result = false;
+
+            Expect.IsFalse(SocialEXPFromTrade_Patch1_Postfix.Prefix(null, ref result));
+            Expect.IsTrue(SocialExpGrantTracker.TryGetPending(agreement, out var pending));
+            Expect.AreEqual(1f, pending.BuyValue);
+            Expect.AreEqual(2f, pending.SellValue);
+        }
+        finally
+        {
+            Rimworld_TradeDeal_TryExecute.PendingTradeAgreement = null;
+            End();
+        }
+    }
+
+    [Test]
     public static void UnsuccessfulResolveDiscardsWithoutGranting()
     {
         Begin();

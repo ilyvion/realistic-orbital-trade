@@ -44,6 +44,7 @@
         <li>Neronix17.TweaksGalore</li>
         <li>zeracronius.dynamictradeinterface</li>
         <li>Supes.AutoSeller.Core</li>
+        <li>Krelinos.SocialEXPFromTrade</li>
     </loadAfter>
     <incompatibleWith>
         <!-- Lets pawns and animals riding in the shuttle consume things like food and drugs from

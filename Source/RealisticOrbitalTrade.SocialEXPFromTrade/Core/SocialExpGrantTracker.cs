@@ -45,6 +45,20 @@ internal static class SocialExpGrantTracker
             : new PendingSocialExpGain(buyValue, sellValue, inspired);
 
     /// <summary>
+    /// Replaces the values held back for <paramref name="tradeAgreement"/> with those of its whole
+    /// renegotiated deal. The inspired flag stays as deferred, since a renegotiation uses up no
+    /// inspiration. Does nothing for an agreement with nothing deferred, whose experience Social
+    /// Experience from Trade either granted already or never would.
+    /// </summary>
+    internal static void Renegotiate(TradeAgreement tradeAgreement, float buyValue, float sellValue)
+    {
+        if (_pending.TryGetValue(tradeAgreement, out var existing))
+        {
+            _pending[tradeAgreement] = existing with { BuyValue = buyValue, SellValue = sellValue };
+        }
+    }
+
+    /// <summary>
     /// Grants (if <paramref name="successful"/>) or discards the experience deferred for
     /// <paramref name="tradeAgreement"/>. Safe to call for an agreement with nothing deferred
     /// (e.g. an ordinary trade Social Experience from Trade already granted immediately).

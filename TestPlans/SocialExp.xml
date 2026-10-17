@@ -3,7 +3,7 @@
     <jobs>
         <li>
             <name>Social Experience from Trade integration</name>
-            <commandLineArgs>--test --filter "class == SocialExpGrantTrackerTests"</commandLineArgs>
+            <commandLineArgs>--test --filter "class == SocialExpGrantTrackerTests || class == SocialExpRenegotiationEndToEndTests"</commandLineArgs>
             <loadWithMods>
                 <li>brrainz.harmony</li>
                 <li>ludeon.rimworld</li>
@@ -11,6 +11,21 @@
                 <li>ilyvion.laboratory</li>
                 <li>krelinos.socialexpfromtrade</li>
                 <li>ilyvion.realisticorbitaltrade</li>
+            </loadWithMods>
+            <timeOut>600000</timeOut>
+        </li>
+        <li>
+            <!-- Loading ROT first orders its TryExecute prefix before Social Experience from
+                 Trade's, which a renegotiation then skips. -->
+            <name>Social Experience from Trade loaded after ROT</name>
+            <commandLineArgs>--test --filter "class == SocialExpRenegotiationEndToEndTests"</commandLineArgs>
+            <loadWithMods>
+                <li>brrainz.harmony</li>
+                <li>ludeon.rimworld</li>
+                <li>ludeon.rimworld.royalty</li>
+                <li>ilyvion.laboratory</li>
+                <li>ilyvion.realisticorbitaltrade</li>
+                <li>krelinos.socialexpfromtrade</li>
             </loadWithMods>
             <timeOut>600000</timeOut>
         </li>

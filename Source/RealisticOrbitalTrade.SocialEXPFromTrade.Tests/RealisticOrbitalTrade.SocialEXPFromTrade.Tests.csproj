@@ -58,6 +58,7 @@
             Include="..\RealisticOrbitalTrade.Tests\ScribeRoundTrip.cs"
             Link="ScribeRoundTrip.cs"
         />
+        <Compile Include="..\RealisticOrbitalTrade.Tests\TradeScene.cs" Link="TradeScene.cs" />
     </ItemGroup>
     <ItemGroup Condition="'$(RimWorldVersion)' != '1.6' And '$(RimWorldVersion)' != '1.7'">
         <Compile Remove="**/*.cs" />
