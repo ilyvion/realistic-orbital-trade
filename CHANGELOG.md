@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed loading a save logging errors about `pendingMassShortfall` when it was saved while a colonist was hauling goods to a trade shuttle.
+
 ## [0.14.1] - 2026-10-17
 
 ### Fixed

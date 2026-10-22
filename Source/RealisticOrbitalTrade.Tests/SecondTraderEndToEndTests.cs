@@ -51,7 +51,7 @@ internal sealed class SecondTraderEndToEndTests
         scene.SellTo(secondTrader, steel, Unsold);
         var agreements = new[]
         {
-            scene.TradeAgreement!,
+            scene.TradeAgreement,
             secondTrader.GetData().activeTradeAgreement,
         };
         Expect.IsNotNull(agreements[1], "No trade agreement with the second trader");

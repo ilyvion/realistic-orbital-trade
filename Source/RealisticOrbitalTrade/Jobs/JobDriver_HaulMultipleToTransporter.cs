@@ -46,6 +46,10 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
     // carryGatheredThing) instead of being stranded on the map for a separate future trip.
     private Dictionary<Thing, int> _pendingMassShortfall = [];
 
+    // Scribe needs these to resolve _pendingMassShortfall's Thing keys across load passes.
+    private List<Thing>? _pendingMassShortfallKeysWorkingList;
+    private List<int>? _pendingMassShortfallValuesWorkingList;
+
     /// <summary>
     /// Everything a bulk hauling trip has physically split off colony stacks but not yet
     /// deposited: whatever's in the pawn's hands plus every stack still waiting in inventory.
@@ -163,7 +167,9 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
             ref _pendingMassShortfall,
             "pendingMassShortfall",
             LookMode.Reference,
-            LookMode.Value
+            LookMode.Value,
+            ref _pendingMassShortfallKeysWorkingList,
+            ref _pendingMassShortfallValuesWorkingList
         );
         _pendingMassShortfall ??= [];
 
