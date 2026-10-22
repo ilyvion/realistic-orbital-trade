@@ -3,7 +3,7 @@
     <jobs>
         <li>
             <name>Minimal mod list</name>
-            <commandLineArgs>--test --filter "class == WithCountTests"</commandLineArgs>
+            <commandLineArgs>--test --where "class == WithCountTests"</commandLineArgs>
             <loadWithMods>
                 <li>brrainz.harmony</li>
                 <li>ludeon.rimworld</li>

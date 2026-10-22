@@ -3,7 +3,7 @@
     <jobs>
         <li>
             <name>Genebank haul source registration</name>
-            <commandLineArgs>--test --filter "class == GenepackContainerPatchTests"</commandLineArgs>
+            <commandLineArgs>--test --where "class == GenepackContainerPatchTests"</commandLineArgs>
             <loadWithMods>
                 <li>brrainz.harmony</li>
                 <li>ludeon.rimworld</li>

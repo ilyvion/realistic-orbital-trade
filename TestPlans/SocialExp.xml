@@ -3,7 +3,7 @@
     <jobs>
         <li>
             <name>Social Experience from Trade integration</name>
-            <commandLineArgs>--test --filter "class == SocialExpGrantTrackerTests || class == SocialExpRenegotiationEndToEndTests"</commandLineArgs>
+            <commandLineArgs>--test --where "class == SocialExpGrantTrackerTests || class == SocialExpRenegotiationEndToEndTests"</commandLineArgs>
             <loadWithMods>
                 <li>brrainz.harmony</li>
                 <li>ludeon.rimworld</li>
@@ -18,7 +18,7 @@
             <!-- Loading ROT first orders its TryExecute prefix before Social Experience from
                  Trade's, which a renegotiation then skips. -->
             <name>Social Experience from Trade loaded after ROT</name>
-            <commandLineArgs>--test --filter "class == SocialExpRenegotiationEndToEndTests"</commandLineArgs>
+            <commandLineArgs>--test --where "class == SocialExpRenegotiationEndToEndTests"</commandLineArgs>
             <loadWithMods>
                 <li>brrainz.harmony</li>
                 <li>ludeon.rimworld</li>
