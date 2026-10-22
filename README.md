@@ -70,6 +70,23 @@ There's an ongoing issue where people report that this mod causes problems with 
 
 Want your translation in this list? Release a translation mod (i.e. a mod with only a Languages folder, _not a copy of this entire mod + the translation_) for this mod, and notify me of its existence, and I'll add it to the list.
 
+## Building from source
+
+Realistic Orbital Trade is part of a family of mods that share build tooling. To build it, check out these sibling repositories alongside this one (i.e. `../ilyvion.Laboratory` and `../rimworld-utils` relative to this repo):
+
+- [`ilyvion.Laboratory`](https://github.com/ilyvion/ilyvion-laboratory) — shared library dependency.
+- [`rimworld-utils`](https://github.com/ilyvion/rimworld-utils) — shared MSBuild props/targets and build scripts.
+
+The test projects are only built in the Debug configuration, and additionally need [`SmashPhil-DevTools`](https://github.com/ilyvion/SmashPhil-DevTools) checked out at `../Third-Party/DevTools`.
+
+Then build with the .NET SDK (targets `net481` for RimWorld 1.4 through 1.6, `net10.0` for RimWorld 1.7):
+
+```sh
+dotnet build --configuration Release --property RimWorldVersion=1.7 RealisticOrbitalTrade.sln
+```
+
+Or use `.vscode/build.sh`, which builds and copies the mod's files into your RimWorld `Mods` folder (see `.vscode/build_config.sh` for the target path).
+
 ## License
 
 Licensed under either of
