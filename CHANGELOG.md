@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.2] - 2026-10-22
+
 ### Fixed
 
 - Fixed loading a save logging errors about `pendingMassShortfall` when it was saved while a colonist was hauling goods to a trade shuttle.
@@ -297,7 +299,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.14.1...HEAD
+[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.14.2...HEAD
+[0.14.2]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.14.1..v0.14.2
 [0.14.1]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.14.0..v0.14.1
 [0.14.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.13.1..v0.14.0
 [0.13.1]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.13.0..v0.13.1
