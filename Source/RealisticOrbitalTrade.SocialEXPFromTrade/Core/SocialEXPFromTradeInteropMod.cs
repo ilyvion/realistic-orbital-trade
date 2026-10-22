@@ -3,14 +3,9 @@ namespace RealisticOrbitalTrade.SocialEXPFromTrade;
 /// <summary>
 /// The main mod class for Realistic Orbital Trade's Social Experience from Trade integration.
 /// </summary>
-public class SocialEXPFromTradeInteropMod : IlyvionMod
+public partial class SocialEXPFromTradeInteropMod
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="SocialEXPFromTradeInteropMod"/> class.
-    /// </summary>
-    /// <param name="content">The mod content pack.</param>
-    public SocialEXPFromTradeInteropMod(ModContentPack content)
-        : base(content)
+    partial void Construct()
     {
         new Harmony(Constants.Id).PatchAll(Assembly.GetExecutingAssembly());
 
