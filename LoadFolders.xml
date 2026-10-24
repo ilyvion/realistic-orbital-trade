@@ -27,6 +27,7 @@
             >Integrations/DynamicTradeInterface/1.6</li>
         <li IfModActive="supes.autoseller.core">Integrations/AutoSeller/1.6</li>
         <li IfModActive="krelinos.socialexpfromtrade">Integrations/SocialEXPFromTrade/1.6</li>
+        <li IfModActive="memegoddess.findandtrade">Integrations/FindTrade/1.6</li>
     </v1.6>
     <v1.7>
         <li>Common</li>
@@ -37,5 +38,6 @@
             >Integrations/DynamicTradeInterface/1.7</li>
         <li IfModActive="supes.autoseller.core">Integrations/AutoSeller/1.7</li>
         <li IfModActive="krelinos.socialexpfromtrade">Integrations/SocialEXPFromTrade/1.7</li>
+        <li IfModActive="memegoddess.findandtrade">Integrations/FindTrade/1.7</li>
     </v1.7>
 </loadFolders>
