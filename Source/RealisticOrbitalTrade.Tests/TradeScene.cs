@@ -556,8 +556,15 @@ internal sealed class TradeScene : IDisposable
         sale.SilverOwed = silverOwed;
     }
 
-    private static Dialog_MessageBox? FindDepartureExplanation() =>
-        Find.WindowStack.WindowOfType<Dialog_MessageBox>();
+    // Matched by title, since other message boxes, such as vanilla's first-trade tutorial, can be
+    // open too.
+    private static Dialog_MessageBox? FindDepartureExplanation()
+    {
+        string title = "RealisticOrbitalTrade.DepartureRenegotiationExplanationTitle".Translate();
+        return Find
+            .WindowStack.Windows.OfType<Dialog_MessageBox>()
+            .FirstOrDefault(box => box.title == title);
+    }
 
     // Does what the player's "cancel trade" button on a landed shuttle does.
     internal void CancelTradeFromShuttle()

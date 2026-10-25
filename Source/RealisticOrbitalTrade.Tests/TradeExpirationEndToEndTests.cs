@@ -50,4 +50,23 @@ internal sealed class TradeExpirationEndToEndTests
 
         scene.ExpectSaleCompleted();
     }
+
+    // Another message box, such as vanilla's first-trade tutorial, is no departure explanation.
+    [Test]
+    public static IEnumerator ExpiringWithPartLoadedAndAnotherMessageBoxOpenCompletesTheLoadedPart()
+    {
+        var steel = RimWorld.ThingDefOf.Steel;
+        using var scene = new TradeScene(Find.CurrentMap, NoGraceTime);
+        scene.PlaceOnMap(steel, SteelToSell);
+
+        yield return scene.SellAndWaitForLanding(steel, SteelToSell);
+        Find.WindowStack.Add(new Dialog_MessageBox("Unrelated message"));
+        yield return scene.WaitForPartialLoad();
+        scene.RunDownDepartureTimer();
+        yield return scene.WaitForDepartureRenegotiation();
+        scene.AcceptDepartureRenegotiation();
+        yield return scene.WaitForQuestToEnd();
+
+        scene.ExpectSaleCompleted();
+    }
 }
