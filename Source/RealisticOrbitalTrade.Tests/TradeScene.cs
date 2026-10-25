@@ -295,10 +295,12 @@ internal sealed class TradeScene : IDisposable
     }
 
     // Records the shuttle quest accepting the trade generated, then ticks until every shuttle for
-    // the trader has landed.
+    // the trader has landed. Quests of earlier sales in the scene that have ended are skipped.
     private IEnumerator WaitForShuttleQuest(Sale sale)
     {
-        var quest = FindTradeQuest();
+        var quest = Find.QuestManager.QuestsListForReading.FirstOrDefault(q =>
+            q.root == QuestScriptDefOf.ROT_TradeShipTransportShip && !q.Historical
+        );
         Expect.IsNotNull(quest, "Accepting the trade didn't generate the shuttle quest");
         Expect.IsNotNull(TradeAgreement!.tradeDeliveryMethod, "No delivery arranged for payment");
         if (quest == null)

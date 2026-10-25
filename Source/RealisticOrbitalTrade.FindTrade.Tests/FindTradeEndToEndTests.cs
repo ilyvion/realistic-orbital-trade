@@ -1,4 +1,5 @@
 using DevTools.Testing;
+using RealisticOrbitalTrade.Dialogs;
 using RealisticOrbitalTrade.FindTrade.Patch;
 using RealisticOrbitalTrade.Tests;
 using Verse.AI;
@@ -14,6 +15,7 @@ namespace RealisticOrbitalTrade.FindTrade.Tests;
 internal sealed class FindTradeEndToEndTests
 {
     private const int SteelToSell = 100;
+    private const int WoodToSell = 100;
 
     [Test]
     public static IEnumerator JunkSoldByAutoBarterGoesThroughATradeShuttle()
@@ -136,6 +138,190 @@ internal sealed class FindTradeEndToEndTests
                 $"Find / Trade didn't record bartering with {ship.TraderName}"
             );
         }
+    }
+
+    [Test]
+    public static void BarteringSkipsAShipInGraceTimeForTheRestOfItsStay()
+    {
+        var steel = RimWorld.ThingDefOf.Steel;
+        using var findTrade = new FindTradeScene(Find.CurrentMap);
+        var scene = findTrade.Scene;
+        scene.PlaceOnMap(steel, SteelToSell);
+        findTrade.MarkJunk(steel);
+        scene.TradeShip.GetData().ticksUntilCommsClosed = 0;
+
+        findTrade.Barter();
+
+        ExpectNothingTraded(scene, "in grace time");
+        Expect.IsTrue(
+            findTrade.Traders.Contains(scene.TradeShip),
+            "The ship in grace time isn't skipped for the rest of its stay"
+        );
+    }
+
+    [Test]
+    public static IEnumerator BarteringWhileBlacklistedSkipsShipsUntilTheColonyIsInGoodStanding()
+    {
+        var steel = RimWorld.ThingDefOf.Steel;
+        using var findTrade = new FindTradeScene(Find.CurrentMap);
+        var scene = findTrade.Scene;
+        scene.PlaceOnMap(steel, SteelToSell);
+        findTrade.MarkJunk(steel);
+        var gameComponent = RealisticOrbitalTradeGameComponent.Current;
+        var previousStanding = gameComponent.Standing;
+        gameComponent.Standing = Standing.Blacklisted;
+        try
+        {
+            findTrade.Barter();
+
+            ExpectNothingTraded(scene, "while blacklisted");
+            Expect.IsFalse(
+                findTrade.Traders.Contains(scene.TradeShip),
+                "Bartering while blacklisted skipped the ship for the rest of its stay"
+            );
+            var feeDialog = Find.WindowStack.WindowOfType<Dialog_PayBlacklistRemovalFee>();
+            Expect.IsNull(feeDialog, "Bartering while blacklisted asked for the removal fee");
+            if (feeDialog != null)
+            {
+                _ = Find.WindowStack.TryRemove(feeDialog, doCloseSound: false);
+            }
+
+            gameComponent.Standing = Standing.Good;
+            yield return ExpectSaleThroughATradeShuttle(
+                scene,
+                scene.TradeAndWaitForLanding(steel, SteelToSell, findTrade.Barter)
+            );
+        }
+        finally
+        {
+            gameComponent.Standing = previousStanding;
+        }
+    }
+
+    [Test]
+    public static IEnumerator BarteringDuringATradeSkipsTheShipUntilTheTradeIsDone()
+    {
+        var steel = RimWorld.ThingDefOf.Steel;
+        var wood = RimWorld.ThingDefOf.WoodLog;
+        // A remembered manual trade would make Find / Trade skip the ship for its own reasons.
+        using var findTrade = new FindTradeScene(
+            Find.CurrentMap,
+            findTradeSettings: FindTradeScene.FindTradeSettings.Defaults with
+            {
+                RememberManualTrade = false,
+            }
+        );
+        var scene = findTrade.Scene;
+        scene.PlaceOnMap(steel, SteelToSell);
+        yield return scene.SellAndWaitForLanding(steel, SteelToSell);
+        var manualAgreement = scene.TradeAgreement;
+        scene.PlaceOnMap(wood, WoodToSell);
+        findTrade.MarkJunk(wood);
+
+        findTrade.Barter();
+
+        Expect.AreEqual(
+            1,
+            RealisticOrbitalTradeGameComponent.Current.ActiveTradeAgreements.Count,
+            "Bartering during a trade started another trade agreement"
+        );
+        Expect.ReferencesAreEqual(
+            manualAgreement,
+            scene.TradeShip.GetData().activeTradeAgreement,
+            "Bartering during a trade replaced the ship's trade agreement"
+        );
+        Expect.AreEqual(WoodToSell, scene.CountOnMap(wood), "Bartering during a trade sold junk");
+        Expect.IsFalse(
+            findTrade.Traders.Contains(scene.TradeShip),
+            "Bartering during a trade skipped the ship for the rest of its stay"
+        );
+
+        yield return scene.WaitForQuestToEnd();
+        scene.ExpectSaleCompleted();
+
+        yield return ExpectSaleThroughATradeShuttle(
+            scene,
+            scene.TradeAndWaitForLanding(wood, WoodToSell, findTrade.Barter)
+        );
+    }
+
+    [Test]
+    public static void BarteringWhileMakingAmendsSkipsShipsOnlyForThatPass()
+    {
+        var steel = RimWorld.ThingDefOf.Steel;
+        using var findTrade = new FindTradeScene(Find.CurrentMap);
+        var scene = findTrade.Scene;
+        scene.PlaceOnMap(steel, SteelToSell);
+        findTrade.MarkJunk(steel);
+        var gameComponent = RealisticOrbitalTradeGameComponent.Current;
+        var previousAmendsQuest = gameComponent.AmendsQuest;
+        gameComponent.AmendsQuest = Quest.MakeRaw();
+        try
+        {
+            findTrade.Barter();
+        }
+        finally
+        {
+            gameComponent.AmendsQuest = previousAmendsQuest;
+        }
+
+        ExpectNothingTraded(scene, "while making amends");
+        Expect.IsFalse(
+            findTrade.Traders.Contains(scene.TradeShip),
+            "Bartering while making amends skipped the ship for the rest of its stay"
+        );
+    }
+
+    [Test]
+    public static void BarteringTradesWithTheShipOutOfGraceTimeAndSkipsTheOneInIt()
+    {
+        var steel = RimWorld.ThingDefOf.Steel;
+        using var findTrade = new FindTradeScene(Find.CurrentMap);
+        var scene = findTrade.Scene;
+        // The ship in grace time is first in orbit, so it would get the junk if it weren't skipped.
+        var graceTimeShip = scene.TradeShip;
+        graceTimeShip.GetData().ticksUntilCommsClosed = 0;
+        var otherTrader = scene.AddTrader();
+        scene.PlaceOnMap(steel, SteelToSell);
+        findTrade.MarkJunk(steel);
+
+        findTrade.Barter();
+
+        var agreements = RealisticOrbitalTradeGameComponent.Current.ActiveTradeAgreements;
+        Expect.AreEqual(1, agreements.Count, "Bartering didn't start exactly one trade agreement");
+        Expect.IsNull(
+            graceTimeShip.GetData().activeTradeAgreement,
+            "Bartering traded with the ship in grace time"
+        );
+        var agreement = otherTrader.GetData().activeTradeAgreement;
+        Expect.IsNotNull(agreement, "Bartering didn't trade with the ship out of grace time");
+        if (agreement != null)
+        {
+            Expect.AreEqual(
+                SteelToSell,
+                agreement.thingsSoldToTrader.Where(t => t.thing.def == steel).Sum(t => t.Count),
+                "The trade agreement didn't sell all the junk"
+            );
+        }
+        Expect.IsTrue(
+            findTrade.Traders.Contains(graceTimeShip),
+            "The ship in grace time isn't skipped for the rest of its stay"
+        );
+    }
+
+    // No trade agreement, no shuttle quest, and the junk is still on the map.
+    private static void ExpectNothingTraded(TradeScene scene, string when)
+    {
+        Expect.IsEmpty(
+            RealisticOrbitalTradeGameComponent.Current.ActiveTradeAgreements,
+            $"Bartering {when} started a trade agreement"
+        );
+        Expect.IsNull(TradeScene.FindTradeQuest(), $"Bartering {when} generated a shuttle quest");
+        Expect.AreEqual(
+            SteelToSell,
+            scene.CountOnMap(RimWorld.ThingDefOf.Steel),
+            $"Bartering {when} sold the junk"
+        );
     }
 
     private static List<TradeAgreement> AgreementsEndedDuring(Action action)
