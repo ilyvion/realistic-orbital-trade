@@ -23,6 +23,10 @@ internal sealed class FindTradeEndToEndTests
     // Below one steel's mass, above ten cloth's.
     private const float ShuttleCapacityBelowSteelKg = 0.45f;
 
+    // Far above and below what the trader pays for the steel junk.
+    private const int ThresholdAboveTheJunk = 100_000;
+    private const int ThresholdBelowTheJunk = 1;
+
     [Test]
     public static IEnumerator JunkSoldByAutoBarterGoesThroughATradeShuttle()
     {
@@ -428,6 +432,87 @@ internal sealed class FindTradeEndToEndTests
                 () => ExpectNoRejectionMessage(findTrade.Barter)
             )
         );
+    }
+
+    [Test]
+    public static void BarteringSkipsJunkWorthLessThanTheMinimumTradeThreshold()
+    {
+        var steel = RimWorld.ThingDefOf.Steel;
+        using var findTrade = new FindTradeScene(
+            Find.CurrentMap,
+            settings: TradeScene.SettingsSnapshot.Defaults with
+            {
+                UseMinimumTradeThreshold = true,
+            }
+        );
+        var scene = findTrade.Scene;
+        scene.TradeShip.GetData().minimumTradeThreshold = ThresholdAboveTheJunk;
+        scene.PlaceOnMap(steel, SteelToSell);
+        findTrade.MarkJunk(steel);
+
+        ExpectNoRejectionMessage(findTrade.Barter);
+
+        ExpectNothingTraded(scene, "with junk worth less than the minimum trade threshold");
+        Expect.IsTrue(
+            findTrade.Traders.Contains(scene.TradeShip),
+            "Find / Trade didn't record bartering with the trade ship"
+        );
+    }
+
+    [Test]
+    public static IEnumerator BarteringSellsJunkWorthAtLeastTheMinimumTradeThreshold()
+    {
+        var steel = RimWorld.ThingDefOf.Steel;
+        using var findTrade = new FindTradeScene(
+            Find.CurrentMap,
+            settings: TradeScene.SettingsSnapshot.Defaults with
+            {
+                UseMinimumTradeThreshold = true,
+            }
+        );
+        var scene = findTrade.Scene;
+        scene.TradeShip.GetData().minimumTradeThreshold = ThresholdBelowTheJunk;
+        scene.PlaceOnMap(steel, SteelToSell);
+        findTrade.MarkJunk(steel);
+
+        yield return ExpectSaleThroughATradeShuttle(
+            scene,
+            scene.TradeAndWaitForLanding(steel, SteelToSell, Barter)
+        );
+
+        void Barter()
+        {
+            ExpectNoRejectionMessage(findTrade.Barter);
+            ExpectBarterLeftGoodsAlone(scene);
+        }
+    }
+
+    [Test]
+    public static IEnumerator BarteringIgnoresTheMinimumTradeThresholdWhenItIsOff()
+    {
+        var steel = RimWorld.ThingDefOf.Steel;
+        using var findTrade = new FindTradeScene(
+            Find.CurrentMap,
+            settings: TradeScene.SettingsSnapshot.Defaults with
+            {
+                UseMinimumTradeThreshold = false,
+            }
+        );
+        var scene = findTrade.Scene;
+        scene.TradeShip.GetData().minimumTradeThreshold = ThresholdAboveTheJunk;
+        scene.PlaceOnMap(steel, SteelToSell);
+        findTrade.MarkJunk(steel);
+
+        yield return ExpectSaleThroughATradeShuttle(
+            scene,
+            scene.TradeAndWaitForLanding(steel, SteelToSell, Barter)
+        );
+
+        void Barter()
+        {
+            ExpectNoRejectionMessage(findTrade.Barter);
+            ExpectBarterLeftGoodsAlone(scene);
+        }
     }
 
     private static void LimitShuttleCapacityBelowSteel(TradeScene scene)
