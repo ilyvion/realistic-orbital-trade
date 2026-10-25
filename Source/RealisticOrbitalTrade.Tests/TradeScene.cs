@@ -268,8 +268,8 @@ internal sealed class TradeScene : IDisposable
     }
 
     // Sells as SellAndWaitForLanding does, but lets the trade action make the sale, for a sale that
-    // doesn't go through the scene's trade dialog. The payment is what the trader set aside for the
-    // colony.
+    // doesn't go through the scene's trade dialog. A purchase is a sale of a negative count. The
+    // payment is the silver the trader set aside for the colony less the silver the colony pays.
     internal IEnumerator TradeAndWaitForLanding(ThingDef def, int count, Action trade) =>
         TradeAndWaitForLanding(def, count, Run(trade));
 
@@ -287,9 +287,11 @@ internal sealed class TradeScene : IDisposable
         {
             yield break;
         }
-        sale.SilverOwed = TradeAgreement
-            .thingsSoldToPlayer.Where(t => t.def == SilverDef)
-            .Sum(t => t.stackCount);
+        sale.SilverOwed =
+            TradeAgreement.thingsSoldToPlayer.Where(t => t.def == SilverDef).Sum(t => t.stackCount)
+            - TradeAgreement
+                .thingsSoldToTrader.Where(t => t.thing.def == SilverDef)
+                .Sum(t => t.Count);
 
         yield return WaitForShuttleQuest(sale);
     }

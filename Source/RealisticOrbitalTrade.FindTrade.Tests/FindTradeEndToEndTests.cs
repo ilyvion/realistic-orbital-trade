@@ -16,6 +16,12 @@ internal sealed class FindTradeEndToEndTests
 {
     private const int SteelToSell = 100;
     private const int WoodToSell = 100;
+    private const int ClothToSell = 10;
+    private const int SteelToBuy = 10;
+    private const int SilverOnHand = 200;
+
+    // Below one steel's mass, above ten cloth's.
+    private const float ShuttleCapacityBelowSteelKg = 0.45f;
 
     [Test]
     public static IEnumerator JunkSoldByAutoBarterGoesThroughATradeShuttle()
@@ -306,6 +312,143 @@ internal sealed class FindTradeEndToEndTests
         Expect.IsTrue(
             findTrade.Traders.Contains(graceTimeShip),
             "The ship in grace time isn't skipped for the rest of its stay"
+        );
+    }
+
+    [Test]
+    public static IEnumerator BarteringLeavesOutJunkTooHeavyForAShuttle()
+    {
+        var steel = RimWorld.ThingDefOf.Steel;
+        var cloth = RimWorld.ThingDefOf.Cloth;
+        using var findTrade = new FindTradeScene(Find.CurrentMap);
+        var scene = findTrade.Scene;
+        LimitShuttleCapacityBelowSteel(scene);
+        Expect.LessThan(
+            ClothToSell * cloth.BaseMass,
+            ShuttleCapacityBelowSteelKg,
+            "The cloth doesn't fit in one shuttle"
+        );
+        scene.PlaceOnMap(steel, SteelToSell);
+        scene.PlaceOnMap(cloth, ClothToSell);
+        findTrade.MarkJunk(steel);
+        findTrade.MarkJunk(cloth);
+
+        yield return ExpectSaleThroughATradeShuttle(
+            scene,
+            scene.TradeAndWaitForLanding(cloth, ClothToSell, Barter)
+        );
+        Expect.AreEqual(
+            SteelToSell,
+            scene.CountOnMap(steel),
+            "Bartering sold junk too heavy for a shuttle"
+        );
+
+        void Barter()
+        {
+            ExpectNoRejectionMessage(findTrade.Barter);
+            ExpectBarterLeftGoodsAlone(scene);
+        }
+    }
+
+    [Test]
+    public static void BarteringWithOnlyJunkTooHeavyForAShuttleTradesNothing()
+    {
+        var steel = RimWorld.ThingDefOf.Steel;
+        using var findTrade = new FindTradeScene(Find.CurrentMap);
+        var scene = findTrade.Scene;
+        LimitShuttleCapacityBelowSteel(scene);
+        scene.PlaceOnMap(steel, SteelToSell);
+        findTrade.MarkJunk(steel);
+
+        ExpectNoRejectionMessage(findTrade.Barter);
+
+        ExpectNothingTraded(scene, "with only junk too heavy for a shuttle");
+        Expect.IsTrue(
+            findTrade.Traders.Contains(scene.TradeShip),
+            "Find / Trade didn't record bartering with the trade ship"
+        );
+    }
+
+    [Test]
+    public static void BarteringLeavesOutPurchasesTooHeavyForAShuttle()
+    {
+        var steel = RimWorld.ThingDefOf.Steel;
+        using var findTrade = new FindTradeScene(Find.CurrentMap);
+        var scene = findTrade.Scene;
+        LimitShuttleCapacityBelowSteel(scene);
+        scene.PlaceOnMap(scene.SilverDef, SilverOnHand);
+        findTrade.AddImportRule(steel, SteelToBuy);
+
+        ExpectNoRejectionMessage(findTrade.Barter);
+
+        Expect.IsEmpty(
+            RealisticOrbitalTradeGameComponent.Current.ActiveTradeAgreements,
+            "Bartering for goods too heavy for a shuttle started a trade agreement"
+        );
+        Expect.IsNull(
+            TradeScene.FindTradeQuest(),
+            "Bartering for goods too heavy for a shuttle generated a shuttle quest"
+        );
+        Expect.AreEqual(
+            SilverOnHand,
+            scene.CountOnMap(scene.SilverDef),
+            "Bartering paid for goods too heavy for a shuttle"
+        );
+        Expect.IsTrue(
+            findTrade.Traders.Contains(scene.TradeShip),
+            "Find / Trade didn't record bartering with the trade ship"
+        );
+    }
+
+    [Test]
+    public static IEnumerator BarteringKeepsPurchasesTooHeavyForAShuttleWhenDeliveredByDropPod()
+    {
+        var steel = RimWorld.ThingDefOf.Steel;
+        using var findTrade = new FindTradeScene(
+            Find.CurrentMap,
+            settings: TradeScene.SettingsSnapshot.Defaults with
+            {
+                DeliverItemsViaDropPod = true,
+            }
+        );
+        var scene = findTrade.Scene;
+        LimitShuttleCapacityBelowSteel(scene);
+        Expect.IsTrue(
+            scene.HeldByTrader(steel) >= SteelToBuy,
+            "The trader doesn't have enough steel to sell"
+        );
+        scene.PlaceOnMap(scene.SilverDef, SilverOnHand);
+        findTrade.AddImportRule(steel, SteelToBuy);
+
+        yield return ExpectSaleThroughATradeShuttle(
+            scene,
+            scene.TradeAndWaitForLanding(
+                steel,
+                -SteelToBuy,
+                () => ExpectNoRejectionMessage(findTrade.Barter)
+            )
+        );
+    }
+
+    private static void LimitShuttleCapacityBelowSteel(TradeScene scene)
+    {
+        scene.LimitShuttleCapacity(ShuttleCapacityBelowSteelKg);
+        Expect.GreaterThan(
+            RimWorld.ThingDefOf.Steel.BaseMass,
+            ShuttleCapacityBelowSteelKg,
+            "One steel isn't too heavy for a shuttle"
+        );
+    }
+
+    // ROT's accept gates turn a deal down with a RejectInput message.
+    private static void ExpectNoRejectionMessage(Action barter)
+    {
+        // A message still on screen isn't shown again.
+        Messages.Clear();
+        barter();
+        Expect.IsFalse(
+            Messages.liveMessages.Any(message => message.def == MessageTypeDefOf.RejectInput),
+            "Bartering had a deal turned down"
         );
     }
 

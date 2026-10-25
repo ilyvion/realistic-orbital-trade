@@ -24,6 +24,9 @@
         folder, where DevTools.dll must sit to be loaded.
     -->
     <ItemGroup>
+        <Publicize Include="Assembly-CSharp:Verse.Messages.liveMessages" />
+    </ItemGroup>
+    <ItemGroup>
         <ProjectReference Include="..\RealisticOrbitalTrade\RealisticOrbitalTrade.csproj">
             <CopyLocal>False</CopyLocal>
             <Private>false</Private>
