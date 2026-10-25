@@ -69,6 +69,10 @@ internal sealed class TradeScene : IDisposable
             map.listerThings.AllThings.Where(t => t.TryGetComp<CompTradeShuttle>() != null),
             "An earlier test leaked trade shuttles onto the map"
         );
+        Expect.IsEmpty(
+            Find.WindowStack.Windows.OfType<Dialog_MessageBox>(),
+            "An earlier test left a message box open"
+        );
         previousShuttleCapacity = shuttleTransporter.massCapacity;
 
         // Only the test advances time, so the game's own ticking can't land between two of its ticks.
@@ -751,10 +755,6 @@ internal sealed class TradeScene : IDisposable
         Prefs.AutosaveIntervalDays = previousAutosaveIntervalDays;
         TradeShipData.tradeAgreementForQuest = null;
         Utils.EndRenegotiation();
-        if (FindDepartureExplanation() is { } explanation)
-        {
-            _ = Find.WindowStack.TryRemove(explanation, doCloseSound: false);
-        }
 
         List<TradeAgreement> agreements =
         [
@@ -843,6 +843,11 @@ internal sealed class TradeScene : IDisposable
             ),
             "Could not clean leftover items from the map"
         );
+        // Closes every message box the test or the cleanup above opened.
+        foreach (var box in Find.WindowStack.Windows.OfType<Dialog_MessageBox>().ToList())
+        {
+            _ = Find.WindowStack.TryRemove(box, doCloseSound: false);
+        }
     }
 
     // What a sale started with, and what it was agreed to be worth.
