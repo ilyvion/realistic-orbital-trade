@@ -1,0 +1,59 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <UseLaboratory>true</UseLaboratory>
+        <RootNamespace>RealisticOrbitalTrade.FindTrade.Tests</RootNamespace>
+        <AssemblyName>RealisticOrbitalTrade.FindTrade.Tests</AssemblyName>
+        <OutputPath>../../Integrations/FindTrade/$(RimWorldVersion)/Assemblies</OutputPath>
+        <SupportedRimWorldVersions>1.6;1.7</SupportedRimWorldVersions>
+    </PropertyGroup>
+    <!--
+        Dev-only test assembly for the Find / Trade integration, built and run in-game via
+        DevTools (https://github.com/ilyvion/SmashPhil-DevTools.git). Its output is deployed
+        alongside RealisticOrbitalTrade.FindTrade.dll into Integrations/FindTrade/<version>/Assemblies,
+        which LoadFolders.xml only loads when Find / Trade (memegoddess.findandtrade) is active, so
+        these tests are only discovered when there's a Find / Trade install for them to exercise.
+        Run them with the FindTrade test plan (TestPlans/FindTrade.xml).
+
+        It's listed in RealisticOrbitalTrade.sln so it always builds locally, but
+        RealisticOrbitalTrade.sln omits a Release|Any CPU.Build.0 line for this project's GUID, so
+        a Release-configuration build (what CI/release use) skips it and its output never lands in
+        a shipped release.
+
+        DevTools only supports RimWorld 1.6 and 1.7, as does Find / Trade. DevTools' own OutDir is
+        relative to its clone location, so it's redirected to this mod's <version>/Assemblies
+        folder, where DevTools.dll must sit to be loaded.
+    -->
+    <ItemGroup>
+        <ProjectReference Include="..\RealisticOrbitalTrade\RealisticOrbitalTrade.csproj">
+            <CopyLocal>False</CopyLocal>
+            <Private>false</Private>
+        </ProjectReference>
+        <ProjectReference Include="..\RealisticOrbitalTrade.FindTrade\RealisticOrbitalTrade.FindTrade.csproj">
+            <CopyLocal>False</CopyLocal>
+            <Private>false</Private>
+        </ProjectReference>
+        <Reference Include="MGFindAndTrade">
+            <HintPath>$(RimWorldSteamWorkshopFolderPath)\3736861965\$(RimWorldVersion)\Assemblies\MGFindAndTrade.dll</HintPath>
+            <CopyLocal>False</CopyLocal>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="TD_Find_Lib">
+            <HintPath>$(RimWorldSteamWorkshopFolderPath)\3529443295\$(RimWorldVersion)\Assemblies\TD_Find_Lib.dll</HintPath>
+            <CopyLocal>False</CopyLocal>
+            <Private>false</Private>
+        </Reference>
+    </ItemGroup>
+    <ItemGroup Condition="'$(RimWorldVersion)' == '1.6' Or '$(RimWorldVersion)' == '1.7'">
+        <ProjectReference
+            Include="$(ProjectDependenciesBasePath)\Third-Party\DevTools\DevTools\DevTools.csproj"
+            AdditionalProperties="RimWorldVersion=$(RimWorldVersion);OutDir=$(MSBuildThisFileDirectory)..\..\$(RimWorldVersion)\Assemblies\"
+        >
+            <CopyLocal>False</CopyLocal>
+            <Private>false</Private>
+        </ProjectReference>
+        <Compile Include="..\RealisticOrbitalTrade.Tests\TradeScene.cs" Link="TradeScene.cs" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(RimWorldVersion)' != '1.6' And '$(RimWorldVersion)' != '1.7'">
+        <Compile Remove="**/*.cs" />
+    </ItemGroup>
+</Project>

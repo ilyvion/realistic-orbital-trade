@@ -5,6 +5,7 @@
 [assembly: InternalsVisibleTo("RealisticOrbitalTrade.SocialEXPFromTrade")]
 [assembly: InternalsVisibleTo("RealisticOrbitalTrade.SocialEXPFromTrade.Tests")]
 [assembly: InternalsVisibleTo("RealisticOrbitalTrade.FindTrade")]
+[assembly: InternalsVisibleTo("RealisticOrbitalTrade.FindTrade.Tests")]
 [assembly: InternalsVisibleTo("RealisticOrbitalTrade.Tests")]
 
 namespace RealisticOrbitalTrade;

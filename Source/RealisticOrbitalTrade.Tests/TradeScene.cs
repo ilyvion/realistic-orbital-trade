@@ -40,6 +40,9 @@ internal sealed class TradeScene : IDisposable
     internal TradeAgreement? TradeAgreement { get; private set; }
     internal Sale? CurrentSale { get; private set; }
 
+    // The colonist who trades for the colony.
+    internal Pawn Negotiator => spawned.OfType<Pawn>().First();
+
     internal IEnumerable<TransportShip> ToTraderShuttles =>
         TradeAgreement?.ToTraderTransportShips ?? [];
 
@@ -242,6 +245,28 @@ internal sealed class TradeScene : IDisposable
         {
             yield break;
         }
+
+        yield return WaitForShuttleQuest(sale);
+    }
+
+    // Sells as SellAndWaitForLanding does, but lets the trade action make the sale, for a sale that
+    // doesn't go through the scene's trade dialog. The payment is what the trader set aside for the
+    // colony.
+    internal IEnumerator TradeAndWaitForLanding(ThingDef def, int count, Action trade)
+    {
+        var sale = new Sale(def, count, HeldByTrader(def), CountOnMap(def), CountOnMap(SilverDef));
+        CurrentSale = sale;
+
+        trade();
+        TradeAgreement = TradeShip.GetData().activeTradeAgreement;
+        Expect.IsNotNull(TradeAgreement, "The trade didn't start a trade agreement");
+        if (TradeAgreement == null)
+        {
+            yield break;
+        }
+        sale.SilverOwed = TradeAgreement
+            .thingsSoldToPlayer.Where(t => t.def == SilverDef)
+            .Sum(t => t.stackCount);
 
         yield return WaitForShuttleQuest(sale);
     }
