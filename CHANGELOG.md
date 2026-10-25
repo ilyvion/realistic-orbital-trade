@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Compatibility with Find / Trade's automatic bartering. Trades it makes with orbital traders now go through trade shuttles like any other trade.
+
 ## [0.14.2] - 2026-10-22
 
 ### Fixed

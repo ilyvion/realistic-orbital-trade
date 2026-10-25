@@ -36,6 +36,7 @@ Mod compatibility is probably generally good, but there might be issues with mod
 - [Auto Seller](https://steamcommunity.com/sharedfiles/filedetails/?id=1440321094) — A compatibility layer has been added to make Auto Seller's AI trader work correctly with ROT.
 - [Bulk Load For Transporters](https://steamcommunity.com/sharedfiles/filedetails/?id=3559292908) — With ROT's 'Multi-item shuttle loading' setting on (the default), ROT is the sole authority for loading trade shuttles, so Bulk Load For Transporters' own loading logic doesn't interfere with it. Turning that setting off lets Bulk Load For Transporters take over shuttle loading instead, though it currently can't haul genepacks or xenogerms out of genebanks, so those get left behind in that case.
 - [Social Experience from Trade](https://steamcommunity.com/sharedfiles/filedetails/?id=3400608063) — A compatibility layer has been added to defer the social experience grant until ROT knows the trade actually delivered, instead of granting it the instant the trade dialog's 'Accept' succeeds.
+- [Find / Trade](https://steamcommunity.com/sharedfiles/filedetails/?id=3736861965) — A compatibility layer has been added so Find / Trade's automatic bartering with orbital traders goes through ROT's trade shuttles instead of trading instantly.
 
 ### Works with tweaks
 

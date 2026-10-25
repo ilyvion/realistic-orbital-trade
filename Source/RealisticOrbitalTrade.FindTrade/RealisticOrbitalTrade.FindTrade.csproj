@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <UseLaboratory>true</UseLaboratory>
+        <RootNamespace>RealisticOrbitalTrade.FindTrade</RootNamespace>
+        <AssemblyName>RealisticOrbitalTrade.FindTrade</AssemblyName>
+        <OutputPath>../../Integrations/FindTrade/$(RimWorldVersion)/Assemblies</OutputPath>
+        <SupportedRimWorldVersions>1.6;1.7</SupportedRimWorldVersions>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\RealisticOrbitalTrade\RealisticOrbitalTrade.csproj">
+            <CopyLocal>False</CopyLocal>
+            <Private>false</Private>
+        </ProjectReference>
+        <Reference Include="MGFindAndTrade">
+            <HintPath>$(RimWorldSteamWorkshopFolderPath)\3736861965\$(RimWorldVersion)\Assemblies\MGFindAndTrade.dll</HintPath>
+            <CopyLocal>False</CopyLocal>
+            <Private>false</Private>
+        </Reference>
+    </ItemGroup>
+</Project>
