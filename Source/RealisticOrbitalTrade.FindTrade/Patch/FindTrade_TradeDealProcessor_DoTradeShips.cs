@@ -15,6 +15,8 @@ internal static class FindTrade_TradeDealProcessor_DoTradeShips
 {
     internal static bool IsTrading { get; private set; }
 
+    private static readonly List<ITrader> skippedForThisPass = [];
+
     private static bool Prefix(Pawn socialPawn)
     {
         // A renegotiation or an unfinished trade owns the static agreement slot; leave it alone
@@ -23,8 +25,9 @@ internal static class FindTrade_TradeDealProcessor_DoTradeShips
             return false;
         }
 
-        // Ships that wouldn't answer comms are marked as already traded with, so Find / Trade
-        // skips them instead of trading with them the vanilla way
+        // Ships that wouldn't answer comms are hidden from Find / Trade so it doesn't trade with
+        // them the vanilla way. Ships out of grace time stay hidden for good; the rest only for
+        // this pass, so they are traded with once the colony can answer comms again
         var traded = Current.Game.GetComponent<TradeRulesGameComp>().traders;
         var standing = RealisticOrbitalTradeGameComponent.Current.Standing;
         foreach (
@@ -43,9 +46,15 @@ internal static class FindTrade_TradeDealProcessor_DoTradeShips
                 standing,
                 tradeShipData.HasActiveTradeAgreement
             );
-            if (outcome != Rimworld_TradeShip_TryOpenComms.CommsOutcome.StartAgreement)
+            if (outcome == Rimworld_TradeShip_TryOpenComms.CommsOutcome.StartAgreement)
             {
-                _ = traded.Add(tradeShip);
+                continue;
+            }
+
+            _ = traded.Add(tradeShip);
+            if (outcome != Rimworld_TradeShip_TryOpenComms.CommsOutcome.NotAnsweringForGraceTime)
+            {
+                skippedForThisPass.Add(tradeShip);
             }
         }
 
@@ -55,6 +64,16 @@ internal static class FindTrade_TradeDealProcessor_DoTradeShips
 
     private static void Finalizer()
     {
+        if (skippedForThisPass.Count > 0)
+        {
+            var traded = Current.Game.GetComponent<TradeRulesGameComp>().traders;
+            foreach (var tradeShip in skippedForThisPass)
+            {
+                _ = traded.Remove(tradeShip);
+            }
+            skippedForThisPass.Clear();
+        }
+
         if (!IsTrading)
         {
             return;
