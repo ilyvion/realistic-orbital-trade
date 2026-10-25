@@ -5,7 +5,10 @@ namespace RealisticOrbitalTrade.Tests;
 
 // A colony with a powered trade beacon, a home area to load from and two colonists, plus a
 // bulk-goods trader in orbit, for the end-to-end trade tests. Time is advanced by ticking the game
-// directly, so a run doesn't depend on the game speed. Disposing puts back everything a test
+// directly, so a run doesn't depend on the game speed; each wait ticks in batches until a condition
+// holds, with a tick timeout. Trades go through TradeShip.TryOpenComms, the dialog's tradeables and
+// TradeDeal.TryExecute rather than setting TradeAgreement fields, so the patches under test run.
+// Disposing puts back everything a test
 // touched, so the next test on the same map and world sees none of it: settings, autosave interval,
 // shuttle capacity, home area, quests, letters, items, shuttles, pawns and the traders.
 #pragma warning disable CA1506 // CA1506: Avoid excessive class coupling
