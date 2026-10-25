@@ -137,6 +137,24 @@ internal sealed class TradeScene : IDisposable
         return pawn;
     }
 
+    // Puts a powered colony building this far from the beacon, cleaned up with the rest of the
+    // scene.
+    internal Thing SpawnBuilding(ThingDef def, IntVec3 offsetFromBeacon)
+    {
+        var building = GenSpawn.Spawn(
+            ThingMaker.MakeThing(def),
+            Map.Center + offsetFromBeacon,
+            Map
+        );
+        building.SetFaction(Faction.OfPlayer);
+        if (building.TryGetComp<CompPowerTrader>() is { } power)
+        {
+            power.PowerOn = true;
+        }
+        spawned.Add(building);
+        return building;
+    }
+
     // Puts a second bulk-goods trader in orbit, sent away with the rest of the scene.
     internal TradeShip AddTrader()
     {
@@ -252,12 +270,17 @@ internal sealed class TradeScene : IDisposable
     // Sells as SellAndWaitForLanding does, but lets the trade action make the sale, for a sale that
     // doesn't go through the scene's trade dialog. The payment is what the trader set aside for the
     // colony.
-    internal IEnumerator TradeAndWaitForLanding(ThingDef def, int count, Action trade)
+    internal IEnumerator TradeAndWaitForLanding(ThingDef def, int count, Action trade) =>
+        TradeAndWaitForLanding(def, count, Run(trade));
+
+    // Sells as TradeAndWaitForLanding does, for a trade that takes time to make, such as a
+    // colonist's job.
+    internal IEnumerator TradeAndWaitForLanding(ThingDef def, int count, IEnumerator trade)
     {
         var sale = new Sale(def, count, HeldByTrader(def), CountOnMap(def), CountOnMap(SilverDef));
         CurrentSale = sale;
 
-        trade();
+        yield return trade;
         TradeAgreement = TradeShip.GetData().activeTradeAgreement;
         Expect.IsNotNull(TradeAgreement, "The trade didn't start a trade agreement");
         if (TradeAgreement == null)
@@ -599,8 +622,14 @@ internal sealed class TradeScene : IDisposable
         yield return TickUntil(() => ticked >= until);
     }
 
+    private static IEnumerator Run(Action action)
+    {
+        action();
+        yield break;
+    }
+
     // Ticks the game a frame's worth at a time until the condition holds or the trade times out.
-    private IEnumerator TickUntil(Func<bool> condition)
+    internal IEnumerator TickUntil(Func<bool> condition)
     {
         while (!condition() && ticked < TradeTimeoutTicks)
         {
