@@ -15,6 +15,7 @@ namespace RealisticOrbitalTrade.FindTrade.Tests;
 internal sealed class FindTradeEndToEndTests
 {
     private const int SteelToSell = 100;
+    private const int SteelLeftUnsold = 50;
     private const int WoodToSell = 100;
     private const int ClothToSell = 10;
     private const int SteelToBuy = 10;
@@ -732,13 +733,6 @@ internal sealed class FindTradeEndToEndTests
                 Utils.EndRenegotiation();
             }
         }
-
-        static int CountToTransfer(ThingDef def)
-        {
-            return TradeSession
-                .deal.AllTradeables.Where(t => t.ThingDef == def)
-                .Sum(t => t.CountToTransfer);
-        }
     }
 
     [Test]
@@ -764,6 +758,97 @@ internal sealed class FindTradeEndToEndTests
             findTrade.Traders.Contains(scene.TradeShip),
             "Opening the renegotiation made Find / Trade skip the ship for the rest of its stay"
         );
+    }
+
+    // Find / Trade fills in every trade dialog it sees with whole junk stacks.
+    [Test]
+    public static void JunkSoldByAutoBarterIsntOfferedToAnotherShip()
+    {
+        var steel = RimWorld.ThingDefOf.Steel;
+        using var findTrade = new FindTradeScene(Find.CurrentMap);
+        var scene = findTrade.Scene;
+        scene.PlaceOnMap(steel, SteelToSell);
+        findTrade.MarkJunk(steel);
+        findTrade.Barter();
+        // In orbit only after the pass, so the pass doesn't barter with it.
+        var otherTrader = scene.AddTrader();
+
+        otherTrader.TryOpenComms(scene.Negotiator);
+        var dialog = Find.WindowStack.WindowOfType<Dialog_Trade>();
+        try
+        {
+            Expect.IsNotNull(dialog, "Comms didn't open the trade dialog");
+            Expect.AreEqual(
+                0,
+                CountToTransfer(steel),
+                "The other ship's trade dialog sells junk already sold by auto barter"
+            );
+        }
+        finally
+        {
+            dialog?.Close(doCloseSound: false);
+        }
+    }
+
+    [Test]
+    public static void AcceptingAnotherShipsTradeSellsOnlyJunkNotSoldByAutoBarter()
+    {
+        var steel = RimWorld.ThingDefOf.Steel;
+        using var findTrade = new FindTradeScene(Find.CurrentMap);
+        var scene = findTrade.Scene;
+        scene.PlaceOnMap(steel, SteelToSell);
+        findTrade.MarkJunk(steel);
+        findTrade.Barter();
+        var barterAgreement = scene.TradeShip.GetData().activeTradeAgreement;
+        Expect.IsNotNull(barterAgreement, "Bartering didn't start a trade agreement");
+        var otherTrader = scene.AddTrader();
+        scene.PlaceOnMap(steel, SteelLeftUnsold);
+
+        otherTrader.TryOpenComms(scene.Negotiator);
+        var dialog = Find.WindowStack.WindowOfType<Dialog_Trade>();
+        try
+        {
+            Expect.IsNotNull(dialog, "Comms didn't open the trade dialog");
+            Expect.AreEqual(
+                -SteelLeftUnsold,
+                CountToTransfer(steel),
+                "The other ship's trade dialog doesn't sell exactly the junk left unsold"
+            );
+            Expect.IsTrue(
+                TradeSession.deal.TryExecute(out var actuallyTraded),
+                "Trade was rejected"
+            );
+            Expect.IsTrue(actuallyTraded, "Trade didn't execute");
+        }
+        finally
+        {
+            dialog?.Close(doCloseSound: false);
+            TradeSession.Close();
+        }
+
+        var otherAgreement = otherTrader.GetData().activeTradeAgreement;
+        Expect.IsNotNull(otherAgreement, "No trade agreement with the other ship");
+        Expect.AreEqual(
+            SteelLeftUnsold,
+            otherAgreement?.thingsSoldToTrader.Where(t => t.thing.def == steel).Sum(t => t.Count)
+                ?? 0,
+            "The other ship wasn't sold exactly the junk left unsold"
+        );
+        Expect.AreEqual(
+            SteelToSell,
+            barterAgreement?.thingsSoldToTrader.Where(t => t.thing.def == steel).Sum(t => t.Count)
+                ?? 0,
+            "The trade with the other ship changed what auto barter sold"
+        );
+        foreach (var stack in scene.Map.listerThings.ThingsOfDef(steel))
+        {
+            Expect.LessThanOrEqualTo(
+                (barterAgreement?.ReservedCountFor(stack) ?? 0)
+                    + (otherAgreement?.ReservedCountFor(stack) ?? 0),
+                stack.stackCount,
+                "Both ships were sold the same steel"
+            );
+        }
     }
 
     // A pass started by another mod while one is running, entered through the patch directly.
@@ -961,6 +1046,10 @@ internal sealed class FindTradeEndToEndTests
             TradeShipData.EndTradeAgreementIfExists();
         }
     }
+
+    // How much of the def the open trade dialog's deal trades.
+    private static int CountToTransfer(ThingDef def) =>
+        TradeSession.deal.AllTradeables.Where(t => t.ThingDef == def).Sum(t => t.CountToTransfer);
 
     // Starts a trade agreement the way the TryExecute prefix does for a deal in a barter pass.
     private static TradeAgreement StartDealTradeAgreement(TradeScene scene)

@@ -9,7 +9,8 @@ namespace RealisticOrbitalTrade.FindTrade.Patch;
 /// and leave the ship untraded for its stay: things too heavy for a shuttle are left out of the
 /// deal before Find / Trade picks what to trade, and a deal below the minimum trade threshold is
 /// emptied so Find / Trade doesn't execute it. Find / Trade sells whole junk stacks, so what it
-/// picks is also cut to the colony stock no other trade agreement still needs.
+/// picks, in a barter pass or on a trade dialog it fills in, is also cut to the colony stock no
+/// other trade agreement still needs.
 /// </summary>
 [HarmonyPatch(typeof(TradeDealProcessor), nameof(TradeDealProcessor.DoTradeDeal))]
 internal static class FindTrade_TradeDealProcessor_DoTradeDeal
@@ -53,16 +54,13 @@ internal static class FindTrade_TradeDealProcessor_DoTradeDeal
 
     private static void Postfix(TradeDeal deal)
     {
+        // Also on the trade dialogs Find / Trade fills in when they open
+        LeaveOutWithheldStock(deal);
         if (
             !FindTrade_TradeDealProcessor_DoTradeShips.IsTrading
             || TradeSession.trader is not TradeShip tradeShip
+            || !Settings._useMinimumTradeThreshold
         )
-        {
-            return;
-        }
-
-        LeaveOutWithheldStock(deal);
-        if (!Settings._useMinimumTradeThreshold)
         {
             return;
         }

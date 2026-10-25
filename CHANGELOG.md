@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - A purchase no longer has to fit on a single trade shuttle. If what you're buying is heavier than one shuttle can carry, the trader now delivers it with as many shuttles as it takes, one after another: each lands, unloads its share and leaves before the next one arrives, and the trade finishes once everything has been delivered. This also applies when renegotiating a trade to buy more. Any single item or creature you buy still has to fit on one shuttle.
-- Compatibility with Find / Trade's automatic bartering. Trades it makes with orbital traders now go through trade shuttles like any other trade, and goods already sold to one trader aren't sold again to another. Items or creatures too heavy for a shuttle are left out of these trades, and a trade worth less than the trader's minimum trade value is skipped. Renegotiating a trade on a landed shuttle opens with just the agreed deal, without Find / Trade adding your junk or other items to it.
+- Compatibility with Find / Trade's automatic bartering. Trades it makes with orbital traders now go through trade shuttles like any other trade, and goods already sold to one trader aren't sold again to another, also when Find / Trade fills in a trade window you open yourself. Items or creatures too heavy for a shuttle are left out of these trades, and a trade worth less than the trader's minimum trade value is skipped. Renegotiating a trade on a landed shuttle opens with just the agreed deal, without Find / Trade adding your junk or other items to it.
 
 ## [0.14.2] - 2026-10-22
 
