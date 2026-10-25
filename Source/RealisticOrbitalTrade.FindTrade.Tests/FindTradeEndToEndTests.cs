@@ -67,6 +67,96 @@ internal sealed class FindTradeEndToEndTests
         }
     }
 
+    [Test]
+    public static void BarteringWithNothingToTradeStartsNoTradeAgreement()
+    {
+        using var findTrade = new FindTradeScene(Find.CurrentMap);
+        var scene = findTrade.Scene;
+
+        var ended = AgreementsEndedDuring(findTrade.Barter);
+
+        Expect.IsEmpty(
+            RealisticOrbitalTradeGameComponent.Current.ActiveTradeAgreements,
+            "Bartering with nothing to trade started a trade agreement"
+        );
+        Expect.IsNull(
+            TradeScene.FindTradeQuest(),
+            "Bartering with nothing to trade generated a shuttle quest"
+        );
+        Expect.IsEmpty(ended, "Bartering with nothing to trade ended a trade agreement");
+        Expect.IsTrue(
+            findTrade.Traders.Contains(scene.TradeShip),
+            "Find / Trade didn't record bartering with the trade ship"
+        );
+    }
+
+    [Test]
+    public static void BarteringWithTwoShipsStartsATradeAgreementOnlyForTheOneThatTrades()
+    {
+        var steel = RimWorld.ThingDefOf.Steel;
+        using var findTrade = new FindTradeScene(Find.CurrentMap);
+        var scene = findTrade.Scene;
+        var otherTrader = scene.AddTrader();
+        scene.PlaceOnMap(steel, SteelToSell);
+        findTrade.MarkJunk(steel);
+
+        // The first ship buys all the junk, which leaves the second nothing to trade.
+        var ended = AgreementsEndedDuring(findTrade.Barter);
+
+        var agreements = RealisticOrbitalTradeGameComponent.Current.ActiveTradeAgreements;
+        Expect.AreEqual(1, agreements.Count, "Bartering didn't start exactly one trade agreement");
+        TradeShip[] ships = [scene.TradeShip, otherTrader];
+        if (agreements.Count == 1)
+        {
+            var agreement = agreements[0];
+            Expect.IsTrue(
+                ships.Contains(agreement.tradeShip),
+                "The trade agreement isn't for either ship in orbit"
+            );
+            foreach (var ship in ships)
+            {
+                var expected = ship == agreement.tradeShip ? agreement : null;
+                Expect.ReferencesAreEqual(
+                    expected,
+                    ship.GetData().activeTradeAgreement,
+                    $"{ship.TraderName} has the wrong trade agreement"
+                );
+            }
+            Expect.AreEqual(
+                SteelToSell,
+                agreement.thingsSoldToTrader.Where(t => t.thing.def == steel).Sum(t => t.Count),
+                "The trade agreement didn't sell all the junk"
+            );
+        }
+        Expect.IsEmpty(ended, "Bartering ended a trade agreement");
+        foreach (var ship in ships)
+        {
+            Expect.IsTrue(
+                findTrade.Traders.Contains(ship),
+                $"Find / Trade didn't record bartering with {ship.TraderName}"
+            );
+        }
+    }
+
+    private static List<TradeAgreement> AgreementsEndedDuring(Action action)
+    {
+        var ended = new List<TradeAgreement>();
+        void onEnded(TradeAgreement agreement, bool successful)
+        {
+            ended.Add(agreement);
+        }
+        RealisticOrbitalTradeGameComponent.TradeAgreementEnded += onEnded;
+        try
+        {
+            action();
+        }
+        finally
+        {
+            RealisticOrbitalTradeGameComponent.TradeAgreementEnded -= onEnded;
+        }
+        return ended;
+    }
+
     // Runs the sale through to delivery and checks that Find / Trade announced it, the ship kept
     // the same trade agreement until delivery, and the sale completed.
     private static IEnumerator ExpectSaleThroughATradeShuttle(TradeScene scene, IEnumerator sale)

@@ -8,7 +8,8 @@ namespace RealisticOrbitalTrade.FindTrade.Patch;
 /// <see cref="TradeDeal.TryExecute"/>, which would otherwise reject it with an on-screen message
 /// and leave the ship untraded for its stay: things too heavy for a shuttle are left out of the
 /// deal before Find / Trade picks what to trade, and a deal below the minimum trade threshold is
-/// emptied so Find / Trade doesn't execute it.
+/// emptied so Find / Trade doesn't execute it. Find / Trade sells whole junk stacks, so what it
+/// picks is also cut to the colony stock no other trade agreement still needs.
 /// </summary>
 [HarmonyPatch(typeof(TradeDealProcessor), nameof(TradeDealProcessor.DoTradeDeal))]
 internal static class FindTrade_TradeDealProcessor_DoTradeDeal
@@ -43,8 +44,13 @@ internal static class FindTrade_TradeDealProcessor_DoTradeDeal
         if (
             !FindTrade_TradeDealProcessor_DoTradeShips.IsTrading
             || TradeSession.trader is not TradeShip tradeShip
-            || !Settings._useMinimumTradeThreshold
         )
+        {
+            return;
+        }
+
+        LeaveOutWithheldStock(deal);
+        if (!Settings._useMinimumTradeThreshold)
         {
             return;
         }
@@ -65,6 +71,24 @@ internal static class FindTrade_TradeDealProcessor_DoTradeDeal
         foreach (var tradeable in deal.AllTradeables)
         {
             tradeable.ForceTo(0);
+        }
+    }
+
+    private static void LeaveOutWithheldStock(TradeDeal deal)
+    {
+        var changed = false;
+        foreach (var tradeable in deal.AllTradeables)
+        {
+            var sellable = tradeable.CountHeldBy(Transactor.Colony);
+            if (!tradeable.IsCurrency && tradeable.CountToTransfer < -sellable)
+            {
+                tradeable.ForceTo(-sellable);
+                changed = true;
+            }
+        }
+        if (changed)
+        {
+            deal.UpdateCurrencyCount();
         }
     }
 
