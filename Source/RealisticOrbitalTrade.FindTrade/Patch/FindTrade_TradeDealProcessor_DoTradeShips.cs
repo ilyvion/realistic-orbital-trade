@@ -20,9 +20,37 @@ internal static class FindTrade_TradeDealProcessor_DoTradeShips
     private static bool Prefix(Pawn socialPawn)
     {
         // A renegotiation or an unfinished trade owns the static agreement slot; leave it alone
-        if (Utils.RenegotiatingAgreement != null || TradeShipData.tradeAgreementForQuest != null)
+        if (Utils.RenegotiatingAgreement != null)
         {
+            RealisticOrbitalTradeMod.Instance.LogDevMessage(
+                "Skipping Find / Trade barter with trade ships: a trade is being renegotiated"
+            );
             return false;
+        }
+        if (TradeShipData.tradeAgreementForQuest is { } tradeAgreementForQuest)
+        {
+            // Trade windows pause the game, so one can only be open here if it opened this tick
+            if (Find.WindowStack.WindowsForcePause)
+            {
+                RealisticOrbitalTradeMod.Instance.LogDevMessage(
+                    "Skipping Find / Trade barter with trade ships: a trade window is open"
+                );
+                return false;
+            }
+
+            RealisticOrbitalTradeMod.Instance.LogWarning(
+                $"Clearing trade agreement with {tradeAgreementForQuest.tradeShip.TraderName} "
+                    + "left over from an earlier trade so Find / Trade can barter with trade ships"
+            );
+            // A renegotiated agreement belongs to a trade still in progress
+            if (tradeAgreementForQuest.tradeDeliveryMethod != null)
+            {
+                TradeShipData.tradeAgreementForQuest = null;
+            }
+            else
+            {
+                TradeShipData.EndTradeAgreementIfExists();
+            }
         }
 
         // Ships that wouldn't answer comms are hidden from Find / Trade so it doesn't trade with
