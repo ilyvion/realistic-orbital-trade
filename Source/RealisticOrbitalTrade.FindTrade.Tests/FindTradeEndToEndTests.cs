@@ -687,6 +687,144 @@ internal sealed class FindTradeEndToEndTests
         }
     }
 
+    // A pass started by another mod while one is running, entered through the patch directly.
+    [Test]
+    public static void ANestedBarterPassLeavesTheOuterPassItsTradeAgreement()
+    {
+        using var findTrade = new FindTradeScene(Find.CurrentMap);
+        var scene = findTrade.Scene;
+        var gameComponent = RealisticOrbitalTradeGameComponent.Current;
+
+        Expect.IsTrue(
+            FindTrade_TradeDealProcessor_DoTradeShips.Prefix(scene.Negotiator, out var outer),
+            "The outer barter pass was skipped"
+        );
+        Expect.IsTrue(
+            FindTrade_TradeDealProcessor_DoTradeShips.Prefix(scene.Negotiator, out var inner),
+            "The nested barter pass was skipped"
+        );
+        var agreement = StartDealTradeAgreement(scene);
+
+        FindTrade_TradeDealProcessor_DoTradeShips.Finalizer(inner);
+        Expect.IsTrue(
+            FindTrade_TradeDealProcessor_DoTradeShips.IsTrading,
+            "Ending the nested barter pass stopped the outer pass trading"
+        );
+        Expect.IsTrue(
+            gameComponent.ActiveTradeAgreements.Contains(agreement),
+            "Ending the nested barter pass ended the outer pass's trade agreement"
+        );
+        Expect.ReferencesAreEqual(
+            agreement,
+            TradeShipData.tradeAgreementForQuest,
+            "Ending the nested barter pass took the outer pass's trade agreement"
+        );
+
+        FindTrade_TradeDealProcessor_DoTradeShips.Finalizer(outer);
+        Expect.IsFalse(
+            FindTrade_TradeDealProcessor_DoTradeShips.IsTrading,
+            "The barter pass is still trading after the outer pass ended"
+        );
+        Expect.IsFalse(
+            gameComponent.ActiveTradeAgreements.Contains(agreement),
+            "Ending the outer barter pass didn't end the trade agreement left behind"
+        );
+        Expect.IsNull(
+            TradeShipData.tradeAgreementForQuest,
+            "Ending the outer barter pass left a trade agreement in the slot comms use"
+        );
+    }
+
+    [Test]
+    public static void NestedBarterPassesEachStopSkippingOnlyTheShipsTheySkipped()
+    {
+        using var findTrade = new FindTradeScene(Find.CurrentMap);
+        var scene = findTrade.Scene;
+        var gameComponent = RealisticOrbitalTradeGameComponent.Current;
+        var outerShip = scene.TradeShip;
+        var innerShip = scene.AddTrader();
+
+        // A ship with an active trade won't answer comms, so the pass skips it.
+        outerShip.GetData().activeTradeAgreement = gameComponent.StartTradeAgreement(
+            outerShip,
+            scene.Negotiator
+        );
+        _ = FindTrade_TradeDealProcessor_DoTradeShips.Prefix(scene.Negotiator, out var outer);
+        innerShip.GetData().activeTradeAgreement = gameComponent.StartTradeAgreement(
+            innerShip,
+            scene.Negotiator
+        );
+        _ = FindTrade_TradeDealProcessor_DoTradeShips.Prefix(scene.Negotiator, out var inner);
+        Expect.IsTrue(
+            findTrade.Traders.Contains(outerShip),
+            "The outer barter pass didn't skip the ship with an active trade"
+        );
+        Expect.IsTrue(
+            findTrade.Traders.Contains(innerShip),
+            "The nested barter pass didn't skip the ship with an active trade"
+        );
+
+        FindTrade_TradeDealProcessor_DoTradeShips.Finalizer(inner);
+        Expect.IsFalse(
+            findTrade.Traders.Contains(innerShip),
+            "Ending the nested barter pass still skips the ship it skipped"
+        );
+        Expect.IsTrue(
+            findTrade.Traders.Contains(outerShip),
+            "Ending the nested barter pass stopped skipping the outer pass's ship"
+        );
+
+        FindTrade_TradeDealProcessor_DoTradeShips.Finalizer(outer);
+        Expect.IsFalse(
+            findTrade.Traders.Contains(outerShip),
+            "Ending the outer barter pass still skips the ship it skipped"
+        );
+    }
+
+    // A deal that throws never reaches the TryExecute postfix, so its agreement stays in the slot.
+    [Test]
+    public static void ABarterPassEndsTheTradeAgreementOfADealThatThrew()
+    {
+        using var findTrade = new FindTradeScene(Find.CurrentMap);
+        var scene = findTrade.Scene;
+
+        Expect.IsTrue(
+            FindTrade_TradeDealProcessor_DoTradeShips.Prefix(scene.Negotiator, out var state),
+            "The barter pass was skipped"
+        );
+        var agreement = StartDealTradeAgreement(scene);
+        FindTrade_TradeDealProcessor_DoTradeShips.Finalizer(state);
+
+        Expect.IsFalse(
+            FindTrade_TradeDealProcessor_DoTradeShips.IsTrading,
+            "The barter pass is still trading after it ended"
+        );
+        Expect.IsFalse(
+            RealisticOrbitalTradeGameComponent.Current.ActiveTradeAgreements.Contains(agreement),
+            "The barter pass didn't end the trade agreement of the deal that threw"
+        );
+        Expect.IsNull(
+            scene.TradeShip.GetData().activeTradeAgreement,
+            "The ship still has the trade agreement of the deal that threw"
+        );
+        Expect.IsNull(
+            TradeShipData.tradeAgreementForQuest,
+            "The barter pass left a trade agreement in the slot comms use"
+        );
+    }
+
+    // Starts a trade agreement the way the TryExecute prefix does for a deal in a barter pass.
+    private static TradeAgreement StartDealTradeAgreement(TradeScene scene)
+    {
+        var agreement = RealisticOrbitalTradeGameComponent.Current.StartTradeAgreement(
+            scene.TradeShip,
+            scene.Negotiator
+        );
+        scene.TradeShip.GetData().activeTradeAgreement = TradeShipData.tradeAgreementForQuest =
+            agreement;
+        return agreement;
+    }
+
     private static void LimitShuttleCapacityBelowSteel(TradeScene scene)
     {
         scene.LimitShuttleCapacity(ShuttleCapacityBelowSteelKg);

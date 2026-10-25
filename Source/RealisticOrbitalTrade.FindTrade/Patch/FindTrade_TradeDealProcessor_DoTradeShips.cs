@@ -19,7 +19,7 @@ internal static class FindTrade_TradeDealProcessor_DoTradeShips
     internal static bool IsTrading => tradingDepth > 0;
 
     // __state holds the ships hidden for this pass only, or null when this call doesn't trade
-    private static bool Prefix(Pawn socialPawn, out List<ITrader>? __state)
+    internal static bool Prefix(Pawn socialPawn, out List<ITrader>? __state)
     {
         __state = null;
 
@@ -95,7 +95,7 @@ internal static class FindTrade_TradeDealProcessor_DoTradeShips
         return true;
     }
 
-    private static void Finalizer(List<ITrader>? __state)
+    internal static void Finalizer(List<ITrader>? __state)
     {
         if (__state == null)
         {
