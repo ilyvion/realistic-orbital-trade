@@ -71,7 +71,7 @@ internal static class FindTrade_TradeDealProcessor_DoTradeDeal
             deal
         );
         var minimumTradeThreshold = tradeShip.GetData().minimumTradeThreshold;
-        if (combinedTradeValue == 0f || combinedTradeValue >= minimumTradeThreshold)
+        if (!IsBelowMinimumTradeThreshold(combinedTradeValue, minimumTradeThreshold))
         {
             return;
         }
@@ -85,6 +85,12 @@ internal static class FindTrade_TradeDealProcessor_DoTradeDeal
             tradeable.ForceTo(0);
         }
     }
+
+    // An empty deal is left alone; Find / Trade doesn't execute it anyway
+    internal static bool IsBelowMinimumTradeThreshold(
+        float combinedTradeValue,
+        int minimumTradeThreshold
+    ) => combinedTradeValue != 0f && combinedTradeValue < minimumTradeThreshold;
 
     private static void LeaveOutWithheldStock(TradeDeal deal)
     {

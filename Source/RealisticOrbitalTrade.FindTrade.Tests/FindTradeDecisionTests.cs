@@ -10,6 +10,7 @@ namespace RealisticOrbitalTrade.FindTrade.Tests;
 internal sealed class FindTradeDecisionTests
 {
     private const float Capacity = 10f;
+    private const int Threshold = 600;
 
     private static bool IsTooHeavy(
         float[] colony,
@@ -65,4 +66,29 @@ internal sealed class FindTradeDecisionTests
 
     [Test]
     public static void NoThingsAreKept() => Expect.IsFalse(IsTooHeavy([], []));
+
+    private static bool IsBelowThreshold(float combinedTradeValue, int threshold = Threshold) =>
+        FindTrade_TradeDealProcessor_DoTradeDeal.IsBelowMinimumTradeThreshold(
+            combinedTradeValue,
+            threshold
+        );
+
+    [Test]
+    public static void EmptyDealIsNotBelowThreshold() => Expect.IsFalse(IsBelowThreshold(0f));
+
+    [Test]
+    public static void ValueJustBelowThresholdIsBelowThreshold() =>
+        Expect.IsTrue(IsBelowThreshold(Threshold - 0.01f));
+
+    [Test]
+    public static void ValueAtThresholdIsNotBelowThreshold() =>
+        Expect.IsFalse(IsBelowThreshold(Threshold));
+
+    [Test]
+    public static void ValueAboveThresholdIsNotBelowThreshold() =>
+        Expect.IsFalse(IsBelowThreshold(Threshold + 0.01f));
+
+    [Test]
+    public static void NoValueIsBelowZeroThreshold() =>
+        Expect.IsFalse(IsBelowThreshold(0.01f, threshold: 0));
 }
