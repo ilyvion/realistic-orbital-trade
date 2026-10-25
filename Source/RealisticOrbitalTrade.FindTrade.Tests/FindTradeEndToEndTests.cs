@@ -515,6 +515,178 @@ internal sealed class FindTradeEndToEndTests
         }
     }
 
+    [Test]
+    [WarningsAllowed("Clearing trade agreement")]
+    public static IEnumerator BarteringEndsANewTradeAgreementLeftOverFromAnEarlierTrade()
+    {
+        var steel = RimWorld.ThingDefOf.Steel;
+        using var findTrade = new FindTradeScene(Find.CurrentMap);
+        var scene = findTrade.Scene;
+        var leftover = RealisticOrbitalTradeGameComponent.Current.StartTradeAgreement(
+            scene.TradeShip,
+            scene.Negotiator
+        );
+        scene.TradeShip.GetData().activeTradeAgreement = TradeShipData.tradeAgreementForQuest =
+            leftover;
+        scene.PlaceOnMap(steel, SteelToSell);
+        findTrade.MarkJunk(steel);
+
+        yield return ExpectSaleThroughATradeShuttle(
+            scene,
+            scene.TradeAndWaitForLanding(steel, SteelToSell, Barter)
+        );
+
+        void Barter()
+        {
+            findTrade.Barter();
+            ExpectBarterLeftGoodsAlone(scene);
+            Expect.IsFalse(
+                RealisticOrbitalTradeGameComponent.Current.ActiveTradeAgreements.Contains(leftover),
+                "Bartering didn't end the leftover trade agreement"
+            );
+        }
+    }
+
+    [Test]
+    [WarningsAllowed("Clearing trade agreement")]
+    public static IEnumerator BarteringKeepsARenegotiatedTradeAgreementLeftOverFromAnEarlierTrade()
+    {
+        var steel = RimWorld.ThingDefOf.Steel;
+        using var findTrade = new FindTradeScene(Find.CurrentMap);
+        var scene = findTrade.Scene;
+        scene.PlaceOnMap(steel, SteelToSell);
+        yield return scene.SellAndWaitForLanding(steel, SteelToSell);
+        var agreement = scene.TradeAgreement;
+        TradeShipData.tradeAgreementForQuest = agreement;
+
+        findTrade.Barter();
+
+        Expect.IsNull(
+            TradeShipData.tradeAgreementForQuest,
+            "Bartering didn't clear the leftover trade agreement"
+        );
+        Expect.IsTrue(
+            RealisticOrbitalTradeGameComponent.Current.ActiveTradeAgreements.Contains(agreement),
+            "Bartering ended a trade agreement still in progress"
+        );
+        Expect.AreEqual(
+            QuestState.Ongoing,
+            scene.CurrentSale?.Quest?.State,
+            "Bartering ended the shuttle quest of a trade still in progress"
+        );
+
+        yield return scene.WaitForQuestToEnd();
+        scene.ExpectSaleCompleted();
+    }
+
+    [Test]
+    public static IEnumerator BarteringDuringARenegotiationTradesNothing()
+    {
+        var steel = RimWorld.ThingDefOf.Steel;
+        var wood = RimWorld.ThingDefOf.WoodLog;
+        using var findTrade = new FindTradeScene(Find.CurrentMap);
+        var scene = findTrade.Scene;
+        scene.PlaceOnMap(steel, SteelToSell);
+        yield return scene.SellAndWaitForLanding(steel, SteelToSell);
+        var agreement = scene.TradeAgreement!;
+        // A ship free to trade, so a pass that went ahead would sell it the junk.
+        var otherTrader = scene.AddTrader();
+        scene.PlaceOnMap(wood, WoodToSell);
+        findTrade.MarkJunk(wood);
+        HashSet<ITrader> tradersBefore = [.. findTrade.Traders];
+
+        Utils.BeginRenegotiation(agreement);
+        try
+        {
+            findTrade.Barter();
+        }
+        finally
+        {
+            Utils.EndRenegotiation();
+        }
+
+        Expect.AreEqual(
+            1,
+            RealisticOrbitalTradeGameComponent.Current.ActiveTradeAgreements.Count,
+            "Bartering during a renegotiation started another trade agreement"
+        );
+        Expect.IsNull(
+            otherTrader.GetData().activeTradeAgreement,
+            "Bartering during a renegotiation traded with another ship"
+        );
+        Expect.ReferencesAreEqual(
+            agreement,
+            scene.TradeShip.GetData().activeTradeAgreement,
+            "Bartering during a renegotiation replaced the ship's trade agreement"
+        );
+        Expect.AreEqual(
+            QuestState.Ongoing,
+            scene.CurrentSale?.Quest?.State,
+            "Bartering during a renegotiation ended the shuttle quest"
+        );
+        Expect.AreEqual(
+            WoodToSell,
+            scene.CountOnMap(wood),
+            "Bartering during a renegotiation sold junk"
+        );
+        Expect.IsTrue(
+            findTrade.Traders.SetEquals(tradersBefore),
+            "Bartering during a renegotiation changed which ships Find / Trade bartered with"
+        );
+    }
+
+    [Test]
+    public static void BarteringWhileATradeWindowIsOpenTradesNothing()
+    {
+        var steel = RimWorld.ThingDefOf.Steel;
+        // A remembered manual trade would make Find / Trade skip the ship for its own reasons.
+        using var findTrade = new FindTradeScene(
+            Find.CurrentMap,
+            findTradeSettings: FindTradeScene.FindTradeSettings.Defaults with
+            {
+                RememberManualTrade = false,
+            }
+        );
+        var scene = findTrade.Scene;
+        scene.PlaceOnMap(steel, SteelToSell);
+        findTrade.MarkJunk(steel);
+
+        scene.TradeShip.TryOpenComms(scene.Negotiator);
+        var dialog = Find.WindowStack.WindowOfType<Dialog_Trade>();
+        var agreement = TradeShipData.tradeAgreementForQuest;
+        try
+        {
+            Expect.IsNotNull(dialog, "Comms didn't open the trade dialog");
+            Expect.IsNotNull(agreement, "Comms didn't start a trade agreement");
+
+            findTrade.Barter();
+
+            Expect.ReferencesAreEqual(
+                agreement,
+                TradeShipData.tradeAgreementForQuest,
+                "Bartering while a trade window is open took its trade agreement"
+            );
+            Expect.AreEqual(
+                1,
+                RealisticOrbitalTradeGameComponent.Current.ActiveTradeAgreements.Count,
+                "Bartering while a trade window is open started another trade agreement"
+            );
+            Expect.IsNull(
+                TradeScene.FindTradeQuest(),
+                "Bartering while a trade window is open generated a shuttle quest"
+            );
+            Expect.AreEqual(
+                SteelToSell,
+                scene.CountOnMap(steel),
+                "Bartering while a trade window is open sold the junk"
+            );
+        }
+        finally
+        {
+            dialog?.Close(doCloseSound: false);
+        }
+    }
+
     private static void LimitShuttleCapacityBelowSteel(TradeScene scene)
     {
         scene.LimitShuttleCapacity(ShuttleCapacityBelowSteelKg);
