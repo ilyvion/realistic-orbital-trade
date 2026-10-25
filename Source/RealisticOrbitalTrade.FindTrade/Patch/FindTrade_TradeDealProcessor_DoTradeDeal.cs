@@ -17,14 +17,15 @@ internal static class FindTrade_TradeDealProcessor_DoTradeDeal
     {
         if (
             !FindTrade_TradeDealProcessor_DoTradeShips.IsTrading
-            || TradeShipData.tradeAgreementForQuest is not { } tradeAgreement
+            || TradeSession.trader is not TradeShip
         )
         {
             return;
         }
 
         var massCapacity = Rimworld_Dialog_Trade_DoWindowContents.ShuttleMassCapacity;
-        var boughtByShuttle = !tradeAgreement.deliverItemsViaDropPod;
+        // The agreement that Rimworld_TradeDeal_TryExecute starts takes this setting
+        var boughtByShuttle = !Settings._deliverItemsViaDropPod;
         _ = deal.AllTradeables.RemoveAll(tradeable =>
             !tradeable.IsCurrency
             && (
@@ -41,7 +42,7 @@ internal static class FindTrade_TradeDealProcessor_DoTradeDeal
     {
         if (
             !FindTrade_TradeDealProcessor_DoTradeShips.IsTrading
-            || TradeShipData.tradeAgreementForQuest is not { } tradeAgreement
+            || TradeSession.trader is not TradeShip tradeShip
             || !Settings._useMinimumTradeThreshold
         )
         {
@@ -51,14 +52,14 @@ internal static class FindTrade_TradeDealProcessor_DoTradeDeal
         var combinedTradeValue = Rimworld_Dialog_Trade_DoWindowContents.CalculateCombinedTradeValue(
             deal
         );
-        var minimumTradeThreshold = tradeAgreement.tradeShip.GetData().minimumTradeThreshold;
+        var minimumTradeThreshold = tradeShip.GetData().minimumTradeThreshold;
         if (combinedTradeValue == 0f || combinedTradeValue >= minimumTradeThreshold)
         {
             return;
         }
 
         RealisticOrbitalTradeMod.Instance.LogDevMessage(
-            $"Skipping Find / Trade barter with {tradeAgreement.tradeShip.TraderName}: trade value "
+            $"Skipping Find / Trade barter with {tradeShip.TraderName}: trade value "
                 + $"{combinedTradeValue} is below the minimum trade threshold {minimumTradeThreshold}"
         );
         foreach (var tradeable in deal.AllTradeables)

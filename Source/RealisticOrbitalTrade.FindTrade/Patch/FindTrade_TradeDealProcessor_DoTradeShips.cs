@@ -8,7 +8,7 @@ namespace RealisticOrbitalTrade.FindTrade.Patch;
 /// <see cref="TradeSession.SetupWith"/> and <see cref="TradeDeal.TryExecute"/> without ever
 /// calling <see cref="TradeShip.TryOpenComms"/>, so no trade agreement would be started and the
 /// deal would fall back to vanilla's instant delivery. While this runs,
-/// <see cref="Rimworld_TradeSession_SetupWith"/> starts an agreement for each ship instead.
+/// <see cref="Rimworld_TradeDeal_TryExecute"/> starts an agreement for each executed deal instead.
 /// </summary>
 [HarmonyPatch(typeof(TradeDealProcessor), nameof(TradeDealProcessor.DoTradeShips))]
 internal static class FindTrade_TradeDealProcessor_DoTradeShips
@@ -80,7 +80,7 @@ internal static class FindTrade_TradeDealProcessor_DoTradeShips
         }
         IsTrading = false;
 
-        // Left over when the last ship had nothing to trade or the deal was refused
+        // Left over when a deal threw before it finished
         TradeShipData.EndTradeAgreementIfExists();
     }
 }
