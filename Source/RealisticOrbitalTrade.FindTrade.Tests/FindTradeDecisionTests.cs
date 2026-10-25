@@ -1,5 +1,6 @@
 using DevTools.Testing;
 using RealisticOrbitalTrade.FindTrade.Patch;
+using RealisticOrbitalTrade.Patch;
 
 namespace RealisticOrbitalTrade.FindTrade.Tests;
 
@@ -91,4 +92,35 @@ internal sealed class FindTradeDecisionTests
     [Test]
     public static void NoValueIsBelowZeroThreshold() =>
         Expect.IsFalse(IsBelowThreshold(0.01f, threshold: 0));
+
+    [Test]
+    public static void EveryCommsOutcomeHidesTheShipAsExpected()
+    {
+        var expected = new Dictionary<
+            Rimworld_TradeShip_TryOpenComms.CommsOutcome,
+            FindTrade_TradeDealProcessor_DoTradeShips.ShipVisibility
+        >
+        {
+            [Rimworld_TradeShip_TryOpenComms.CommsOutcome.StartAgreement] =
+                FindTrade_TradeDealProcessor_DoTradeShips.ShipVisibility.Trade,
+            [Rimworld_TradeShip_TryOpenComms.CommsOutcome.NotAnsweringForGraceTime] =
+                FindTrade_TradeDealProcessor_DoTradeShips.ShipVisibility.HideForStay,
+            [Rimworld_TradeShip_TryOpenComms.CommsOutcome.NotAnsweringForActiveAmendment] =
+                FindTrade_TradeDealProcessor_DoTradeShips.ShipVisibility.HideForThisPass,
+            [Rimworld_TradeShip_TryOpenComms.CommsOutcome.Blacklisted] =
+                FindTrade_TradeDealProcessor_DoTradeShips.ShipVisibility.HideForThisPass,
+            [Rimworld_TradeShip_TryOpenComms.CommsOutcome.NotAnsweringForActiveTrade] =
+                FindTrade_TradeDealProcessor_DoTradeShips.ShipVisibility.HideForThisPass,
+        };
+
+        foreach (var outcome in Enum.GetValues<Rimworld_TradeShip_TryOpenComms.CommsOutcome>())
+        {
+            Expect.IsTrue(expected.TryGetValue(outcome, out var visibility), $"{outcome} mapped");
+            Expect.AreEqual(
+                visibility,
+                FindTrade_TradeDealProcessor_DoTradeShips.ClassifyShip(outcome),
+                $"{outcome}"
+            );
+        }
+    }
 }

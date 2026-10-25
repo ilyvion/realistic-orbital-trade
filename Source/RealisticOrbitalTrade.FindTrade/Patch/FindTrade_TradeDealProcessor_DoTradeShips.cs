@@ -74,19 +74,21 @@ internal static class FindTrade_TradeDealProcessor_DoTradeShips
             }
 
             var tradeShipData = tradeShip.GetData();
-            var outcome = Rimworld_TradeShip_TryOpenComms.DecideComms(
-                tradeShipData.ticksUntilCommsClosed,
-                Utils.IsMakingAmends,
-                standing,
-                tradeShipData.HasActiveTradeAgreement
+            var visibility = ClassifyShip(
+                Rimworld_TradeShip_TryOpenComms.DecideComms(
+                    tradeShipData.ticksUntilCommsClosed,
+                    Utils.IsMakingAmends,
+                    standing,
+                    tradeShipData.HasActiveTradeAgreement
+                )
             );
-            if (outcome == Rimworld_TradeShip_TryOpenComms.CommsOutcome.StartAgreement)
+            if (visibility == ShipVisibility.Trade)
             {
                 continue;
             }
 
             _ = traded.Add(tradeShip);
-            if (outcome != Rimworld_TradeShip_TryOpenComms.CommsOutcome.NotAnsweringForGraceTime)
+            if (visibility == ShipVisibility.HideForThisPass)
             {
                 skippedForThisPass.Add(tradeShip);
             }
@@ -94,6 +96,28 @@ internal static class FindTrade_TradeDealProcessor_DoTradeShips
 
         return true;
     }
+
+    internal enum ShipVisibility
+    {
+        Trade,
+        HideForThisPass,
+        HideForStay,
+    }
+
+    internal static ShipVisibility ClassifyShip(
+        Rimworld_TradeShip_TryOpenComms.CommsOutcome outcome
+    ) =>
+        outcome switch
+        {
+            Rimworld_TradeShip_TryOpenComms.CommsOutcome.StartAgreement => ShipVisibility.Trade,
+            Rimworld_TradeShip_TryOpenComms.CommsOutcome.NotAnsweringForGraceTime =>
+                ShipVisibility.HideForStay,
+            Rimworld_TradeShip_TryOpenComms.CommsOutcome.NotAnsweringForActiveAmendment
+            or Rimworld_TradeShip_TryOpenComms.CommsOutcome.Blacklisted
+            or Rimworld_TradeShip_TryOpenComms.CommsOutcome.NotAnsweringForActiveTrade =>
+                ShipVisibility.HideForThisPass,
+            _ => throw new ArgumentOutOfRangeException(nameof(outcome), outcome, null),
+        };
 
     internal static void Finalizer(List<ITrader>? __state)
     {
