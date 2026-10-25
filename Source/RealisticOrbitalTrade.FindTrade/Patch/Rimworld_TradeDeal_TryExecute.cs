@@ -28,7 +28,7 @@ internal static class Rimworld_TradeDeal_TryExecute
             );
     }
 
-    private static void Postfix(bool __result)
+    internal static void Postfix(bool __result)
     {
         // A refused deal leaves its agreement behind
         if (FindTrade_TradeDealProcessor_DoTradeShips.IsTrading && !__result)

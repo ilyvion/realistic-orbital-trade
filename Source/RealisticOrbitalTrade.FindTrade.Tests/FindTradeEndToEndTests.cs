@@ -813,6 +813,76 @@ internal sealed class FindTradeEndToEndTests
         );
     }
 
+    // The DoTradeDeal patches fit a deal to ROT's own accept gates, so only vanilla's (a negotiator
+    // whose ideoligion forbids trading organs) or another mod's can refuse one; the postfix is
+    // called directly with the refusal.
+    [Test]
+    public static void ABarterPassEndsTheTradeAgreementOfARefusedDeal()
+    {
+        using var findTrade = new FindTradeScene(Find.CurrentMap);
+        var scene = findTrade.Scene;
+
+        Expect.IsTrue(
+            FindTrade_TradeDealProcessor_DoTradeShips.Prefix(scene.Negotiator, out var state),
+            "The barter pass was skipped"
+        );
+        List<TradeAgreement> ended;
+        TradeAgreement agreement;
+        try
+        {
+            agreement = StartDealTradeAgreement(scene);
+            ended = AgreementsEndedDuring(() => Rimworld_TradeDeal_TryExecute.Postfix(false));
+        }
+        finally
+        {
+            FindTrade_TradeDealProcessor_DoTradeShips.Finalizer(state);
+        }
+
+        Expect.AreEqual(1, ended.Count, "The refused deal didn't end exactly one trade agreement");
+        Expect.ReferencesAreEqual(
+            agreement,
+            ended[0],
+            "The refused deal ended a trade agreement other than its own"
+        );
+        Expect.IsFalse(
+            RealisticOrbitalTradeGameComponent.Current.ActiveTradeAgreements.Contains(agreement),
+            "The refused deal's trade agreement is still active"
+        );
+        Expect.IsNull(
+            scene.TradeShip.GetData().activeTradeAgreement,
+            "The ship still has the refused deal's trade agreement"
+        );
+        Expect.IsNull(
+            TradeShipData.tradeAgreementForQuest,
+            "The refused deal left its trade agreement in the slot comms use"
+        );
+    }
+
+    // A refused manual trade keeps its window and agreement open for the player to adjust the deal.
+    [Test]
+    public static void ARefusedDealOutsideABarterPassKeepsItsTradeAgreement()
+    {
+        using var findTrade = new FindTradeScene(Find.CurrentMap);
+        var scene = findTrade.Scene;
+
+        var agreement = StartDealTradeAgreement(scene);
+        try
+        {
+            var ended = AgreementsEndedDuring(() => Rimworld_TradeDeal_TryExecute.Postfix(false));
+
+            Expect.IsEmpty(ended, "A refused deal outside a barter pass ended a trade agreement");
+            Expect.ReferencesAreEqual(
+                agreement,
+                TradeShipData.tradeAgreementForQuest,
+                "A refused deal outside a barter pass took the trade agreement out of its slot"
+            );
+        }
+        finally
+        {
+            TradeShipData.EndTradeAgreementIfExists();
+        }
+    }
+
     // Starts a trade agreement the way the TryExecute prefix does for a deal in a barter pass.
     private static TradeAgreement StartDealTradeAgreement(TradeScene scene)
     {
