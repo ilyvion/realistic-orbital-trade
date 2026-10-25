@@ -13,12 +13,16 @@ namespace RealisticOrbitalTrade.FindTrade.Patch;
 [HarmonyPatch(typeof(TradeDealProcessor), nameof(TradeDealProcessor.DoTradeShips))]
 internal static class FindTrade_TradeDealProcessor_DoTradeShips
 {
-    internal static bool IsTrading { get; private set; }
+    // A depth, not a flag, so a nested call ending doesn't end the outer call's trading
+    private static int tradingDepth;
 
-    private static readonly List<ITrader> skippedForThisPass = [];
+    internal static bool IsTrading => tradingDepth > 0;
 
-    private static bool Prefix(Pawn socialPawn)
+    // __state holds the ships hidden for this pass only, or null when this call doesn't trade
+    private static bool Prefix(Pawn socialPawn, out List<ITrader>? __state)
     {
+        __state = null;
+
         // A renegotiation or an unfinished trade owns the static agreement slot; leave it alone
         if (Utils.RenegotiatingAgreement != null)
         {
@@ -58,6 +62,8 @@ internal static class FindTrade_TradeDealProcessor_DoTradeShips
         // this pass, so they are traded with once the colony can answer comms again
         var traded = Current.Game.GetComponent<TradeRulesGameComp>().traders;
         var standing = RealisticOrbitalTradeGameComponent.Current.Standing;
+        var skippedForThisPass = __state = [];
+        tradingDepth++;
         foreach (
             var tradeShip in socialPawn.Map.passingShipManager.passingShips.OfType<TradeShip>()
         )
@@ -86,27 +92,27 @@ internal static class FindTrade_TradeDealProcessor_DoTradeShips
             }
         }
 
-        IsTrading = true;
         return true;
     }
 
-    private static void Finalizer()
+    private static void Finalizer(List<ITrader>? __state)
     {
-        if (skippedForThisPass.Count > 0)
-        {
-            var traded = Current.Game.GetComponent<TradeRulesGameComp>().traders;
-            foreach (var tradeShip in skippedForThisPass)
-            {
-                _ = traded.Remove(tradeShip);
-            }
-            skippedForThisPass.Clear();
-        }
-
-        if (!IsTrading)
+        if (__state == null)
         {
             return;
         }
-        IsTrading = false;
+
+        var traded = Current.Game.GetComponent<TradeRulesGameComp>().traders;
+        foreach (var tradeShip in __state)
+        {
+            _ = traded.Remove(tradeShip);
+        }
+
+        tradingDepth--;
+        if (IsTrading)
+        {
+            return;
+        }
 
         // Left over when a deal threw before it finished
         TradeShipData.EndTradeAgreementIfExists();
