@@ -8,8 +8,6 @@ namespace RealisticOrbitalTrade.Tests;
 [TestFixture(TestType.MainMenu)]
 internal sealed class AcceptGatesTests
 {
-    private const float Capacity = 2000f;
-
     private static readonly List<List<(int lineId, int count)>> OneShuttle =
     [
         [],
@@ -21,7 +19,8 @@ internal sealed class AcceptGatesTests
         float threshold = 0f,
         List<List<(int lineId, int count)>>? plan = null,
         int? shuttleLimit = null,
-        float incomingMass = 0f,
+        List<List<(int lineId, int count)>>? incomingPlan = null,
+        bool boughtItemTooHeavy = false,
         bool isRenegotiation = false,
         bool canAfford = true,
         bool departing = false,
@@ -34,8 +33,7 @@ internal sealed class AcceptGatesTests
             threshold,
             plan ?? OneShuttle,
             shuttleLimit,
-            incomingMass,
-            Capacity,
+            boughtItemTooHeavy ? null : incomingPlan ?? OneShuttle,
             isRenegotiation,
             canAfford,
             departing,
@@ -77,7 +75,7 @@ internal sealed class AcceptGatesTests
                 combinedValue: 0f,
                 threshold: 100f,
                 plan: null,
-                incomingMass: Capacity + 1f
+                boughtItemTooHeavy: true
             )
         );
 
@@ -91,8 +89,7 @@ internal sealed class AcceptGatesTests
                 0f,
                 null,
                 null,
-                0f,
-                Capacity,
+                OneShuttle,
                 false,
                 true,
                 false,
@@ -142,22 +139,43 @@ internal sealed class AcceptGatesTests
                     [],
                 ],
                 shuttleLimit: 1,
-                incomingMass: Capacity + 1f
+                boughtItemTooHeavy: true
             )
         );
 
     [Test]
-    public static void IncomingMassOverCapacityIsRefused() =>
+    public static void BoughtItemTooHeavyForAShuttleIsRefused() =>
         Expect.AreEqual(
             Rimworld_TradeDeal_TryExecute.AcceptRejection.OverIncomingCapacity,
-            Evaluate(incomingMass: Capacity + 0.1f)
+            Evaluate(boughtItemTooHeavy: true)
         );
 
     [Test]
-    public static void IncomingMassEqualToCapacityIsAccepted() =>
+    public static void PurchaseNeedingSeveralShuttlesIsAccepted() =>
         Expect.AreEqual(
             Rimworld_TradeDeal_TryExecute.AcceptRejection.None,
-            Evaluate(incomingMass: Capacity)
+            Evaluate(
+                incomingPlan:
+                [
+                    [],
+                    [],
+                ]
+            )
+        );
+
+    [Test]
+    public static void RenegotiatingAPurchaseOntoMoreShuttlesIsAccepted() =>
+        Expect.AreEqual(
+            Rimworld_TradeDeal_TryExecute.AcceptRejection.None,
+            Evaluate(
+                incomingPlan:
+                [
+                    [],
+                    [],
+                    [],
+                ],
+                isRenegotiation: true
+            )
         );
 
     [Test]

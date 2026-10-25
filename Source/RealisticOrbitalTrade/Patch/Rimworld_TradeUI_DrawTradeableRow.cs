@@ -4,8 +4,8 @@ namespace RealisticOrbitalTrade.Patch;
 
 // Mirrors Dialog_FormCaravan's per-row mass column and "M<"/">M" add-until-mass-limit buttons
 // (TransferableOneWayWidget.DoRow/DrawMass), adapted for the trade dialog: selling draws down the
-// outgoing shuttle's capacity, buying draws down the incoming shuttle's (skipped, i.e.
-// unconstrained, when bought items are set to arrive by drop pod instead of shuttle).
+// outgoing shuttles' capacity, buying is only held to a single thing fitting on a shuttle (skipped,
+// i.e. unconstrained, when bought items are set to arrive by drop pod instead of shuttle).
 [HarmonyPatch(typeof(TradeUI), nameof(TradeUI.DrawTradeableRow))]
 [HotSwappable]
 internal static class Rimworld_TradeUI_DrawTradeableRow
@@ -75,10 +75,10 @@ internal static class Rimworld_TradeUI_DrawTradeableRow
                     - Rimworld_Dialog_Trade_DoWindowContents.CalculateOutgoingMass(deal);
         }
 
+        // Bought goods arrive on as many shuttles as they need, so only a single thing has to fit
+        // onto one.
         var tradeAgreement = TradeShipData.tradeAgreementForQuest!;
-        return tradeAgreement.deliverItemsViaDropPod
-            ? float.MaxValue
-            : massCapacity - Rimworld_Dialog_Trade_DoWindowContents.CalculateIncomingMass(deal);
+        return tradeAgreement.deliverItemsViaDropPod ? float.MaxValue : massCapacity;
     }
 
     // Mass-based CountToTransfer bounds for a single tradeable row, mirroring
@@ -188,16 +188,20 @@ internal static class Rimworld_TradeUI_DrawTradeableRow
                 currency,
                 0
             );
-            massMax = FindMaxBuyCount(
-                trad,
-                currency,
-                unitMass,
-                unitMassCurrency,
-                otherCost,
-                otherIncomingMass,
-                massCapacity,
-                trad.CountHeldBy(Transactor.Trader)
-            );
+            // Nothing heavier than a shuttle can be bought, however many shuttles deliver it.
+            massMax =
+                unitMass > massCapacity
+                    ? 0
+                    : FindMaxBuyCount(
+                        trad,
+                        currency,
+                        unitMass,
+                        unitMassCurrency,
+                        otherCost,
+                        otherIncomingMass,
+                        float.PositiveInfinity,
+                        trad.CountHeldBy(Transactor.Trader)
+                    );
         }
 
         return (massMin, massMax);

@@ -227,8 +227,7 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
     // Mirrors CompTransporter.MassUsage's own calculation (same IgnorePawnsInventoryMode and
     // includePawnsMass arguments) so the number shown here before Accept matches what the shuttle
     // will actually compute once loading starts. Handles both the outgoing (sold-to-trader) and
-    // incoming (bought-from-trader) shuttle, which are separate shuttles each capped at
-    // ShuttleMassCapacity.
+    // incoming (bought-from-trader) cargo, which travel on separate shuttles.
     private static void DrawCargoMassRow(float rowWidth, float yOffset, bool outgoing)
     {
         var rowRect = new Rect(0f, 58f + yOffset, rowWidth, 30f);
@@ -468,6 +467,44 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
     }
 
     /// <summary>
+    /// How the deal's incoming (bought-from-trader) cargo divides across the shuttles that deliver
+    /// it, or <see langword="null"/> if a single item or creature is too heavy for a shuttle to
+    /// carry at all.
+    /// </summary>
+    internal static List<List<(int lineId, int count)>>? PlanIncomingShuttles(TradeDeal deal)
+    {
+        List<ShuttleLoadPlanner.Line> lines = [];
+        foreach (var item in deal.AllTradeables)
+        {
+            if (item.CountToTransfer <= 0 || !item.HasAnyThing)
+            {
+                continue;
+            }
+
+            if (item.AnyThing is Pawn)
+            {
+                var remaining = item.CountToTransfer;
+                foreach (var thing in item.thingsTrader)
+                {
+                    if (remaining <= 0)
+                    {
+                        break;
+                    }
+                    lines.Add(new(lines.Count, TradeAgreement.PawnCargoMass(thing), 1));
+                    remaining--;
+                }
+                continue;
+            }
+
+            lines.Add(
+                new(lines.Count, item.AnyThing.GetStatValue(StatDefOf.Mass), item.CountToTransfer)
+            );
+        }
+
+        return ShuttleLoadPlanner.Plan(ShuttleMassCapacity, 0f, lines);
+    }
+
+    /// <summary>
     /// Whether the deal's outgoing cargo can't go: a single thing is too heavy for a shuttle, or,
     /// for a renegotiation, it needs more shuttles than were sent.
     /// </summary>
@@ -478,8 +515,8 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
 
     /// <summary>
     /// What a cargo mass row shows for one direction of <paramref name="deal"/>: the mass, its
-    /// display text, and whether to flag it as over capacity. Outgoing cargo reads as a shuttle
-    /// count once it takes more than one shuttle, since no single capacity limits it.
+    /// display text, and whether to flag it as over capacity. Cargo reads as a shuttle count once
+    /// it takes more than one shuttle, since no single capacity limits it.
     /// </summary>
     internal static (float mass, string valueText, bool overCapacity) GetCargoMassRowValue(
         bool outgoing,
@@ -490,10 +527,11 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
         if (!outgoing)
         {
             var incomingMass = CalculateIncomingMass(deal);
+            var incomingPlan = PlanIncomingShuttles(deal);
             return (
                 incomingMass,
-                FormatMassOfCapacity(incomingMass, capacity),
-                incomingMass > capacity
+                FormatMassOrShuttleCount(incomingMass, capacity, incomingPlan),
+                incomingPlan == null
             );
         }
 
@@ -501,16 +539,23 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
         var plan = PlanOutgoingShuttles(deal);
         var shuttleLimit = OutgoingShuttleLimit;
         var over = IsOutgoingCargoOverCapacity(plan, shuttleLimit);
-        var text =
-            shuttleLimit is { } limit ? FormatMassOfCapacity(mass, limit * capacity)
-            : plan is { Count: > 1 }
-                ? "RealisticOrbitalTrade.CargoMassMultipleShuttles".Translate(
-                    mass.ToString("F1", CultureInfo.CurrentCulture),
-                    plan.Count
-                )
-            : FormatMassOfCapacity(mass, capacity);
+        var text = shuttleLimit is { } limit
+            ? FormatMassOfCapacity(mass, limit * capacity)
+            : FormatMassOrShuttleCount(mass, capacity, plan);
         return (mass, text, over);
     }
+
+    private static string FormatMassOrShuttleCount(
+        float mass,
+        float capacity,
+        List<List<(int lineId, int count)>>? plan
+    ) =>
+        plan is { Count: > 1 }
+            ? "RealisticOrbitalTrade.CargoMassMultipleShuttles".Translate(
+                mass.ToString("F1", CultureInfo.CurrentCulture),
+                plan.Count
+            )
+            : FormatMassOfCapacity(mass, capacity);
 
     private static string FormatMassOfCapacity(float mass, float capacity) =>
         mass.ToStringEnsureThreshold(capacity, 1)

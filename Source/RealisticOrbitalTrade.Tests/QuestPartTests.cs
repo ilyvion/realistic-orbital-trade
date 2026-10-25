@@ -225,6 +225,12 @@ internal sealed class QuestPartTests
         using var scene = new TradeScene(Find.CurrentMap);
         yield return Landed(scene);
         var agreement = scene.TradeAgreement!;
+        // The sale's payment waits here too; only the two things added below are dropped.
+        foreach (var payment in agreement.thingsSoldToPlayer.ToList())
+        {
+            _ = agreement.thingsSoldToPlayer.Remove(payment);
+            payment.Destroy();
+        }
         _ = agreement.thingsSoldToPlayer.TryAdd(MakeItem(RimWorld.ThingDefOf.Steel));
         _ = agreement.thingsSoldToPlayer.TryAdd(MakeItem(RimWorld.ThingDefOf.WoodLog));
         var part = new QuestPart_TradeDropPods

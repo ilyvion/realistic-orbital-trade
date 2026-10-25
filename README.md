@@ -21,7 +21,7 @@ A few highlights beyond the core shuttle-loading behavior:
 - Renegotiate a trade (right-click the trade shuttle with a pawn) at any time, even after a trade agreement has already been reached. Also useful if an item you sold becomes unavailable or too damaged to be sold anymore.
 - With the 'multi-item shuttle loading' feature, colonists carry several stacks of goods per trip instead of one, speeding up large trades considerably.
 - Pay silver to 'buy more time' on a shuttle's departure timer if a big trade needs longer to load than it would normally wait around for.
-- The trade window shows and enforces the shuttle's cargo mass capacity, so you can't strike a deal it can't carry.
+- Trades too heavy for one shuttle aren't a problem: a big sale is divided across several shuttles that take off together once they're all loaded, and a big purchase is delivered by shuttles arriving one after another. The trade window shows how much cargo each side of the deal adds up to.
 - Genepacks and xenogerms stored in genebanks (vanilla or modded) get hauled out to the shuttle automatically.
 - If your negotiator dies or otherwise becomes unavailable mid-trade, another colonist can take over so the trade doesn't get stuck.
 - Optional settings for a minimum trade value, delivering bought items by drop pod instead of shuttle, and how much item wear-and-tear is tolerated.

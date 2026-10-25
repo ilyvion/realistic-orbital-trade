@@ -242,6 +242,14 @@ internal sealed class TradeScene : IDisposable
         {
             yield break;
         }
+
+        yield return WaitForShuttleQuest(sale);
+    }
+
+    // Records the shuttle quest accepting the trade generated, then ticks until every shuttle for
+    // the trader has landed.
+    private IEnumerator WaitForShuttleQuest(Sale sale)
+    {
         var quest = FindTradeQuest();
         Expect.IsNotNull(quest, "Accepting the trade didn't generate the shuttle quest");
         Expect.IsNotNull(TradeAgreement!.tradeDeliveryMethod, "No delivery arranged for payment");
@@ -257,12 +265,70 @@ internal sealed class TradeScene : IDisposable
         Expect.IsTrue(AllToTraderShuttlesHaveLanded, "Trade shuttles never all landed");
     }
 
+    // Opens comms through the real trade dialog, buys goods from the trader paying with the
+    // colony's silver and accepts, then lets time pass until the trader's shuttles have landed. A
+    // purchase is recorded as a sale of a negative count, paid a negative amount of silver, so
+    // ExpectSaleCompleted checks it the same way.
+    internal IEnumerator BuyAndWaitForLanding(ThingDef def, int count)
+    {
+        var sale = new Sale(def, -count, HeldByTrader(def), CountOnMap(def), CountOnMap(SilverDef));
+        CurrentSale = sale;
+
+        var negotiator = spawned.OfType<Pawn>().First();
+        TradeShip.TryOpenComms(negotiator);
+        var dialog = Find.WindowStack.WindowOfType<Dialog_Trade>();
+        TradeAgreement = TradeShipData.tradeAgreementForQuest;
+        Expect.IsNotNull(dialog, "Comms didn't open the trade dialog");
+        Expect.IsNotNull(TradeAgreement, "No trade agreement started");
+        if (dialog == null || TradeAgreement == null)
+        {
+            yield break;
+        }
+        var tradeable = TradeSession.deal.AllTradeables.FirstOrDefault(t =>
+            t.ThingDef == def && t.CountHeldBy(Transactor.Trader) > 0
+        );
+        Expect.IsNotNull(tradeable, $"The trader doesn't offer {def.label}");
+        if (tradeable == null)
+        {
+            dialog.Close(doCloseSound: false);
+            yield break;
+        }
+        sale.SilverOwed = TradeInOpenDialog(dialog, tradeable, count);
+        Expect.LessThan(sale.SilverOwed, 0, "The purchase doesn't cost any silver");
+        if (sale.SilverOwed >= 0)
+        {
+            yield break;
+        }
+
+        yield return WaitForShuttleQuest(sale);
+    }
+
     // Ticks until the current sale's quest is no longer ongoing.
-    internal IEnumerator WaitForQuestToEnd()
+    internal IEnumerator WaitForQuestToEnd() => WaitForQuestToEnd(() => { });
+
+    // Ticks until the current sale's quest is no longer ongoing, calling eachFrame between batches
+    // of ticks so a test can watch the trade unfold.
+    internal IEnumerator WaitForQuestToEnd(Action eachFrame)
     {
         var quest = CurrentSale!.Quest!;
-        yield return TickUntil(() => quest.State != QuestState.Ongoing);
+        yield return TickUntil(() =>
+        {
+            eachFrame();
+            return quest.State != QuestState.Ongoing;
+        });
     }
+
+    // How many of the trader's shuttles delivering bought goods are on the map right now.
+    internal int DeliveryShuttlesOnMap =>
+        Map.listerThings.AllThings.Count(thing =>
+            thing.TryGetComp<CompTradeShuttle>() is { isToTrader: false }
+        );
+
+    // How many shuttles the current sale's quest has sent to deliver bought goods.
+    internal int DeliveryShuttlesSent =>
+        CurrentSale!
+            .Quest!.PartsListForReading.OfType<Quests.QuestPart_DeliverBoughtItemsByShuttles>()
+            .Sum(part => part.shuttlesSent);
 
     // Ticks until the trader's shuttles have all left the map.
     internal IEnumerator WaitForShuttlesToLeave()
@@ -547,10 +613,20 @@ internal sealed class TradeScene : IDisposable
         {
             return 0;
         }
-        tradeable.ForceTo(-count);
+        var silverToReceive = TradeInOpenDialog(dialog, tradeable, -count);
+        Expect.GreaterThan(silverToReceive, 0, "The sale doesn't pay any silver");
+        return silverToReceive;
+    }
+
+    // Sets the open dialog's deal to transfer this many of the tradeable (negative to sell,
+    // positive to buy) and accepts it. Returns the silver the colony receives, negative when it
+    // pays.
+    private static int TradeInOpenDialog(Dialog_Trade dialog, Tradeable tradeable, int count)
+    {
+        var deal = TradeSession.deal;
+        tradeable.ForceTo(count);
         deal.UpdateCurrencyCount();
         var silverToReceive = deal.CurrencyTradeable.CountToTransfer;
-        Expect.GreaterThan(silverToReceive, 0, "The sale doesn't pay any silver");
 
         Expect.IsTrue(deal.TryExecute(out var actuallyTraded), "Trade was rejected");
         Expect.IsTrue(actuallyTraded, "Trade didn't execute");

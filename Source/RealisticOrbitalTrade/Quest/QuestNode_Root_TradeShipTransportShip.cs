@@ -85,22 +85,44 @@ internal class QuestNode_Root_TradeShipTransportShip : QuestNode
         string? signalToPlayerShuttleKilled = null;
         if (!tradeAgreement.deliverItemsViaDropPod)
         {
-            var (toPlayerShuttle, toPlayerTransportShip) = SetupToPlayerTransportShip(
-                quest,
-                slate,
-                tradeAgreement,
-                questTag,
-                signalToTraderShuttleSentSatisfied,
-                out signalToPlayerItemsDelivered,
-                out signalToPlayerShuttleKilled
+            PreTrade(tradeAgreement);
+
+            var toPlayerShuttleTag = QuestGenUtility.HardcodedTargetQuestTagWithQuestID(
+                "toPlayerShuttle"
             );
-            tradeAgreement.tradeDeliveryMethod = new TradeDeliveryMethod_TransportShip(
-                toPlayerTransportShip
+            signalToPlayerShuttleKilled = QuestGenUtility.QuestTagSignal(
+                toPlayerShuttleTag,
+                "Killed"
+            );
+            signalToPlayerItemsDelivered = QuestGenUtility.HardcodedSignalWithQuestID(
+                "ToPlayerItemsDelivered"
+            );
+            slate.Set(
+                "toPlayerShuttleCount",
+                QuestPart_DeliverBoughtItemsByShuttles
+                    .PlanShuttles(
+                        [.. tradeAgreement.thingsSoldToPlayer],
+                        Patch.Rimworld_Dialog_Trade_DoWindowContents.ShuttleMassCapacity
+                    )
+                    ?.Count
+                    ?? 1
+            );
+            _ = quest.DeliverBoughtItemsByShuttles(
+                tradeAgreement,
+                tradeAgreement.tradeShip.Map.Parent,
+                questTag,
+                toPlayerShuttleTag,
+                inSignalEnable: signalToTraderShuttleSentSatisfied,
+                outSignalDelivered: signalToPlayerItemsDelivered
+            );
+            tradeAgreement.tradeDeliveryMethod = new TradeDeliveryMethod_TransportShips(
+                tradeAgreement
             );
         }
         else
         {
             tradeAgreement.tradeDeliveryMethod = new TradeDeliveryMethod_DropPod(tradeAgreement);
+            slate.Set("toPlayerShuttleCount", 0);
 
             signalToPlayerItemsDelivered = QuestGenUtility.HardcodedSignalWithQuestID(
                 $"SentSatisfied"
@@ -383,60 +405,6 @@ internal class QuestNode_Root_TradeShipTransportShip : QuestNode
             ShipJobStartMode.Queue
         );
         quest.AddShipJob_WaitForever(transportShip, true, false).showGizmos = false;
-
-        return (shuttle, transportShip);
-    }
-
-    private static (Thing shuttle, TransportShip transportShip) SetupToPlayerTransportShip(
-        Quest quest,
-        Slate slate,
-        TradeAgreement tradeAgreement,
-        string questTag,
-        string signalToTraderShuttleSentSatisfied,
-        out string signalToPlayerShuttleSentSatisfied,
-        out string signalToPlayerShuttleKilled
-    )
-    {
-        var shuttle = QuestUtils.SetupShuttle(
-            "toPlayerShuttle",
-            slate,
-            questTag,
-            out signalToPlayerShuttleSentSatisfied,
-            out signalToPlayerShuttleKilled
-        );
-
-        PreTrade(tradeAgreement);
-
-        var transportShip = quest
-            .GenerateTransportShip(
-                TransportShipDefOf.Ship_Shuttle,
-                tradeAgreement.thingsSoldToPlayer,
-                shuttle
-            )
-            .transportShip;
-        slate.Set("toPlayerTransportShip", transportShip);
-        QuestUtility.AddQuestTag(ref transportShip.questTags, questTag);
-
-        var map = tradeAgreement.tradeShip.Map;
-
-        // Put in a small delay so the shuttles don't come back to back
-        quest
-            .Delay(
-                500,
-                () =>
-                {
-                    _ = quest.AddShipJob_Arrive_FindLandingSpot_JIT(
-                        transportShip,
-                        map.Parent,
-                        null,
-                        ShipJobStartMode.Queue
-                    );
-                    _ = quest.AddShipJob_Unload(transportShip);
-                    _ = quest.AddShipJob_WaitTime(transportShip, 0, true);
-                },
-                signalToTraderShuttleSentSatisfied
-            )
-            .debugLabel = "toPlayerTransportShip arrival delay";
 
         return (shuttle, transportShip);
     }

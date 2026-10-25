@@ -11,16 +11,20 @@
         <questDescriptionRules>
             <rulesStrings>
                 <li>questDescription-&gt;You have entered into a trade agreement with the orbital trade ship [traderName]. [shuttlesDescription]</li>
-                <li>shuttlesDescription(toTraderShuttleCount&gt;=2,priority=1)-&gt;They'll be sending [toTraderShuttleCount] shuttles for you to load your sold items into, since they were too heavy for just one. They will all take off together once every one of them has been loaded, and then a final shuttle will arrive and unload your bought items.</li>
-                <li>shuttlesDescription-&gt;They'll be sending two shuttles for you to complete the deal. The first one you will load your sold items into, and the second will unload your bought items upon arrival.</li>
+                <li>shuttlesDescription(toTraderShuttleCount&gt;=2,priority=1)-&gt;They'll be sending [toTraderShuttleCount] shuttles for you to load your sold items into, since they were too heavy for just one. They will all take off together once every one of them has been loaded, and then [deliveryDescription]</li>
+                <li>shuttlesDescription-&gt;They'll be sending a shuttle for you to load your sold items into. Once it has taken off, [deliveryDescription]</li>
+                <li>deliveryDescription(toPlayerShuttleCount&gt;=2,priority=1)-&gt;shuttles will arrive one after another to unload your bought items, since they are too heavy for just one.</li>
+                <li>deliveryDescription-&gt;another shuttle will arrive and unload your bought items.</li>
             </rulesStrings>
         </questDescriptionRules>
         <questContentRules>
             <rulesStrings>
                 <li>tradeAcceptedLetterLabel-&gt;Trade accepted</li>
                 <li>tradeAcceptedLetterText-&gt;[traderName] appreciates your business!\n\n[shuttlesSentText]\n\nMake sure you don't take too long, the shuttle will leave when we do, and if you have not sent off the items owed to us by then, the trade agreement will be annulled.\n\nYou can betray the orbital trader by destroying their shuttles, but this will have consequences for your future ability to trade with orbital traders.</li>
-                <li>shuttlesSentText(toTraderShuttleCount&gt;=2,priority=1)-&gt;We've sent [toTraderShuttleCount] shuttles down for you to load the things you sold to us into, since they were too heavy for just one. They will all take off together once every one of them has been loaded. Once we've received our things, we will send another shuttle down with the things you bought.</li>
-                <li>shuttlesSentText-&gt;We've sent a shuttle down for you to load the things you sold to us into. Once we've received our things, we will send another shuttle down with the things you bought.</li>
+                <li>shuttlesSentText(toTraderShuttleCount&gt;=2,priority=1)-&gt;We've sent [toTraderShuttleCount] shuttles down for you to load the things you sold to us into, since they were too heavy for just one. They will all take off together once every one of them has been loaded. [deliverySentText]</li>
+                <li>shuttlesSentText-&gt;We've sent a shuttle down for you to load the things you sold to us into. [deliverySentText]</li>
+                <li>deliverySentText(toPlayerShuttleCount&gt;=2,priority=1)-&gt;Once we've received our things, we will send shuttles down with the things you bought, one after another, since they're too heavy for just one.</li>
+                <li>deliverySentText-&gt;Once we've received our things, we will send another shuttle down with the things you bought.</li>
                 <li>tradeShuttleKilledLetterLabel-&gt;Trade shuttle destroyed</li>
                 <li>tradeShuttleKilledLetterText-&gt;Due to your vandalism of our property, your faction has been blacklisted in the orbital traders' guild. Because we believe in giving second chances, you may at any future time contact an orbital trader in range of your comms and offer to pay compensation for the damages caused plus a nominal fee for the inconvenience you have caused us. Until such time, the trading services of orbital traders will be unavailable to you.</li>
                 <li>graceTimeLetterLabel-&gt;Trade grace period</li>

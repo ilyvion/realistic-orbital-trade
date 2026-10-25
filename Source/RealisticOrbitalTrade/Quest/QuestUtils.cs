@@ -19,16 +19,19 @@ internal class QuestUtils
         );
         signalshuttleKilled = QuestGenUtility.HardcodedSignalWithQuestID($"{shuttleName}.Killed");
 
-        var shuttle =
-            RealisticOrbitalTradeGameComponent.Current.Standing == Standing.Good
-                ? ThingMaker.MakeThing(ThingDefOf.ROT_TradeShuttle)
-            : !isForAmends ? ThingMaker.MakeThing(ThingDefOf.ROT_ExplosiveRiggedTradeShuttle)
-            : ThingMaker.MakeThing(ThingDefOf.ROT_ExplosiveRiggedAmendmentTradeShuttle);
+        var shuttle = MakeTradeShuttle(isForAmends);
         slate.Set(shuttleName, shuttle);
         QuestUtility.AddQuestTag(ref shuttle.questTags, questTag);
 
         return shuttle;
     }
+
+    /// <summary>The trader's shuttle, rigged with explosives unless the colony is in good standing.</summary>
+    public static Thing MakeTradeShuttle(bool isForAmends = false) =>
+        RealisticOrbitalTradeGameComponent.Current.Standing == Standing.Good
+            ? ThingMaker.MakeThing(ThingDefOf.ROT_TradeShuttle)
+        : !isForAmends ? ThingMaker.MakeThing(ThingDefOf.ROT_ExplosiveRiggedTradeShuttle)
+        : ThingMaker.MakeThing(ThingDefOf.ROT_ExplosiveRiggedAmendmentTradeShuttle);
 
     public static int CheckTradeShipRequiresGraceTime(Quest quest, Slate slate, TradeShip tradeShip)
     {

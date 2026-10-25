@@ -33,13 +33,14 @@ internal static class Rimworld_TradeDeal_TryExecute
         var outgoingPlan = Rimworld_Dialog_Trade_DoWindowContents.PlanOutgoingShuttles(__instance);
         var shuttleLimit = Rimworld_Dialog_Trade_DoWindowContents.OutgoingShuttleLimit;
 
-        // Items bought from the trader also arrive by shuttle, and are subject to the same mass
-        // capacity - unless the player has opted to receive them via drop pods instead, which
-        // aren't mass-limited.
-        var deliverViaDropPod = tradeAgreementForQuest.deliverItemsViaDropPod;
-        var incomingMass = deliverViaDropPod
-            ? 0f
-            : Rimworld_Dialog_Trade_DoWindowContents.CalculateIncomingMass(__instance);
+        // Items bought from the trader arrive on as many shuttles, one after another, as it takes,
+        // so only a single thing too heavy for a shuttle can't be delivered - unless the player
+        // has opted to receive them via drop pods instead, which aren't mass-limited.
+        List<List<(int lineId, int count)>>? incomingPlan = [];
+        if (!tradeAgreementForQuest.deliverItemsViaDropPod)
+        {
+            incomingPlan = Rimworld_Dialog_Trade_DoWindowContents.PlanIncomingShuttles(__instance);
+        }
 
         var canAfford = true;
         var increasesLoadedGoods = false;
@@ -116,8 +117,7 @@ internal static class Rimworld_TradeDeal_TryExecute
             minimumTradeThreshold,
             outgoingPlan,
             shuttleLimit,
-            incomingMass,
-            massCapacity,
+            incomingPlan,
             isRenegotiation,
             canAfford,
             Utils.RenegotiatingBecauseDeparting,
@@ -156,8 +156,7 @@ internal static class Rimworld_TradeDeal_TryExecute
             case AcceptRejection.OverIncomingCapacity:
                 Rimworld_Dialog_Trade_DoWindowContents.lastIncomingMassFlashTime = Time.time;
                 Reject(
-                    "RealisticOrbitalTrade.TradeExceedsIncomingShuttleMassCapacity".Translate(
-                        incomingMass.ToStringEnsureThreshold(massCapacity, 1),
+                    "RealisticOrbitalTrade.TradeContainsBoughtItemTooHeavyForShuttle".Translate(
                         massCapacity.ToString("F0", CultureInfo.CurrentCulture)
                     )
                 );
@@ -270,6 +269,8 @@ internal static class Rimworld_TradeDeal_TryExecute
     /// The first reason accepting a deal must be refused, in the order the checks run, or
     /// <see cref="AcceptRejection.None"/>. The last three only apply to a renegotiation, and
     /// <paramref name="increasesLoadedGoods"/> only to one triggered by the trader departing.
+    /// A <see langword="null"/> <paramref name="incomingPlan"/> means something bought is too heavy
+    /// for a shuttle.
     /// </summary>
     internal static AcceptRejection EvaluateAcceptGates(
         bool useMinimumTradeThreshold,
@@ -277,8 +278,7 @@ internal static class Rimworld_TradeDeal_TryExecute
         float minimumTradeThreshold,
         List<List<(int lineId, int count)>>? outgoingPlan,
         int? shuttleLimit,
-        float incomingMass,
-        float massCapacity,
+        List<List<(int lineId, int count)>>? incomingPlan,
         bool isRenegotiation,
         bool canAfford,
         bool renegotiatingBecauseDeparting,
@@ -291,7 +291,7 @@ internal static class Rimworld_TradeDeal_TryExecute
             outgoingPlan,
             shuttleLimit
         );
-        var overIncoming = incomingMass > massCapacity;
+        var overIncoming = incomingPlan == null;
         var cantChangeLoadedGoods = renegotiatingBecauseDeparting && increasesLoadedGoods;
 
         return belowThreshold ? AcceptRejection.BelowThreshold
