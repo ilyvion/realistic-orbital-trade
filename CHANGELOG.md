@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-10-25
+
 ### Added
 
 - A purchase no longer has to fit on a single trade shuttle. If what you're buying is heavier than one shuttle can carry, the trader now delivers it with as many shuttles as it takes, one after another: each lands, unloads its share and leaves before the next one arrives, and the trade finishes once everything has been delivered. This also applies when renegotiating a trade to buy more. Any single item or creature you buy still has to fit on one shuttle.
@@ -304,7 +306,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.14.2...HEAD
+[Unreleased]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.15.0...HEAD
+[0.15.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.14.2..v0.15.0
 [0.14.2]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.14.1..v0.14.2
 [0.14.1]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.14.0..v0.14.1
 [0.14.0]: https://github.com/ilyvion/realistic-orbital-trade/compare/v0.13.1..v0.14.0
