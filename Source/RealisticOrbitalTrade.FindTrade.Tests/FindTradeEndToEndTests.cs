@@ -687,6 +687,85 @@ internal sealed class FindTradeEndToEndTests
         }
     }
 
+    // Find / Trade fills in every trade dialog it sees, the renegotiation dialog included.
+    [Test]
+    public static IEnumerator OpeningARenegotiationKeepsTheAgreedDeal()
+    {
+        var steel = RimWorld.ThingDefOf.Steel;
+        var wood = RimWorld.ThingDefOf.WoodLog;
+        // A remembered manual trade would make Find / Trade skip the ship for its own reasons.
+        using var findTrade = new FindTradeScene(
+            Find.CurrentMap,
+            findTradeSettings: FindTradeScene.FindTradeSettings.Defaults with
+            {
+                RememberManualTrade = false,
+            }
+        );
+        var scene = findTrade.Scene;
+        scene.PlaceOnMap(steel, SteelToSell);
+        yield return scene.SellAndWaitForLanding(steel, SteelToSell);
+        var agreement = scene.TradeAgreement!;
+        scene.PlaceOnMap(wood, WoodToSell);
+        findTrade.MarkJunk(wood);
+
+        Utils.BeginRenegotiation(agreement);
+        agreement.tradeShip.TryOpenComms(agreement.negotiator);
+        var dialog = Find.WindowStack.WindowOfType<Dialog_Trade>();
+        try
+        {
+            Expect.IsNotNull(dialog, "Renegotiating didn't reopen the trade dialog");
+            Expect.AreEqual(
+                -SteelToSell,
+                CountToTransfer(steel),
+                "Opening the renegotiation changed the agreed steel"
+            );
+            Expect.AreEqual(0, CountToTransfer(wood), "Opening the renegotiation added the junk");
+        }
+        finally
+        {
+            if (dialog != null)
+            {
+                dialog.Close(doCloseSound: false);
+            }
+            else
+            {
+                Utils.EndRenegotiation();
+            }
+        }
+
+        static int CountToTransfer(ThingDef def)
+        {
+            return TradeSession
+                .deal.AllTradeables.Where(t => t.ThingDef == def)
+                .Sum(t => t.CountToTransfer);
+        }
+    }
+
+    [Test]
+    public static IEnumerator OpeningARenegotiationIsNotRememberedAsAManualTrade()
+    {
+        var steel = RimWorld.ThingDefOf.Steel;
+        using var findTrade = new FindTradeScene(
+            Find.CurrentMap,
+            findTradeSettings: FindTradeScene.FindTradeSettings.Defaults with
+            {
+                RememberManualTrade = false,
+            }
+        );
+        var scene = findTrade.Scene;
+        scene.PlaceOnMap(steel, SteelToSell);
+        yield return scene.SellAndWaitForLanding(steel, SteelToSell);
+        // Remembered from here on, so only the renegotiation could record the ship.
+        FindTradeScene.FindTradeSettings.Defaults.Apply();
+
+        _ = scene.OfferedInRenegotiation(steel);
+
+        Expect.IsFalse(
+            findTrade.Traders.Contains(scene.TradeShip),
+            "Opening the renegotiation made Find / Trade skip the ship for the rest of its stay"
+        );
+    }
+
     // A pass started by another mod while one is running, entered through the patch directly.
     [Test]
     public static void ANestedBarterPassLeavesTheOuterPassItsTradeAgreement()
