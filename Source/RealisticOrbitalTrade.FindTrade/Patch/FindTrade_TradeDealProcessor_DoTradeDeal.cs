@@ -28,16 +28,28 @@ internal static class FindTrade_TradeDealProcessor_DoTradeDeal
         // The agreement that Rimworld_TradeDeal_TryExecute starts takes this setting
         var boughtByShuttle = !Settings._deliverItemsViaDropPod;
         _ = deal.AllTradeables.RemoveAll(tradeable =>
-            !tradeable.IsCurrency
-            && (
-                tradeable.thingsColony.Any(thing => CargoMass(thing) > massCapacity)
-                || (
-                    boughtByShuttle
-                    && tradeable.thingsTrader.Any(thing => CargoMass(thing) > massCapacity)
-                )
+            IsTooHeavyForShuttle(
+                tradeable.IsCurrency,
+                tradeable.thingsColony.Select(CargoMass),
+                tradeable.thingsTrader.Select(CargoMass),
+                massCapacity,
+                boughtByShuttle
             )
         );
     }
+
+    internal static bool IsTooHeavyForShuttle(
+        bool isCurrency,
+        IEnumerable<float> colonyUnitMasses,
+        IEnumerable<float> traderUnitMasses,
+        float massCapacity,
+        bool boughtByShuttle
+    ) =>
+        !isCurrency
+        && (
+            colonyUnitMasses.Any(mass => mass > massCapacity)
+            || (boughtByShuttle && traderUnitMasses.Any(mass => mass > massCapacity))
+        );
 
     private static void Postfix(TradeDeal deal)
     {
