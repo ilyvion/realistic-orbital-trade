@@ -101,7 +101,7 @@ internal static class Rimworld_CompShuttle_RequiredThingsLabel
     {
         try
         {
-            return Utils.InjectCallBeforeReturn(
+            return TranspilerUtility.InjectCallBeforeReturn(
                 instructions,
                 _methodInjectThingsLabel,
                 i => i.IsLdloc(),
@@ -215,7 +215,7 @@ internal static class Rimworld_CompTransporter_SubtractFromToLoadList
         IEnumerable<CodeInstruction> instructions
     )
     {
-        var codeMatcher = new CodeMatcher(Utils.WidenShortBranches(instructions));
+        var codeMatcher = new CodeMatcher(TranspilerUtility.WidenShortBranches(instructions));
 
         _ = codeMatcher.SearchForward(i =>
             i.opcode == OpCodes.Call
