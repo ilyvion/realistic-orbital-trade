@@ -14,9 +14,7 @@ internal partial class RealisticOrbitalTradeMod
 {
     partial void Construct()
     {
-        //Harmony.DEBUG = true;
-        new Harmony(Constants.Id).PatchAll(Assembly.GetExecutingAssembly());
-        //Harmony.DEBUG = false;
+        _ = PatchAll(Constants.Id);
 
         _ = GetSettings<Settings>();
     }

@@ -7,7 +7,7 @@ public partial class SocialEXPFromTradeInteropMod
 {
     partial void Construct()
     {
-        new Harmony(Constants.Id).PatchAll(Assembly.GetExecutingAssembly());
+        _ = PatchAll(Constants.Id);
 
         RealisticOrbitalTradeGameComponent.Created += SocialExpGrantTracker.Reset;
         RealisticOrbitalTradeGameComponent.ExposeDataExtra += SocialExpGrantTracker.ExposeData;

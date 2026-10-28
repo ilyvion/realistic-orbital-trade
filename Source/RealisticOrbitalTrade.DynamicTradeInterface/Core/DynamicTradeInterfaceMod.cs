@@ -7,7 +7,7 @@ public partial class DynamicTradeInterfaceMod
 {
     partial void Construct()
     {
-        new Harmony(Constants.Id).PatchAll(Assembly.GetExecutingAssembly());
+        _ = PatchAll(Constants.Id);
 
         RealisticOrbitalTradeMod.Instance.LogMessage(
             "\"Dynamic Trade Interface\" interop loaded successfully!"

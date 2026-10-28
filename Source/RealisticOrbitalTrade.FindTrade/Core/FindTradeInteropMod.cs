@@ -7,7 +7,7 @@ public partial class FindTradeInteropMod
 {
     partial void Construct()
     {
-        new Harmony(Constants.Id).PatchAll(Assembly.GetExecutingAssembly());
+        _ = PatchAll(Constants.Id);
 
         RealisticOrbitalTradeMod.Instance.LogMessage(
             "\"Find / Trade\" interop loaded successfully!"

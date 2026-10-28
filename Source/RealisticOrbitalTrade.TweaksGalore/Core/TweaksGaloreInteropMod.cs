@@ -7,7 +7,7 @@ public partial class TweaksGaloreInteropMod
 {
     partial void Construct()
     {
-        new Harmony(Constants.Id).PatchAll(Assembly.GetExecutingAssembly());
+        _ = PatchAll(Constants.Id);
 
         RealisticOrbitalTradeMod.Instance.LogMessage(
             "\"Tweaks Galore\" interop loaded successfully!"
