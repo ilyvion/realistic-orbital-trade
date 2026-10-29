@@ -56,18 +56,10 @@ internal class TradeShipData : IExposable
 
 internal static class TradeShipExtensions
 {
-    internal static void SetData(this TradeShip tradeShip, TradeShipData tradeShipData)
-    {
-        if (_tradeShipExtra.TryGetValue(tradeShip, out _))
-        {
-            _ = _tradeShipExtra.Remove(tradeShip);
-        }
-        _tradeShipExtra.Add(tradeShip, tradeShipData);
-    }
+    internal static void SetData(this TradeShip tradeShip, TradeShipData tradeShipData) =>
+        _tradeShipExtra.AddOrUpdate(tradeShip, tradeShipData);
 
-#pragma warning disable IDE0028 // Simplify collection initialization
-    private static readonly ConditionalWeakTable<TradeShip, TradeShipData> _tradeShipExtra = new();
-#pragma warning restore IDE0028 // Simplify collection initialization
+    private static readonly WeakTable<TradeShip, TradeShipData> _tradeShipExtra = [];
 
     public static TradeShipData GetData(this TradeShip tradeShip) =>
         _tradeShipExtra.GetValue(
