@@ -28,31 +28,28 @@ internal static class Rimworld_ITab_ContentsTransporter_DoItemsLists_Reverse
     {
         IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            var originalInstructionList = instructions.ToList();
+            return TranspilerUtility.PatchOrOriginal(
+                instructions,
+                "reverse patch ITab_ContentsTransporter.DoItemsLists",
+                RealisticOrbitalTradeMod.Instance.LogError,
+                codeMatcher =>
+                {
+                    // --- Override call to ITab_ContentsBase:DoThingRow
 
-            var codeMatcher = new CodeMatcher(originalInstructionList);
+                    _ = codeMatcher.ExpectForward(
+                        i =>
+                            i.opcode == OpCodes.Call
+                            && i.operand is MethodInfo m
+                            && m == _method_ITab_ContentsBase_DoThingRow,
+                        "call to ITab_ContentsBase:DoThingRow"
+                    );
 
-            // --- Override call to ITab_ContentsBase:DoThingRow
-
-            _ = codeMatcher.SearchForward(i =>
-                i.opcode == OpCodes.Call
-                && i.operand is MethodInfo m
-                && m == _method_ITab_ContentsBase_DoThingRow
+                    _ = codeMatcher.RemoveInstruction();
+                    _ = codeMatcher.Insert([
+                        new(OpCodes.Callvirt, _method_ITab_ContentsTransporterCustom_DoThingRow),
+                    ]);
+                }
             );
-            if (!codeMatcher.IsValid)
-            {
-                RealisticOrbitalTradeMod.Instance.LogError(
-                    "Could not reverse patch ITab_ContentsTransporter.DoItemsLists, IL does not match expectations: call to ITab_ContentsBase:DoThingRow not found."
-                );
-                return originalInstructionList;
-            }
-
-            _ = codeMatcher.RemoveInstruction();
-            _ = codeMatcher.Insert([
-                new(OpCodes.Callvirt, _method_ITab_ContentsTransporterCustom_DoThingRow),
-            ]);
-
-            return codeMatcher.Instructions();
         }
 
         // Make compiler happy. This gets patched out anyway.
@@ -176,99 +173,86 @@ internal static class Rimworld_ITab_ContentsBase_DoThingRow_Reverse
     {
         IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            var originalInstructionList = instructions.ToList();
+            return TranspilerUtility.PatchOrOriginal(
+                instructions,
+                "reverse patch ITab_ContentsBase.DoThingRow",
+                RealisticOrbitalTradeMod.Instance.LogError,
+                codeMatcher =>
+                {
+                    // --- Override call to Widgets::InfoCardButton(Def)
 
-            var codeMatcher = new CodeMatcher(originalInstructionList);
+                    _ = codeMatcher.ExpectForward(
+                        i =>
+                            i.opcode == OpCodes.Call
+                            && i.operand is MethodInfo m
+                            && m == _methodWidgetsInfoCardButtonDef,
+                        "call to Widgets::InfoCardButton(Def)"
+                    );
 
-            // --- Override call to Widgets::InfoCardButton(Def)
+                    _ = codeMatcher.RemoveInstruction();
+                    _ = codeMatcher.Insert([
+                        new(OpCodes.Ldarg_0),
+                        new(OpCodes.Ldarg_3),
+                        new(OpCodes.Ldc_I4_0),
+                        new(OpCodes.Callvirt, _methodListOfThingItem_get),
+                        new(OpCodes.Call, _methodFixInfoCardButton),
+                    ]);
 
-            _ = codeMatcher.SearchForward(i =>
-                i.opcode == OpCodes.Call
-                && i.operand is MethodInfo m
-                && m == _methodWidgetsInfoCardButtonDef
+                    // --- Override call to Widgets::ThingIcon(Def)
+
+                    _ = codeMatcher.ExpectForward(
+                        i =>
+                            i.opcode == OpCodes.Call
+                            && i.operand is MethodInfo m
+                            && m == _methodWidgetsThingIconDef,
+                        "call to Widgets::ThingIcon(Def)"
+                    );
+
+                    _ = codeMatcher.RemoveInstruction();
+                    _ = codeMatcher.Insert([
+                        // == this
+                        new(OpCodes.Ldarg_0),
+                        // == things[0]
+                        new(OpCodes.Ldarg_3),
+                        new(OpCodes.Ldc_I4_0),
+                        new(OpCodes.Callvirt, _methodListOfThingItem_get),
+                        // call patch method (FixThingIcon)
+                        new(OpCodes.Call, _methodFixThingIcon),
+                    ]);
+
+                    // --- Replace value of label text
+
+                    _ = codeMatcher.ExpectForward(
+                        i =>
+                            i.opcode == OpCodes.Call
+                            && i.operand is MethodInfo m
+                            && m == _methodTextWordWrap_set,
+                        "call to set value of Text::WordWrap"
+                    );
+                    _ = codeMatcher.Advance(-1);
+
+                    // We need to move this label to our first instruction
+                    var labels = codeMatcher.Labels.ToList();
+                    codeMatcher.Labels.Clear();
+
+                    _ = codeMatcher.Insert([
+                        // Original value (used in pass-through)
+                        new(OpCodes.Ldloc_3) { labels = labels },
+                        // == this
+                        new(OpCodes.Ldarg_0),
+                        // == [int count] argument
+                        new(OpCodes.Ldarg_2),
+                        // == things
+                        new(OpCodes.Ldarg_3),
+                        // new(OpCodes.Ldc_I4_0),
+                        // new(OpCodes.Callvirt, _methodListOfThingItem_get),
+                        // call patch method (FixLabel)
+                        new(OpCodes.Call, _methodFixLabel),
+                        // Overwrite original value with patch method return value
+                        new(OpCodes.Stloc_3),
+                    ]);
+                }
             );
-            if (!codeMatcher.IsValid)
-            {
-                RealisticOrbitalTradeMod.Instance.LogError(
-                    "Could not reverse patch ITab_ContentsBase.DoThingRow, IL does not match expectations: call to Widgets::InfoCardButton(Def) not found."
-                );
-                return originalInstructionList;
-            }
-
-            _ = codeMatcher.RemoveInstruction();
-            _ = codeMatcher.Insert([
-                new(OpCodes.Ldarg_0),
-                new(OpCodes.Ldarg_3),
-                new(OpCodes.Ldc_I4_0),
-                new(OpCodes.Callvirt, _methodListOfThingItem_get),
-                new(OpCodes.Call, _methodFixInfoCardButton),
-            ]);
-
-            // --- Override call to Widgets::ThingIcon(Def)
-
-            _ = codeMatcher.SearchForward(i =>
-                i.opcode == OpCodes.Call
-                && i.operand is MethodInfo m
-                && m == _methodWidgetsThingIconDef
-            );
-            if (!codeMatcher.IsValid)
-            {
-                RealisticOrbitalTradeMod.Instance.LogError(
-                    "Could not reverse patch ITab_ContentsBase.DoThingRow, IL does not match expectations: call to Widgets::ThingIcon(Def) not found."
-                );
-                return originalInstructionList;
-            }
-
-            _ = codeMatcher.RemoveInstruction();
-            _ = codeMatcher.Insert([
-                // == this
-                new(OpCodes.Ldarg_0),
-                // == things[0]
-                new(OpCodes.Ldarg_3),
-                new(OpCodes.Ldc_I4_0),
-                new(OpCodes.Callvirt, _methodListOfThingItem_get),
-                // call patch method (FixThingIcon)
-                new(OpCodes.Call, _methodFixThingIcon),
-            ]);
-
-            // --- Replace value of label text
-
-            _ = codeMatcher.SearchForward(i =>
-                i.opcode == OpCodes.Call
-                && i.operand is MethodInfo m
-                && m == _methodTextWordWrap_set
-            );
-            if (!codeMatcher.IsValid)
-            {
-                RealisticOrbitalTradeMod.Instance.LogError(
-                    "Could not reverse patch ITab_ContentsBase.DoThingRow, IL does not match expectations: call to set value of Text::WordWrap not found."
-                );
-                return originalInstructionList;
-            }
-            _ = codeMatcher.Advance(-1);
-
-            // We need to move this label to our first instruction
-            var labels = codeMatcher.Labels.ToList();
-            codeMatcher.Labels.Clear();
-
-            _ = codeMatcher.Insert([
-                // Original value (used in pass-through)
-                new(OpCodes.Ldloc_3) { labels = labels },
-                // == this
-                new(OpCodes.Ldarg_0),
-                // == [int count] argument
-                new(OpCodes.Ldarg_2),
-                // == things
-                new(OpCodes.Ldarg_3),
-                // new(OpCodes.Ldc_I4_0),
-                // new(OpCodes.Callvirt, _methodListOfThingItem_get),
-                // call patch method (FixLabel)
-                new(OpCodes.Call, _methodFixLabel),
-                // Overwrite original value with patch method return value
-                new(OpCodes.Stloc_3),
-            ]);
-
-            return codeMatcher.Instructions();
         }
 
         // Make compiler happy. This gets patched out anyway.

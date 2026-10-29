@@ -590,104 +590,97 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
     internal static IEnumerable<CodeInstruction> Transpiler(
         IEnumerable<CodeInstruction> instructions,
         ILGenerator generator
-    )
-    {
-        var originalInstructionList = instructions.ToList();
+    ) =>
+        TranspilerUtility.PatchOrOriginal(
+            instructions,
+            "patch Dialog_Trade.DoWindowContents",
+            RealisticOrbitalTradeMod.Instance.LogError,
+            codeMatcher =>
+            {
+                // Look for
+                //   if (this.cachedCurrencyTradeable != null)
+                //   {
+                //       float width = inRect.width - 16f;
+                _ = codeMatcher.ExpectForward(
+                    i =>
+                        i.opcode == OpCodes.Ldfld
+                        && i.operand is FieldInfo f
+                        && f == _field_Dialog_Trade_cachedCurrencyTradeable,
+                    "[ldfld Dialog_Trade.cachedCurrencyTradeable]"
+                );
+                _ = codeMatcher.ExpectForward(
+                    i =>
+                        i.opcode == OpCodes.Stloc_S
+                        && i.operand is LocalBuilder l
+                        && l.LocalIndex == 8,
+                    "[stloc.s 8]"
+                );
+                _ = codeMatcher.Advance(1);
 
-        var codeMatcher = new CodeMatcher(originalInstructionList, generator);
+                var shiftAmount = generator.DeclareLocal(typeof(float));
 
-        // Look for
-        //   if (this.cachedCurrencyTradeable != null)
-        //   {
-        //       float width = inRect.width - 16f;
-        _ = codeMatcher.SearchForward(i =>
-            i.opcode == OpCodes.Ldfld
-            && i.operand is FieldInfo f
-            && f == _field_Dialog_Trade_cachedCurrencyTradeable
+                // Insert
+                //   float shiftAmount = DrawThresholdRow(width);
+                // directly after
+                _ = codeMatcher.Insert([
+                    new(OpCodes.Ldloc_S, 8),
+                    new(OpCodes.Call, _methodDrawThresholdRow),
+                    new(OpCodes.Stloc_S, shiftAmount.LocalIndex),
+                ]);
+
+                // Look for `58f` in the context of
+                //   TradeUI.DrawTradeableRow(new Rect(0f, 58f, width, 30f), this.cachedCurrencyTradeable, 1);
+                _ = codeMatcher.ExpectForward(
+                    i =>
+                        i.opcode == OpCodes.Ldc_R4
+                        && i.operand is float f
+                        && Math.Abs(f - 58f) < 0.1f,
+                    "[ldc.r4 58]"
+                );
+                _ = codeMatcher.Advance(1);
+
+                // Change it to
+                //   TradeUI.DrawTradeableRow(new Rect(0f, 58f + shiftAmount, width, 30f), this.cachedCurrencyTradeable, 1);
+                _ = codeMatcher.Insert([
+                    new(OpCodes.Ldloc_S, shiftAmount.LocalIndex),
+                    new(OpCodes.Add),
+                ]);
+
+                // Look for `87f` in the context of
+                //   Widgets.DrawLineHorizontal(0f, 87f, width);
+                _ = codeMatcher.ExpectForward(
+                    i =>
+                        i.opcode == OpCodes.Ldc_R4
+                        && i.operand is float f
+                        && Math.Abs(f - 87f) < 0.1f,
+                    "[ldc.r4 87]"
+                );
+                _ = codeMatcher.Advance(1);
+
+                // Change it to
+                //   Widgets.DrawLineHorizontal(0f, 87f + shiftAmount, width);
+                _ = codeMatcher.Insert([
+                    new(OpCodes.Ldloc_S, shiftAmount.LocalIndex),
+                    new(OpCodes.Add),
+                ]);
+
+                // Look for `30f` in the context of
+                //   currencyRowYShift = 30f;
+                _ = codeMatcher.ExpectForward(
+                    i =>
+                        i.opcode == OpCodes.Stloc_S
+                        && i.operand is LocalBuilder l
+                        && l.LocalIndex == 4,
+                    "[stloc.s 4]"
+                );
+
+                // Change it to
+                //   currencyRowYShift = 30f + shiftAmount;
+                _ = codeMatcher.Insert([
+                    new(OpCodes.Ldloc_S, shiftAmount.LocalIndex),
+                    new(OpCodes.Add),
+                ]);
+            },
+            generator
         );
-        if (!codeMatcher.IsValid)
-        {
-            RealisticOrbitalTradeMod.Instance.LogError(
-                $"Could not patch Dialog_Trade.DoWindowContents, IL does not match expectations ([ldfld Dialog_Trade.cachedCurrencyTradeable])"
-            );
-            return originalInstructionList;
-        }
-        _ = codeMatcher.SearchForward(i =>
-            i.opcode == OpCodes.Stloc_S && i.operand is LocalBuilder l && l.LocalIndex == 8
-        );
-        if (!codeMatcher.IsValid)
-        {
-            RealisticOrbitalTradeMod.Instance.LogError(
-                $"Could not patch Dialog_Trade.DoWindowContents, IL does not match expectations ([stloc.s 8])"
-            );
-            return originalInstructionList;
-        }
-        _ = codeMatcher.Advance(1);
-
-        var shiftAmount = generator.DeclareLocal(typeof(float));
-
-        // Insert
-        //   float shiftAmount = DrawThresholdRow(width);
-        // directly after
-        _ = codeMatcher.Insert([
-            new(OpCodes.Ldloc_S, 8),
-            new(OpCodes.Call, _methodDrawThresholdRow),
-            new(OpCodes.Stloc_S, shiftAmount.LocalIndex),
-        ]);
-
-        // Look for `58f` in the context of
-        //   TradeUI.DrawTradeableRow(new Rect(0f, 58f, width, 30f), this.cachedCurrencyTradeable, 1);
-        _ = codeMatcher.SearchForward(i =>
-            i.opcode == OpCodes.Ldc_R4 && i.operand is float f && Math.Abs(f - 58f) < 0.1f
-        );
-        if (!codeMatcher.IsValid)
-        {
-            RealisticOrbitalTradeMod.Instance.LogError(
-                $"Could not patch Dialog_Trade.DoWindowContents, IL does not match expectations ([ldc.r4 58])"
-            );
-            return originalInstructionList;
-        }
-        _ = codeMatcher.Advance(1);
-
-        // Change it to
-        //   TradeUI.DrawTradeableRow(new Rect(0f, 58f + shiftAmount, width, 30f), this.cachedCurrencyTradeable, 1);
-        _ = codeMatcher.Insert([new(OpCodes.Ldloc_S, shiftAmount.LocalIndex), new(OpCodes.Add)]);
-
-        // Look for `87f` in the context of
-        //   Widgets.DrawLineHorizontal(0f, 87f, width);
-        _ = codeMatcher.SearchForward(i =>
-            i.opcode == OpCodes.Ldc_R4 && i.operand is float f && Math.Abs(f - 87f) < 0.1f
-        );
-        if (!codeMatcher.IsValid)
-        {
-            RealisticOrbitalTradeMod.Instance.LogError(
-                $"Could not patch Dialog_Trade.DoWindowContents, IL does not match expectations ([ldc.r4 87])"
-            );
-            return originalInstructionList;
-        }
-        _ = codeMatcher.Advance(1);
-
-        // Change it to
-        //   Widgets.DrawLineHorizontal(0f, 87f + shiftAmount, width);
-        _ = codeMatcher.Insert([new(OpCodes.Ldloc_S, shiftAmount.LocalIndex), new(OpCodes.Add)]);
-
-        // Look for `30f` in the context of
-        //   currencyRowYShift = 30f;
-        _ = codeMatcher.SearchForward(i =>
-            i.opcode == OpCodes.Stloc_S && i.operand is LocalBuilder l && l.LocalIndex == 4
-        );
-        if (!codeMatcher.IsValid)
-        {
-            RealisticOrbitalTradeMod.Instance.LogError(
-                $"Could not patch Dialog_Trade.DoWindowContents, IL does not match expectations ([stloc.s 4])"
-            );
-            return originalInstructionList;
-        }
-
-        // Change it to
-        //   currencyRowYShift = 30f + shiftAmount;
-        _ = codeMatcher.Insert([new(OpCodes.Ldloc_S, shiftAmount.LocalIndex), new(OpCodes.Add)]);
-
-        return codeMatcher.Instructions();
-    }
 }

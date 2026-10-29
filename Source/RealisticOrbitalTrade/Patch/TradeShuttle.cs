@@ -153,29 +153,26 @@ internal static class Rimworld_CompShuttle_CompInspectStringExtra_RemainingAmoun
     private static IEnumerable<CodeInstruction> Transpiler(
 #pragma warning restore CA1859 // Use concrete types when possible for improved performance
         IEnumerable<CodeInstruction> instructions
-    )
-    {
-        var codeMatcher = new CodeMatcher(instructions);
+    ) =>
+        TranspilerUtility.PatchOrOriginal(
+            instructions,
+            "patch CompShuttle.CompInspectStringExtra",
+            RealisticOrbitalTradeMod.Instance.LogError,
+            codeMatcher =>
+            {
+                _ = codeMatcher.ExpectForward(
+                    i =>
+                        i.opcode == OpCodes.Call
+                        && i.operand is MethodInfo m
+                        && m == _methodThingDefCountLabelGetter,
+                    "call to get value of ThingDefCount::Label"
+                );
 
-        _ = codeMatcher.SearchForward(i =>
-            i.opcode == OpCodes.Call
-            && i.operand is MethodInfo m
-            && m == _methodThingDefCountLabelGetter
+                _ = codeMatcher.Insert([new CodeInstruction(OpCodes.Ldarg_0)]);
+                _ = codeMatcher.Advance(1);
+                codeMatcher.Instruction.operand = _methodRemainingItemLabel;
+            }
         );
-        if (!codeMatcher.IsValid)
-        {
-            RealisticOrbitalTradeMod.Instance.LogError(
-                "Could not patch CompShuttle.CompInspectStringExtra, IL does not match expectations: call to get value of ThingDefCount::Label not found."
-            );
-            return codeMatcher.Instructions();
-        }
-
-        _ = codeMatcher.Insert([new CodeInstruction(OpCodes.Ldarg_0)]);
-        _ = codeMatcher.Advance(1);
-        codeMatcher.Instruction.operand = _methodRemainingItemLabel;
-
-        return codeMatcher.Instructions();
-    }
 }
 
 [HarmonyPatch(typeof(CompShuttle))]
@@ -213,37 +210,34 @@ internal static class Rimworld_CompTransporter_SubtractFromToLoadList
     private static IEnumerable<CodeInstruction> Transpiler(
 #pragma warning restore CA1859 // Use concrete types when possible for improved performance
         IEnumerable<CodeInstruction> instructions
-    )
-    {
-        var codeMatcher = new CodeMatcher(TranspilerUtility.WidenShortBranches(instructions));
+    ) =>
+        TranspilerUtility.PatchOrOriginal(
+            TranspilerUtility.WidenShortBranches(instructions),
+            "patch CompTransporter.SubtractFromToLoadList",
+            RealisticOrbitalTradeMod.Instance.LogError,
+            codeMatcher =>
+            {
+                _ = codeMatcher.ExpectForward(
+                    i =>
+                        i.opcode == OpCodes.Call
+                        && i.operand is MethodInfo m
+                        && m == _methodCompTransporterAnyInGroupHasAnythingLeftToLoad_get,
+                    "call to get value of CompTransporter::AnyInGroupHasAnythingLeftToLoad"
+                );
+                _ = codeMatcher.Advance(1);
+                var endLabel = codeMatcher.Operand;
+                _ = codeMatcher.Advance(1);
 
-        _ = codeMatcher.SearchForward(i =>
-            i.opcode == OpCodes.Call
-            && i.operand is MethodInfo m
-            && m == _methodCompTransporterAnyInGroupHasAnythingLeftToLoad_get
+                _ = codeMatcher.Insert([
+                    // == this
+                    new(OpCodes.Ldarg_0),
+                    // call patch method (HideFinishedMessageForTradeShuttle)
+                    new(OpCodes.Call, _methodHideFinishedMessageForTradeShuttle),
+                    // if HideFinishedMessageForTradeShuttle returns true, skip showing message
+                    new(OpCodes.Brtrue, endLabel),
+                ]);
+            }
         );
-        if (!codeMatcher.IsValid)
-        {
-            RealisticOrbitalTradeMod.Instance.LogError(
-                "Could not patch CompTransporter.SubtractFromToLoadList, IL does not match expectations: call to get value of CompTransporter::AnyInGroupHasAnythingLeftToLoad not found."
-            );
-            return codeMatcher.Instructions();
-        }
-        _ = codeMatcher.Advance(1);
-        var endLabel = codeMatcher.Operand;
-        _ = codeMatcher.Advance(1);
-
-        _ = codeMatcher.Insert([
-            // == this
-            new(OpCodes.Ldarg_0),
-            // call patch method (HideFinishedMessageForTradeShuttle)
-            new(OpCodes.Call, _methodHideFinishedMessageForTradeShuttle),
-            // if HideFinishedMessageForTradeShuttle returns true, skip showing message
-            new(OpCodes.Brtrue, endLabel),
-        ]);
-
-        return codeMatcher.Instructions();
-    }
 
     // Runs for every deposit into the shuttle, whichever job or mod made it.
     private static void Postfix(CompTransporter __instance) =>
@@ -267,29 +261,26 @@ internal static class Rimworld_LoadTransportersJobUtility_FindThingToLoad
 
     internal static IEnumerable<CodeInstruction> Transpiler(
         IEnumerable<CodeInstruction> instructions
-    )
-    {
-        var codeMatcher = new CodeMatcher(instructions);
+    ) =>
+        TranspilerUtility.PatchOrOriginal(
+            instructions,
+            "patch LoadTransportersJobUtility.FindThingToLoad",
+            RealisticOrbitalTradeMod.Instance.LogWarning,
+            codeMatcher =>
+            {
+                _ = codeMatcher.ExpectForward(
+                    i =>
+                        i.opcode == OpCodes.Call
+                        && i.operand is MethodInfo m
+                        && m == _method_GenClosest_ClosestThingReachable,
+                    "[call GenClosest.ClosestThingReachable]"
+                );
 
-        _ = codeMatcher.SearchForward(i =>
-            i.opcode == OpCodes.Call
-            && i.operand is MethodInfo m
-            && m == _method_GenClosest_ClosestThingReachable
+                codeMatcher.Operand = _method_GenClosest_ClosestThingReachable_NewTemp;
+
+                _ = codeMatcher.Insert([new(OpCodes.Ldc_I4_1)]);
+            }
         );
-        if (!codeMatcher.IsValid)
-        {
-            RealisticOrbitalTradeMod.Instance.LogWarning(
-                "Could not patch LoadTransportersJobUtility.FindThingToLoad, IL does not match expectations: [call GenClosest.ClosestThingReachable] not found."
-            );
-            return codeMatcher.Instructions();
-        }
-
-        codeMatcher.Operand = _method_GenClosest_ClosestThingReachable_NewTemp;
-
-        _ = codeMatcher.Insert([new(OpCodes.Ldc_I4_1)]);
-
-        return codeMatcher.Instructions();
-    }
 }
 
 [HarmonyPatch(typeof(GenClosest), nameof(GenClosest.ClosestThingReachable_NewTemp))]
@@ -304,29 +295,26 @@ internal static class Rimworld_GenClosest_ClosestThingReachable_NewTemp
 
     internal static IEnumerable<CodeInstruction> Transpiler(
         IEnumerable<CodeInstruction> instructions
-    )
-    {
-        var codeMatcher = new CodeMatcher(instructions);
+    ) =>
+        TranspilerUtility.PatchOrOriginal(
+            instructions,
+            "patch GenClosest.ClosestThingReachable_NewTemp",
+            RealisticOrbitalTradeMod.Instance.LogWarning,
+            codeMatcher =>
+            {
+                _ = codeMatcher.ExpectForward(
+                    i =>
+                        i.opcode == OpCodes.Call
+                        && i.operand is MethodInfo m
+                        && m == _method_GenClosest_ClosestThing_Global,
+                    "[call GenClosest.ClosestThing_Global]"
+                );
 
-        _ = codeMatcher.SearchForward(i =>
-            i.opcode == OpCodes.Call
-            && i.operand is MethodInfo m
-            && m == _method_GenClosest_ClosestThing_Global
+                codeMatcher.Operand = _method_GenClosest_ClosestThing_Global_NewTemp;
+
+                _ = codeMatcher.Insert([new(OpCodes.Ldarg_S, 13)]);
+            }
         );
-        if (!codeMatcher.IsValid)
-        {
-            RealisticOrbitalTradeMod.Instance.LogWarning(
-                "Could not patch GenClosest.ClosestThingReachable_NewTemp, IL does not match expectations: [call GenClosest.ClosestThing_Global] not found."
-            );
-            return codeMatcher.Instructions();
-        }
-
-        codeMatcher.Operand = _method_GenClosest_ClosestThing_Global_NewTemp;
-
-        _ = codeMatcher.Insert([new(OpCodes.Ldarg_S, 13)]);
-
-        return codeMatcher.Instructions();
-    }
 }
 #endif
 

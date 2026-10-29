@@ -57,36 +57,33 @@ internal static class Alert_OrbitalTrader_Shared
     internal static IEnumerable<CodeInstruction> TranspileGetExplanation(
         IEnumerable<CodeInstruction> instructions,
         string modName
-    )
-    {
-        var codeMatcher = new CodeMatcher(instructions);
-        _ = codeMatcher.SearchForward(i =>
-            i.opcode == OpCodes.Ldfld && i.operand is FieldInfo f && f == _fieldTicksUntilDeparture
+    ) =>
+        TranspilerUtility.PatchOrOriginal(
+            instructions,
+            $"patch {modName}'s Alert_OrbitalTrader.GetExplanation",
+            RealisticOrbitalTradeMod.Instance.LogError,
+            codeMatcher =>
+            {
+                _ = codeMatcher
+                    .ExpectForward(
+                        i =>
+                            i.opcode == OpCodes.Ldfld
+                            && i.operand is FieldInfo f
+                            && f == _fieldTicksUntilDeparture,
+                        "access to PassingShip.ticksUntilDeparture"
+                    )
+                    .ExpectForward(
+                        i => i.opcode == OpCodes.Pop,
+                        "[pop] after access to PassingShip.ticksUntilDeparture"
+                    );
+
+                // We should be in the right spot now. Transpiler, go go go!
+
+                _ = codeMatcher.Insert([
+                    new(OpCodes.Ldloc_3),
+                    new(OpCodes.Ldloc_0),
+                    new(OpCodes.Call, _methodAddCommsClosedForTradeExplanation),
+                ]);
+            }
         );
-        if (!codeMatcher.IsValid)
-        {
-            RealisticOrbitalTradeMod.Instance.LogError(
-                $"Could not patch {modName}'s Alert_OrbitalTrader.GetExplanation, IL does not match expectations"
-            );
-            return codeMatcher.Instructions();
-        }
-        _ = codeMatcher.SearchForward(i => i.opcode == OpCodes.Pop);
-        if (!codeMatcher.IsValid)
-        {
-            RealisticOrbitalTradeMod.Instance.LogError(
-                $"Could not patch {modName}'s Alert_OrbitalTrader.GetExplanation, IL does not match expectations"
-            );
-            return codeMatcher.Instructions();
-        }
-
-        // We should be in the right spot now. Transpiler, go go go!
-
-        _ = codeMatcher.Insert([
-            new(OpCodes.Ldloc_3),
-            new(OpCodes.Ldloc_0),
-            new(OpCodes.Call, _methodAddCommsClosedForTradeExplanation),
-        ]);
-
-        return codeMatcher.Instructions();
-    }
 }

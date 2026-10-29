@@ -317,97 +317,85 @@ internal static class DynamicTradeInterface_UserInterface_Window_DynamicTrade_Do
     internal static IEnumerable<CodeInstruction> Transpiler(
         IEnumerable<CodeInstruction> instructions,
         ILGenerator generator
-    )
-    {
-        var originalInstructionList = instructions.ToList();
+    ) =>
+        TranspilerUtility.PatchOrOriginal(
+            instructions,
+            "patch Window_DynamicTrade.DoWindowContents",
+            RealisticOrbitalTradeMod.Instance.LogError,
+            codeMatcher =>
+            {
+                _ = codeMatcher.ExpectForward(
+                    i =>
+                        i.opcode == OpCodes.Ldfld
+                        && i.operand is FieldInfo f
+                        && f == _field_Window_DynamicTrade_currencyFont,
+                    "[ldfld Window_DynamicTrade._currencyFont]"
+                );
+                _ = codeMatcher.Advance(1);
+                if (
+                    codeMatcher.Opcode != OpCodes.Call
+                    || codeMatcher.Operand is not MethodInfo m
+                    || m != _method_Text_LineHeightOf
+                )
+                {
+                    throw new TranspilerMismatchException("[call Text.LineHeightOf] not found.");
+                }
+                _ = codeMatcher.Advance(1);
+                if (
+                    codeMatcher.Opcode != OpCodes.Stloc_0
+                    && codeMatcher.Opcode != OpCodes.Stloc_1
+                    && codeMatcher.Opcode != OpCodes.Stloc_2
+                    && codeMatcher.Opcode != OpCodes.Stloc_3
+                    && codeMatcher.Opcode != OpCodes.Stloc_S
+                )
+                {
+                    throw new TranspilerMismatchException(
+                        $"[stloc.*] not found, was {codeMatcher.Opcode}."
+                    );
+                }
 
-        var codeMatcher = new CodeMatcher(originalInstructionList, generator);
+                var storeOpcode = codeMatcher.Opcode;
+                OpCode loadOpcode;
+                LocalBuilder? loadOperand = null;
+                if (storeOpcode == OpCodes.Stloc_0)
+                {
+                    loadOpcode = OpCodes.Ldloc_0;
+                }
+                else if (storeOpcode == OpCodes.Stloc_1)
+                {
+                    loadOpcode = OpCodes.Ldloc_1;
+                }
+                else if (storeOpcode == OpCodes.Stloc_2)
+                {
+                    loadOpcode = OpCodes.Ldloc_2;
+                }
+                else if (storeOpcode == OpCodes.Stloc_3)
+                {
+                    loadOpcode = OpCodes.Ldloc_3;
+                }
+                else
+                {
+                    loadOpcode = OpCodes.Ldloc_S;
+                    loadOperand = codeMatcher.Operand as LocalBuilder;
+                }
 
-        _ = codeMatcher.SearchForward(i =>
-            i.opcode == OpCodes.Ldfld
-            && i.operand is FieldInfo f
-            && f == _field_Window_DynamicTrade_currencyFont
+                _ = codeMatcher.ExpectForward(
+                    i => i.opcode == loadOpcode && i.operand == loadOperand,
+                    $"[{loadOpcode}] of the row height"
+                );
+                _ = codeMatcher.Advance(1);
+
+                // Change (row height x) into x * (1 + ExtraRowsCount()), i.e. x + x * n, so the space
+                // reserved below the currency row scales with however many of our rows actually get
+                // drawn (0-3: threshold, outgoing mass, incoming mass).
+                _ = codeMatcher.Insert([
+                    new(OpCodes.Dup),
+                    new(OpCodes.Call, _methodExtraRowsCount),
+                    new(OpCodes.Conv_R4),
+                    new(OpCodes.Mul),
+                    new(OpCodes.Add),
+                ]);
+            },
+            generator
         );
-        if (!codeMatcher.IsValid)
-        {
-            RealisticOrbitalTradeMod.Instance.LogError(
-                $"Could not patch Window_DynamicTrade.DoWindowContents, IL does not match expectations ([ldfld Window_DynamicTrade._currencyFont])"
-            );
-            return originalInstructionList;
-        }
-        _ = codeMatcher.Advance(1);
-        if (
-            codeMatcher.Opcode != OpCodes.Call
-            || codeMatcher.Operand is not MethodInfo m
-            || m != _method_Text_LineHeightOf
-        )
-        {
-            RealisticOrbitalTradeMod.Instance.LogError(
-                $"Could not patch Window_DynamicTrade.DoWindowContents, IL does not match expectations ([call Text.LineHeightOf])"
-            );
-            return originalInstructionList;
-        }
-        _ = codeMatcher.Advance(1);
-        if (
-            codeMatcher.Opcode != OpCodes.Stloc_0
-            && codeMatcher.Opcode != OpCodes.Stloc_1
-            && codeMatcher.Opcode != OpCodes.Stloc_2
-            && codeMatcher.Opcode != OpCodes.Stloc_3
-            && codeMatcher.Opcode != OpCodes.Stloc_S
-        )
-        {
-            RealisticOrbitalTradeMod.Instance.LogError(
-                $"Could not patch Window_DynamicTrade.DoWindowContents, IL does not match expectations ([stloc.*]), was {codeMatcher.Opcode}"
-            );
-            return originalInstructionList;
-        }
-
-        var storeOpcode = codeMatcher.Opcode;
-        OpCode loadOpcode;
-        LocalBuilder? loadOperand = null;
-        if (storeOpcode == OpCodes.Stloc_0)
-        {
-            loadOpcode = OpCodes.Ldloc_0;
-        }
-        else if (storeOpcode == OpCodes.Stloc_1)
-        {
-            loadOpcode = OpCodes.Ldloc_1;
-        }
-        else if (storeOpcode == OpCodes.Stloc_2)
-        {
-            loadOpcode = OpCodes.Ldloc_2;
-        }
-        else if (storeOpcode == OpCodes.Stloc_3)
-        {
-            loadOpcode = OpCodes.Ldloc_3;
-        }
-        else
-        {
-            loadOpcode = OpCodes.Ldloc_S;
-            loadOperand = codeMatcher.Operand as LocalBuilder;
-        }
-
-        _ = codeMatcher.SearchForward(i => i.opcode == loadOpcode && i.operand == loadOperand);
-        if (!codeMatcher.IsValid)
-        {
-            RealisticOrbitalTradeMod.Instance.LogError(
-                $"Could not patch Window_DynamicTrade.DoWindowContents, IL does not match expectations ([ldloc.3])"
-            );
-            return originalInstructionList;
-        }
-        _ = codeMatcher.Advance(1);
-
-        // Change (row height x) into x * (1 + ExtraRowsCount()), i.e. x + x * n, so the space
-        // reserved below the currency row scales with however many of our rows actually get
-        // drawn (0-3: threshold, outgoing mass, incoming mass).
-        _ = codeMatcher.Insert([
-            new(OpCodes.Dup),
-            new(OpCodes.Call, _methodExtraRowsCount),
-            new(OpCodes.Conv_R4),
-            new(OpCodes.Mul),
-            new(OpCodes.Add),
-        ]);
-
-        return codeMatcher.Instructions();
-    }
 }

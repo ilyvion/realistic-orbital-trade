@@ -337,53 +337,49 @@ internal static class Rimworld_TradeUI_DrawTradeableRow
     internal static IEnumerable<CodeInstruction> Transpiler(
         IEnumerable<CodeInstruction> instructions,
         ILGenerator generator
-    )
-    {
-        var originalInstructionList = instructions.ToList();
-        var codeMatcher = new CodeMatcher(originalInstructionList, generator);
+    ) =>
+        TranspilerUtility.PatchOrOriginal(
+            instructions,
+            "patch TradeUI.DrawTradeableRow",
+            RealisticOrbitalTradeMod.Instance.LogError,
+            codeMatcher =>
+            {
+                // Replace the `null` extraStoppingPoints argument to DoCountAdjustInterface with our
+                // mass-based "M<"/">M" stopping points.
+                _ = codeMatcher.ExpectForward(i => i.opcode == OpCodes.Ldnull, "[ldnull]");
+                _ = codeMatcher.SetInstruction(new CodeInstruction(OpCodes.Ldarg_1));
+                _ = codeMatcher.Advance(1);
+                _ = codeMatcher.Insert([
+                    new CodeInstruction(OpCodes.Call, _methodGetMassStoppingPoints),
+                ]);
 
-        // Replace the `null` extraStoppingPoints argument to DoCountAdjustInterface with our
-        // mass-based "M<"/">M" stopping points.
-        _ = codeMatcher.SearchForward(i => i.opcode == OpCodes.Ldnull);
-        if (!codeMatcher.IsValid)
-        {
-            RealisticOrbitalTradeMod.Instance.LogError(
-                "Could not patch TradeUI.DrawTradeableRow, IL does not match expectations ([ldnull])"
-            );
-            return originalInstructionList;
-        }
-        _ = codeMatcher.SetInstruction(new CodeInstruction(OpCodes.Ldarg_1));
-        _ = codeMatcher.Advance(1);
-        _ = codeMatcher.Insert([new CodeInstruction(OpCodes.Call, _methodGetMassStoppingPoints)]);
+                // Carve out a mass column from the id/label block's width, right before it's constructed
+                // as `new Rect(0f, 0f, width, rect.height)` - the only uniquely identifiable spot where
+                // `width` is used directly (unlike every other Rect column, which offsets it first).
+                _ = codeMatcher.MatchStartForward(
+                    new CodeMatch(i =>
+                        i.opcode == OpCodes.Ldc_R4 && i.operand is float f0 && Math.Abs(f0) < 0.001f
+                    ),
+                    new CodeMatch(i =>
+                        i.opcode == OpCodes.Ldc_R4 && i.operand is float f1 && Math.Abs(f1) < 0.001f
+                    ),
+                    new CodeMatch(OpCodes.Ldloc_0)
+                );
+                if (!codeMatcher.IsValid)
+                {
+                    throw new TranspilerMismatchException(
+                        "[ldc.r4 0][ldc.r4 0][ldloc.0] not found."
+                    );
+                }
 
-        // Carve out a mass column from the id/label block's width, right before it's constructed
-        // as `new Rect(0f, 0f, width, rect.height)` - the only uniquely identifiable spot where
-        // `width` is used directly (unlike every other Rect column, which offsets it first).
-        _ = codeMatcher.MatchStartForward(
-            new CodeMatch(i =>
-                i.opcode == OpCodes.Ldc_R4 && i.operand is float f0 && Math.Abs(f0) < 0.001f
-            ),
-            new CodeMatch(i =>
-                i.opcode == OpCodes.Ldc_R4 && i.operand is float f1 && Math.Abs(f1) < 0.001f
-            ),
-            new CodeMatch(OpCodes.Ldloc_0)
+                _ = codeMatcher.Insert([
+                    new CodeInstruction(OpCodes.Ldarg_0),
+                    new CodeInstruction(OpCodes.Ldarg_1),
+                    new CodeInstruction(OpCodes.Ldloc_0),
+                    new CodeInstruction(OpCodes.Call, _methodDrawMassColumnAndShrinkWidth),
+                    new CodeInstruction(OpCodes.Stloc_0),
+                ]);
+            },
+            generator
         );
-        if (!codeMatcher.IsValid)
-        {
-            RealisticOrbitalTradeMod.Instance.LogError(
-                "Could not patch TradeUI.DrawTradeableRow, IL does not match expectations ([ldc.r4 0][ldc.r4 0][ldloc.0])"
-            );
-            return originalInstructionList;
-        }
-
-        _ = codeMatcher.Insert([
-            new CodeInstruction(OpCodes.Ldarg_0),
-            new CodeInstruction(OpCodes.Ldarg_1),
-            new CodeInstruction(OpCodes.Ldloc_0),
-            new CodeInstruction(OpCodes.Call, _methodDrawMassColumnAndShrinkWidth),
-            new CodeInstruction(OpCodes.Stloc_0),
-        ]);
-
-        return codeMatcher.Instructions();
-    }
 }
