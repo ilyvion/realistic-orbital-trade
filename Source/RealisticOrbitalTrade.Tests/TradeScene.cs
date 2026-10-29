@@ -922,12 +922,12 @@ internal sealed class TradeScene : IDisposable
                 Settings._activeTradePausesDepartureTimer,
                 Settings._minTicksUntilDepartureBeforeGraceTime,
                 Settings._departureGraceTimeTicks,
-                Settings._minimumTradeThreshold,
+                Settings._minimumTradeThreshold.Value,
                 Settings._useMinimumTradeThreshold,
                 Settings._minimumTradeDeviation,
                 Settings._deliverItemsViaDropPod,
                 Settings._buyMoreTimeTicksPerPurchase,
-                Settings._buyMoreTimeBaseSilverCost,
+                Settings._buyMoreTimeBaseSilverCost.Value,
                 Settings._buyMoreTimeCostGrowthFactor,
                 Settings._multiItemShuttleLoading,
                 Settings._hitPointsTolerancePercent
@@ -940,12 +940,12 @@ internal sealed class TradeScene : IDisposable
             Settings._activeTradePausesDepartureTimer = ActiveTradePausesDepartureTimer;
             Settings._minTicksUntilDepartureBeforeGraceTime = MinTicksUntilDepartureBeforeGraceTime;
             Settings._departureGraceTimeTicks = DepartureGraceTimeTicks;
-            Settings._minimumTradeThreshold = MinimumTradeThreshold;
+            Settings._minimumTradeThreshold.Value = MinimumTradeThreshold;
             Settings._useMinimumTradeThreshold = UseMinimumTradeThreshold;
             Settings._minimumTradeDeviation = MinimumTradeDeviation;
             Settings._deliverItemsViaDropPod = DeliverItemsViaDropPod;
             Settings._buyMoreTimeTicksPerPurchase = BuyMoreTimeTicksPerPurchase;
-            Settings._buyMoreTimeBaseSilverCost = BuyMoreTimeBaseSilverCost;
+            Settings._buyMoreTimeBaseSilverCost.Value = BuyMoreTimeBaseSilverCost;
             Settings._buyMoreTimeCostGrowthFactor = BuyMoreTimeCostGrowthFactor;
             Settings._multiItemShuttleLoading = MultiItemShuttleLoading;
             Settings._hitPointsTolerancePercent = HitPointsTolerancePercent;

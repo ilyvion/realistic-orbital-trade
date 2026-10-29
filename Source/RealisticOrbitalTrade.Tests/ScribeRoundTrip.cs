@@ -38,9 +38,14 @@ internal static class ScribeRoundTrip
     }
 
     /// <summary>
-    /// Saves <paramref name="saveTarget"/> and loads the result into <paramref name="loadTarget"/>.
+    /// Saves <paramref name="saveTarget"/> and loads the result into <paramref name="loadTarget"/>,
+    /// running <paramref name="beforeLoad"/> in between.
     /// </summary>
-    public static void Run<TSave, TLoad>(TSave saveTarget, TLoad loadTarget)
+    public static void Run<TSave, TLoad>(
+        TSave saveTarget,
+        TLoad loadTarget,
+        Action? beforeLoad = null
+    )
         where TSave : IExposable
         where TLoad : IExposable
     {
@@ -61,6 +66,8 @@ internal static class ScribeRoundTrip
                 }
             }
         }
+
+        beforeLoad?.Invoke();
 
         memory.Position = 0;
         using (var reader = new StreamReader(memory))

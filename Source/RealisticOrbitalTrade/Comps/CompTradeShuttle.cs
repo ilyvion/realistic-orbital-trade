@@ -62,7 +62,7 @@ internal class CompTradeShuttle : ThingComp
 
     internal int NextBuyMoreTimeCost =>
         Mathf.RoundToInt(
-            Settings._buyMoreTimeBaseSilverCost
+            Settings._buyMoreTimeBaseSilverCost.Value
                 * Mathf.Pow(
                     Settings._buyMoreTimeCostGrowthFactor,
                     PrimaryShuttle.timesBoughtMoreTime

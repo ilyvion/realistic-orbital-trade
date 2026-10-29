@@ -29,11 +29,11 @@ internal sealed class BuyMoreTimeTests
     [Test]
     public static void NextBuyMoreTimeCostGrowsWithPurchaseCount()
     {
-        var originalBaseCost = Settings._buyMoreTimeBaseSilverCost;
+        var originalBaseCost = Settings._buyMoreTimeBaseSilverCost.Value;
         var originalGrowthFactor = Settings._buyMoreTimeCostGrowthFactor;
         try
         {
-            Settings._buyMoreTimeBaseSilverCost = 200;
+            Settings._buyMoreTimeBaseSilverCost.Value = 200;
             Settings._buyMoreTimeCostGrowthFactor = 2f;
 
             CompTradeShuttle comp = new() { timesBoughtMoreTime = 0 };
@@ -47,7 +47,7 @@ internal sealed class BuyMoreTimeTests
         }
         finally
         {
-            Settings._buyMoreTimeBaseSilverCost = originalBaseCost;
+            Settings._buyMoreTimeBaseSilverCost.Value = originalBaseCost;
             Settings._buyMoreTimeCostGrowthFactor = originalGrowthFactor;
         }
     }

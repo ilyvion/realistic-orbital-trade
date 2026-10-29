@@ -10,20 +10,17 @@ internal class Settings : ModSettings
     internal static bool _activeTradePausesDepartureTimer;
     internal static int _minTicksUntilDepartureBeforeGraceTime = 20000;
     internal static int _departureGraceTimeTicks = 40000;
-    internal static int _minimumTradeThreshold = 600;
+    internal static readonly NumericField<int> _minimumTradeThreshold = new(600);
     internal static bool _useMinimumTradeThreshold;
     internal static int _minimumTradeDeviation = 15;
     internal static bool _deliverItemsViaDropPod;
     internal static int _buyMoreTimeTicksPerPurchase = 7500;
-    internal static int _buyMoreTimeBaseSilverCost = 200;
+    internal static readonly NumericField<int> _buyMoreTimeBaseSilverCost = new(200);
     internal static float _buyMoreTimeCostGrowthFactor = 1.5f;
     internal static bool _multiItemShuttleLoading = true;
     internal static int _hitPointsTolerancePercent = 2;
 
     internal const string BulkLoadForTransportersPackageId = "ilarion.bulkloadfortransporters";
-
-    private static string _minimumTradeThresholdBuffer = string.Empty;
-    private static string _buyMoreTimeBaseSilverCostBuffer = string.Empty;
 
     private static Vector2 _scrollPosition = Vector2.zero;
     private static float _scrollViewHeight;
@@ -48,25 +45,15 @@ internal class Settings : ModSettings
             20000
         );
         Scribe_Values.Look(ref _departureGraceTimeTicks, "departureGraceTimeTicks", 40000);
-        Scribe_Values.Look(ref _minimumTradeThreshold, "minimumTradeThreshold", 600);
+        Scribe_Values.Look(ref _minimumTradeThreshold.Value, "minimumTradeThreshold", 600);
         Scribe_Values.Look(ref _useMinimumTradeThreshold, "useMinimumTradeThreshold", false);
         Scribe_Values.Look(ref _minimumTradeDeviation, "minimumTradeDeviation", 15);
         Scribe_Values.Look(ref _deliverItemsViaDropPod, "deliverItemsViaDropPod", false);
         Scribe_Values.Look(ref _buyMoreTimeTicksPerPurchase, "buyMoreTimeTicksPerPurchase", 7500);
-        Scribe_Values.Look(ref _buyMoreTimeBaseSilverCost, "buyMoreTimeBaseSilverCost", 200);
+        Scribe_Values.Look(ref _buyMoreTimeBaseSilverCost.Value, "buyMoreTimeBaseSilverCost", 200);
         Scribe_Values.Look(ref _buyMoreTimeCostGrowthFactor, "buyMoreTimeCostGrowthFactor", 1.5f);
         Scribe_Values.Look(ref _multiItemShuttleLoading, "multiItemShuttleLoading", true);
         Scribe_Values.Look(ref _hitPointsTolerancePercent, "hitPointsTolerancePercent", 2);
-
-        if (Scribe.mode == LoadSaveMode.PostLoadInit)
-        {
-            _minimumTradeThresholdBuffer = _minimumTradeThreshold.ToString(
-                CultureInfo.CurrentCulture
-            );
-            _buyMoreTimeBaseSilverCostBuffer = _buyMoreTimeBaseSilverCost.ToString(
-                CultureInfo.CurrentCulture
-            );
-        }
     }
 
     public static void DoSettingsWindowContents(Rect inRect)
@@ -139,10 +126,7 @@ internal class Settings : ModSettings
         listingStandard.Gap(4);
 
         listingStandard.Label("RealisticOrbitalTrade.MinimumTradeThresholdLabel".Translate());
-        listingStandard.TextFieldNumeric(
-            ref _minimumTradeThreshold,
-            ref _minimumTradeThresholdBuffer
-        );
+        _minimumTradeThreshold.Draw(listingStandard);
 
         listingStandard.Label(
             "RealisticOrbitalTrade.MinimumTradeVariationLabel".Translate(_minimumTradeDeviation),
@@ -239,10 +223,7 @@ internal class Settings : ModSettings
 #endif
                 "RealisticOrbitalTrade.BuyMoreTimeBaseCostTooltip".Translate()
         );
-        listingStandard.TextFieldNumeric(
-            ref _buyMoreTimeBaseSilverCost,
-            ref _buyMoreTimeBaseSilverCostBuffer
-        );
+        _buyMoreTimeBaseSilverCost.Draw(listingStandard);
 
         listingStandard.Gap(4);
 
@@ -275,7 +256,7 @@ internal class Settings : ModSettings
 
     public static int GenerateDeviatingMinimumTradeThreshold() =>
         ApplyDeviation(
-            _minimumTradeThreshold,
+            _minimumTradeThreshold.Value,
             Rand.RangeInclusive(-_minimumTradeDeviation, _minimumTradeDeviation)
         );
 
