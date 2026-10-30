@@ -59,6 +59,7 @@
             Link="ScribeRoundTrip.cs"
         />
         <Compile Include="..\RealisticOrbitalTrade.Tests\TradeScene.cs" Link="TradeScene.cs" />
+        <Publicize Include="Assembly-CSharp:Verse.Rand.StateCompressed" />
     </ItemGroup>
     <ItemGroup Condition="'$(RimWorldVersion)' != '1.6' And '$(RimWorldVersion)' != '1.7'">
         <Compile Remove="**/*.cs" />

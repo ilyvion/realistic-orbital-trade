@@ -21,6 +21,8 @@ internal sealed class TradeScene : IDisposable
     // warnings about what earlier tests removed, which would fail whichever test it lands in.
     private const float NoAutosaveIntervalDays = 1000f;
 
+    private const ulong SceneRandSeed = 1218943160;
+
     private readonly SettingsSnapshot previousSettings = SettingsSnapshot.Capture();
     private readonly CompProperties_Transporter shuttleTransporter =
         TransportShipDefOf.Ship_Shuttle.shipThing.GetCompProperties<CompProperties_Transporter>();
@@ -36,6 +38,13 @@ internal sealed class TradeScene : IDisposable
     private readonly HashSet<Letter> lettersBefore = [.. Find.LetterStack.LettersListForReading];
     private readonly List<TradeShip> otherTraders = [];
     private int ticked;
+
+    // The game draws from Rand every frame as well as every tick, and how many frames pass depends
+    // on wall-clock time, so the scene keeps its own random state, starting from the same seed in
+    // every test, and sets it aside while a frame passes.
+    private ulong randStateOutsideScene;
+    private ulong sceneRandState;
+    private bool sceneRandSetAside;
 
     internal Map Map { get; }
     internal ThingDef SilverDef { get; } = RimWorld.ThingDefOf.Silver;
@@ -56,6 +65,8 @@ internal sealed class TradeScene : IDisposable
     internal TradeScene(Map map, SettingsSnapshot? settings = null)
     {
         Map = map;
+        randStateOutsideScene = Rand.StateCompressed;
+        Rand.StateCompressed = SceneRandSeed;
         Expect.IsNull(FindTradeQuest(), "An earlier test leaked a trade quest");
         Expect.IsEmpty(
             RealisticOrbitalTradeGameComponent.Current.ActiveTradeAgreements,
@@ -118,6 +129,18 @@ internal sealed class TradeScene : IDisposable
         TradeShip = new TradeShip(DefDatabase<TraderKindDef>.GetNamed("Orbital_BulkGoods"));
         map.passingShipManager.AddShip(TradeShip);
         TradeShip.GenerateThings();
+    }
+
+    // Lets a frame pass without the game's per-frame work drawing from the scene's random state.
+    private IEnumerator NextFrame()
+    {
+        sceneRandState = Rand.StateCompressed;
+        Rand.StateCompressed = randStateOutsideScene;
+        sceneRandSetAside = true;
+        yield return null;
+        randStateOutsideScene = Rand.StateCompressed;
+        Rand.StateCompressed = sceneRandState;
+        sceneRandSetAside = false;
     }
 
     // Random colonists can be unable to trade or haul, which would make the sale depend on luck.
@@ -407,7 +430,7 @@ internal sealed class TradeScene : IDisposable
             ticked++;
             if (ticked % TicksPerFrame == 0)
             {
-                yield return null;
+                yield return NextFrame();
             }
         }
         var loaded = LoadedInShuttles(sale.Def);
@@ -448,7 +471,7 @@ internal sealed class TradeScene : IDisposable
             ticked++;
             if (ticked % TicksPerFrame == 0)
             {
-                yield return null;
+                yield return NextFrame();
             }
         }
         found(match());
@@ -656,7 +679,7 @@ internal sealed class TradeScene : IDisposable
                 Find.TickManager.DoSingleTick();
             }
             ticked += TicksPerFrame;
-            yield return null;
+            yield return NextFrame();
         }
     }
 
@@ -756,6 +779,10 @@ internal sealed class TradeScene : IDisposable
 
     public void Dispose()
     {
+        if (!sceneRandSetAside)
+        {
+            Rand.StateCompressed = randStateOutsideScene;
+        }
         previousSettings.Apply();
         shuttleTransporter.massCapacity = previousShuttleCapacity;
         Find.TickManager.CurTimeSpeed = previousTimeSpeed;

@@ -24,6 +24,7 @@ Replaces vanilla's instant orbital trading with a physical flow: accepting a dea
 - **Settings:** `TradeScene` applies the mod's defaults; pass your own as `SettingsSnapshot.Defaults with { MultiItemShuttleLoading = false }`.
 - **Make a sale heavy by lowering the shuttle capacity** (`TradeScene.LimitShuttleCapacity`) instead of selling a heavy item: shuttles carry 2000 kg, so 1 kg items like uranium would need thousands of hauling trips.
 - **Tests share one world and map.** `TradeScene.Dispose` puts back everything a test touched; anything new a test changes on the shared state goes into `Dispose` too. Autosave stays off while a test runs: saving the shared world logs warnings about what earlier tests removed.
+- **Let frames pass only through `TradeScene`'s tick helpers**, never with a bare `yield return null` in a test: the scene keeps its own `Rand` state and sets it aside while a frame passes, since the game's per-frame work draws from `Rand` a varying number of times and would otherwise make runs differ.
 - **Logged warnings and errors fail the test**, including ones from cleanup. Allow them per test method, never in `Configs/UnitTestConfig.xml`. `Dispose` must only end quests that are `QuestState.Ongoing`; ending a finished quest logs `Tried to resolve a historical quest`.
 - **Assert on things, not counters:**
     - `TradeShip.CountHeldOf` doesn't include stacks added by `QuestPart_TransferItemsToTrader`; sum `TradeShip.Goods` stack counts by def instead.

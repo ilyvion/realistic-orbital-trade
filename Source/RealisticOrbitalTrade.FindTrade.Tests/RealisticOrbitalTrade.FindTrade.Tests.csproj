@@ -25,6 +25,7 @@
     -->
     <ItemGroup>
         <Publicize Include="Assembly-CSharp:Verse.Messages.liveMessages" />
+        <Publicize Include="Assembly-CSharp:Verse.Rand.StateCompressed" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\RealisticOrbitalTrade\RealisticOrbitalTrade.csproj">
