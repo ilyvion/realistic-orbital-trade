@@ -64,24 +64,42 @@ internal static class Alert_OrbitalTrader_Shared
             RealisticOrbitalTradeMod.Instance.LogError,
             codeMatcher =>
             {
-                _ = codeMatcher
-                    .ExpectForward(
-                        i =>
-                            i.opcode == OpCodes.Ldfld
-                            && i.operand is FieldInfo f
-                            && f == _fieldTicksUntilDeparture,
-                        "access to PassingShip.ticksUntilDeparture"
-                    )
-                    .ExpectForward(
-                        i => i.opcode == OpCodes.Pop,
-                        "[pop] after access to PassingShip.ticksUntilDeparture"
+                _ = codeMatcher.ExpectForward(
+                    i => i.CallsConstructorOf(typeof(StringBuilder)),
+                    "[newobj StringBuilder]"
+                );
+                _ = codeMatcher.Advance(1);
+                if (!codeMatcher.IsValid || !codeMatcher.Instruction.IsStloc())
+                {
+                    throw new TranspilerMismatchException(
+                        "[stloc] of the new StringBuilder not found."
                     );
+                }
+                var loadStringBuilder = codeMatcher.Instruction.LoadSameLocal();
 
-                // We should be in the right spot now. Transpiler, go go go!
+                _ = codeMatcher.ExpectForward(
+                    i =>
+                        i.opcode == OpCodes.Ldfld
+                        && i.operand is FieldInfo f
+                        && f == _fieldTicksUntilDeparture,
+                    "access to PassingShip.ticksUntilDeparture"
+                );
+                var loadPassingShip = codeMatcher.InstructionAt(-1);
+                if (!loadPassingShip.IsLdloc())
+                {
+                    throw new TranspilerMismatchException(
+                        $"[ldloc] of the passing ship before PassingShip.ticksUntilDeparture not found, was {loadPassingShip.opcode}."
+                    );
+                }
+
+                _ = codeMatcher.ExpectForward(
+                    i => i.opcode == OpCodes.Pop,
+                    "[pop] after access to PassingShip.ticksUntilDeparture"
+                );
 
                 _ = codeMatcher.Insert([
-                    new(OpCodes.Ldloc_3),
-                    new(OpCodes.Ldloc_0),
+                    loadPassingShip.LoadSameLocal(),
+                    loadStringBuilder,
                     new(OpCodes.Call, _methodAddCommsClosedForTradeExplanation),
                 ]);
             }

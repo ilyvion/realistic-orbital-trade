@@ -608,13 +608,22 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
                         && f == _field_Dialog_Trade_cachedCurrencyTradeable,
                     "[ldfld Dialog_Trade.cachedCurrencyTradeable]"
                 );
-                _ = codeMatcher.ExpectForward(
-                    i =>
-                        i.opcode == OpCodes.Stloc_S
-                        && i.operand is LocalBuilder l
-                        && l.LocalIndex == 8,
-                    "[stloc.s 8]"
+                _ = codeMatcher.MatchEndForward(
+                    new CodeMatch(i =>
+                        i.opcode == OpCodes.Ldc_R4
+                        && i.operand is float f
+                        && Math.Abs(f - 16f) < 0.1f
+                    ),
+                    new CodeMatch(OpCodes.Sub),
+                    new CodeMatch(i => i.IsStloc())
                 );
+                if (!codeMatcher.IsValid)
+                {
+                    throw new TranspilerMismatchException(
+                        "[ldc.r4 16][sub][stloc width] not found."
+                    );
+                }
+                var storeWidth = codeMatcher.Instruction;
                 _ = codeMatcher.Advance(1);
 
                 var shiftAmount = generator.DeclareLocal(typeof(float));
@@ -623,7 +632,7 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
                 //   float shiftAmount = DrawThresholdRow(width);
                 // directly after
                 _ = codeMatcher.Insert([
-                    new(OpCodes.Ldloc_S, 8),
+                    storeWidth.LoadSameLocal(),
                     new(OpCodes.Call, _methodDrawThresholdRow),
                     new(OpCodes.Stloc_S, shiftAmount.LocalIndex),
                 ]);
@@ -668,11 +677,18 @@ internal static class Rimworld_Dialog_Trade_DoWindowContents
                 //   currencyRowYShift = 30f;
                 _ = codeMatcher.ExpectForward(
                     i =>
-                        i.opcode == OpCodes.Stloc_S
-                        && i.operand is LocalBuilder l
-                        && l.LocalIndex == 4,
-                    "[stloc.s 4]"
+                        i.opcode == OpCodes.Ldc_R4
+                        && i.operand is float f
+                        && Math.Abs(f - 30f) < 0.1f,
+                    "[ldc.r4 30]"
                 );
+                _ = codeMatcher.Advance(1);
+                if (!codeMatcher.IsValid || !codeMatcher.Instruction.IsStloc())
+                {
+                    throw new TranspilerMismatchException(
+                        "[stloc currencyRowYShift] after [ldc.r4 30] not found."
+                    );
+                }
 
                 // Change it to
                 //   currencyRowYShift = 30f + shiftAmount;

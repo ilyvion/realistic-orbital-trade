@@ -22,6 +22,11 @@ internal static class Rimworld_TradeUI_DrawTradeableRow
         nameof(GetMassStoppingPoints)
     );
 
+    private static readonly MethodInfo _methodRectWidth_get = AccessTools.PropertyGetter(
+        typeof(Rect),
+        nameof(Rect.width)
+    );
+
     private static float DrawMassColumnAndShrinkWidth(Rect rowRect, Tradeable trad, float width)
     {
         if (TradeShipData.tradeAgreementForQuest == null || !trad.HasAnyThing)
@@ -344,6 +349,20 @@ internal static class Rimworld_TradeUI_DrawTradeableRow
             RealisticOrbitalTradeMod.Instance.LogError,
             codeMatcher =>
             {
+                // `float width = rect.width;` is the method's first use of Rect::width.
+                _ = codeMatcher.ExpectForward(
+                    i => i.Calls(_methodRectWidth_get),
+                    "[call Rect::get_width]"
+                );
+                var storeWidth = codeMatcher.InstructionAt(1);
+                if (!storeWidth.IsStloc())
+                {
+                    throw new TranspilerMismatchException(
+                        $"[stloc] of width after Rect::get_width not found, was {storeWidth.opcode}."
+                    );
+                }
+                var widthIndex = storeWidth.LocalVariableIndex();
+
                 // Replace the `null` extraStoppingPoints argument to DoCountAdjustInterface with our
                 // mass-based "M<"/">M" stopping points.
                 _ = codeMatcher.ExpectForward(i => i.opcode == OpCodes.Ldnull, "[ldnull]");
@@ -363,21 +382,21 @@ internal static class Rimworld_TradeUI_DrawTradeableRow
                     new CodeMatch(i =>
                         i.opcode == OpCodes.Ldc_R4 && i.operand is float f1 && Math.Abs(f1) < 0.001f
                     ),
-                    new CodeMatch(OpCodes.Ldloc_0)
+                    new CodeMatch(i => i.LoadsLocal(widthIndex))
                 );
                 if (!codeMatcher.IsValid)
                 {
                     throw new TranspilerMismatchException(
-                        "[ldc.r4 0][ldc.r4 0][ldloc.0] not found."
+                        "[ldc.r4 0][ldc.r4 0][ldloc width] not found."
                     );
                 }
 
                 _ = codeMatcher.Insert([
                     new CodeInstruction(OpCodes.Ldarg_0),
                     new CodeInstruction(OpCodes.Ldarg_1),
-                    new CodeInstruction(OpCodes.Ldloc_0),
+                    storeWidth.LoadSameLocal(),
                     new CodeInstruction(OpCodes.Call, _methodDrawMassColumnAndShrinkWidth),
-                    new CodeInstruction(OpCodes.Stloc_0),
+                    storeWidth.StoreSameLocal(),
                 ]);
             },
             generator

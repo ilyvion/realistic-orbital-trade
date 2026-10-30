@@ -97,25 +97,40 @@ internal static class Rimworld_CompShuttle_RequiredThingsLabel
 
     internal static IEnumerable<CodeInstruction> Transpiler(
         IEnumerable<CodeInstruction> instructions
-    )
-    {
-        try
-        {
-            return TranspilerUtility.InjectCallBeforeReturn(
-                instructions,
-                _methodInjectThingsLabel,
-                i => i.IsLdloc(),
-                [new CodeInstruction(OpCodes.Ldarg_0), new CodeInstruction(OpCodes.Ldloc_0)]
-            );
-        }
-        catch (InjectCallBeforeReturnException e)
-        {
-            RealisticOrbitalTradeMod.Instance.LogError(
-                "Could not patch CompShuttle.RequiredThingsLabel, IL does not match expectations"
-            );
-            return e.Instructions;
-        }
-    }
+    ) =>
+        TranspilerUtility.PatchOrOriginal(
+            instructions,
+            "patch CompShuttle.RequiredThingsLabel",
+            RealisticOrbitalTradeMod.Instance.LogError,
+            codeMatcher =>
+            {
+                _ = codeMatcher.ExpectForward(
+                    i => i.CallsConstructorOf(typeof(StringBuilder)),
+                    "[newobj StringBuilder]"
+                );
+                _ = codeMatcher.Advance(1);
+                if (!codeMatcher.IsValid || !codeMatcher.Instruction.IsStloc())
+                {
+                    throw new TranspilerMismatchException(
+                        "[stloc] of the new StringBuilder not found."
+                    );
+                }
+                var storeStringBuilder = codeMatcher.Instruction;
+
+                // Inject before the StringBuilder is turned into the returned label.
+                _ = codeMatcher
+                    .End()
+                    .ExpectBackwards(
+                        i => i.LoadsLocal(storeStringBuilder.LocalVariableIndex()),
+                        "[ldloc] of the StringBuilder before the return"
+                    );
+                _ = codeMatcher.Insert([
+                    new CodeInstruction(OpCodes.Ldarg_0).MoveLabelsFrom(codeMatcher.Instruction),
+                    storeStringBuilder.LoadSameLocal(),
+                    new CodeInstruction(OpCodes.Call, _methodInjectThingsLabel),
+                ]);
+            }
+        );
 }
 
 // Vanilla's own "Required: " line (built inside CompInspectStringExtra, separate from the
