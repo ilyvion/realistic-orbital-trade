@@ -24,6 +24,26 @@ internal sealed class DroppedCargoProtectionEndToEndTests
     private static bool IsHauling(Pawn pawn) =>
         JobDriver_HaulMultipleToTransporter.HaulingTransporter(pawn) != null;
 
+    // Dropping the inventory places each stack before the job forgets it, so what is still counted
+    // as on its way to the shuttle must leave out stacks already on the ground or merged away.
+    [Test]
+    public static void InFlightCargoLeavesOutPendingStacksAlreadyDroppedOrMergedAway()
+    {
+        var map = Find.CurrentMap;
+        var pending = ThingMaker.MakeThing(RimWorld.ThingDefOf.Steel);
+        var dropped = GenSpawn.Spawn(RimWorld.ThingDefOf.Steel, map.Center, map);
+        var mergedAway = GenSpawn.Spawn(RimWorld.ThingDefOf.Steel, map.Center, map);
+        mergedAway.Destroy();
+
+        var cargo = JobDriver_HaulMultipleToTransporter
+            .InFlightCargo(carriedThing: null, [pending, dropped, mergedAway])
+            .ToList();
+        dropped.Destroy();
+
+        Expect.AreEqual(1, cargo.Count);
+        Expect.IsTrue(cargo.Contains(pending));
+    }
+
     [Test]
     public static IEnumerator AnInterruptedHaulerDropsItsLoadProtected()
     {
@@ -85,11 +105,14 @@ internal sealed class DroppedCargoProtectionEndToEndTests
         var protectedBefore = scene.ProtectedOnMap(steel);
 
         // What Pawn.DropAndForbidEverything does to a pawn being downed, short of its equipment.
-        _ = hauler.carryTracker.TryDropCarriedThing(
-            hauler.PositionHeld,
-            ThingPlaceMode.Near,
-            out _
-        );
+        if (hauler.carryTracker.CarriedThing != null)
+        {
+            _ = hauler.carryTracker.TryDropCarriedThing(
+                hauler.PositionHeld,
+                ThingPlaceMode.Near,
+                out _
+            );
+        }
         hauler.inventory.DropAllNearPawn(hauler.PositionHeld, forbid: true);
 
         Expect.AreEqual(

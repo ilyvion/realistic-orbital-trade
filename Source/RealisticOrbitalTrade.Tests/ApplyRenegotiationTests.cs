@@ -29,9 +29,9 @@ internal sealed class ApplyRenegotiationTests
         var steel = RimWorld.ThingDefOf.Steel;
         using var scene = new TradeScene(Find.CurrentMap);
         scene.PlaceOnMap(steel, SteelOnMap);
+        scene.StopColonistsHauling();
 
         yield return scene.SellAndWaitForLanding(steel, 300);
-        scene.StopColonistsHauling();
         scene.RenegotiateSale(75);
 
         var agreement = scene.TradeAgreement!;
@@ -68,9 +68,9 @@ internal sealed class ApplyRenegotiationTests
         var steel = RimWorld.ThingDefOf.Steel;
         using var scene = new TradeScene(Find.CurrentMap);
         scene.PlaceOnMap(steel, 100);
+        scene.StopColonistsHauling();
 
         yield return scene.SellAndWaitForLanding(steel, 100);
-        scene.StopColonistsHauling();
         var agreement = scene.TradeAgreement!;
         var pawn = scene.SpawnPawn();
 
@@ -91,9 +91,9 @@ internal sealed class ApplyRenegotiationTests
         using var scene = new TradeScene(Find.CurrentMap);
         scene.LimitShuttleCapacity(40f);
         scene.PlaceOnMap(steel, 100);
+        scene.StopColonistsHauling();
 
         yield return scene.SellAndWaitForLanding(steel, 100);
-        scene.StopColonistsHauling();
         var agreement = scene.TradeAgreement!;
         var pawn = scene.SpawnPawn();
         var emptiest = agreement
@@ -117,9 +117,9 @@ internal sealed class ApplyRenegotiationTests
         var steel = RimWorld.ThingDefOf.Steel;
         using var scene = new TradeScene(Find.CurrentMap);
         scene.PlaceOnMap(steel, 100);
+        scene.StopColonistsHauling();
 
         yield return scene.SellAndWaitForLanding(steel, 100);
-        scene.StopColonistsHauling();
         var agreement = scene.TradeAgreement!;
         var pawn = scene.SpawnPawn();
         agreement.pawnsSoldToTrader.Add(pawn);
@@ -139,9 +139,9 @@ internal sealed class ApplyRenegotiationTests
         var steel = RimWorld.ThingDefOf.Steel;
         using var scene = new TradeScene(Find.CurrentMap);
         scene.PlaceOnMap(steel, 100);
+        scene.StopColonistsHauling();
 
         yield return scene.SellAndWaitForLanding(steel, 100);
-        scene.StopColonistsHauling();
         var agreement = scene.TradeAgreement!;
         var pawn = scene.SpawnPawn();
         agreement.pawnsSoldToTrader.Add(pawn);

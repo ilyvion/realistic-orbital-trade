@@ -36,9 +36,9 @@ internal sealed class TradeAgreementInFlightTests
         var steel = RimWorld.ThingDefOf.Steel;
         using var scene = new TradeScene(Find.CurrentMap);
         scene.PlaceOnMap(steel, SteelOnMap);
+        scene.StopColonistsHauling();
 
         yield return scene.SellAndWaitForLanding(steel, SteelOnMap);
-        scene.StopColonistsHauling();
         var agreement = scene.TradeAgreement!;
         var lost = agreement.thingsSoldToTrader.Last();
         var lostCount = lost.Count;
@@ -84,9 +84,9 @@ internal sealed class TradeAgreementInFlightTests
         var steel = RimWorld.ThingDefOf.Steel;
         using var scene = new TradeScene(Find.CurrentMap);
         scene.PlaceOnMap(steel, SteelOnMap);
+        scene.StopColonistsHauling();
 
         yield return scene.SellAndWaitForLanding(steel, 300);
-        scene.StopColonistsHauling();
         var agreement = scene.TradeAgreement!;
 
         agreement.thingsSoldToTrader.First().thing.Destroy();
@@ -103,9 +103,9 @@ internal sealed class TradeAgreementInFlightTests
         var steel = RimWorld.ThingDefOf.Steel;
         using var scene = new TradeScene(Find.CurrentMap);
         scene.PlaceOnMap(steel, 100);
+        scene.StopColonistsHauling();
 
         yield return scene.SellAndWaitForLanding(steel, 100);
-        scene.StopColonistsHauling();
         var agreement = scene.TradeAgreement!;
         var pawn = scene.SpawnPawn();
         agreement.pawnsSoldToTrader.Add(pawn);
@@ -125,9 +125,9 @@ internal sealed class TradeAgreementInFlightTests
         var steel = RimWorld.ThingDefOf.Steel;
         using var scene = new TradeScene(Find.CurrentMap);
         scene.PlaceOnMap(steel, SteelOnMap);
+        scene.StopColonistsHauling();
 
         yield return scene.SellAndWaitForLanding(steel, SteelOnMap);
-        scene.StopColonistsHauling();
         var agreement = scene.TradeAgreement!;
         var first = agreement.thingsSoldToTrader[0];
         var second = agreement.thingsSoldToTrader[1];

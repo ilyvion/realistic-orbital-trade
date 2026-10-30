@@ -53,6 +53,7 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
     /// <summary>
     /// Everything a bulk hauling trip has physically split off colony stacks but not yet
     /// deposited: whatever's in the pawn's hands plus every stack still waiting in inventory.
+    /// Pending stacks already dropped onto the map or merged away aren't in flight.
     /// </summary>
     internal static IEnumerable<Thing> InFlightCargo(
         Thing? carriedThing,
@@ -65,7 +66,10 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
         }
         foreach (var pending in pendingDeliveries)
         {
-            yield return pending;
+            if (!pending.Spawned && !pending.Destroyed)
+            {
+                yield return pending;
+            }
         }
     }
 
@@ -478,7 +482,7 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
                 }
             }
 
-            foreach (var carried in driver._carriedThings)
+            foreach (var carried in InFlightCargo(null, driver._carriedThings))
             {
                 yield return (carried, carried.stackCount);
             }

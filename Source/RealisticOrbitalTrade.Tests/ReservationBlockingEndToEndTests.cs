@@ -22,12 +22,8 @@ internal sealed class ReservationBlockingEndToEndTests
         var steel = RimWorld.ThingDefOf.Steel;
         using var scene = new TradeScene(Find.CurrentMap);
         scene.PlaceOnMap(steel, SteelToSell);
-        yield return scene.SellAndWaitForLanding(steel, SteelToSell);
         scene.StopColonistsHauling();
-        foreach (var pawn in Find.CurrentMap.mapPawns.FreeColonistsSpawned.ToList())
-        {
-            pawn.jobs.EndCurrentJob(JobCondition.InterruptForced);
-        }
+        yield return scene.SellAndWaitForLanding(steel, SteelToSell);
 
         var reserved = FindReservedSteel(scene);
         Expect.IsNotNull(reserved, "No sold steel is still reserved for the trade");
@@ -55,8 +51,8 @@ internal sealed class ReservationBlockingEndToEndTests
         var steel = RimWorld.ThingDefOf.Steel;
         using var scene = new TradeScene(Find.CurrentMap);
         scene.PlaceOnMap(steel, SteelToSell);
-        yield return scene.SellAndWaitForLanding(steel, SteelToSell);
         scene.StopColonistsHauling();
+        yield return scene.SellAndWaitForLanding(steel, SteelToSell);
 
         var reserved = FindReservedSteel(scene);
         Expect.IsNotNull(reserved, "No sold steel is still reserved for the trade");

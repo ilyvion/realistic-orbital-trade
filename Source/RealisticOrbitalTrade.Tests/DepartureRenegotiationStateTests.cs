@@ -93,7 +93,7 @@ internal sealed class DepartureRenegotiationStateTests
             Expect.AreEqual(FailedSignal, Utils.DepartureRenegotiationFailedSignal);
             Expect.IsTrue(ReferenceEquals(sentinel, TradeSession.trader));
             Expect.AreEqual(loaded, SoldSteel(agreement));
-            Expect.IsNotNull(Find.WindowStack.WindowOfType<Dialog_MessageBox>());
+            Expect.IsNotNull(TradeScene.FindDepartureExplanation());
         }
         finally
         {
@@ -101,8 +101,15 @@ internal sealed class DepartureRenegotiationStateTests
         }
     }
 
-    private static int ExplanationDialogs() =>
-        Find.WindowStack.Windows.OfType<Dialog_MessageBox>().Count();
+    // Matched by title, since other message boxes, such as vanilla's first-trade tutorial, can be
+    // open too.
+    private static int ExplanationDialogs()
+    {
+        string title = "RealisticOrbitalTrade.RenegotiationLostItemsExplanationTitle".Translate();
+        return Find
+            .WindowStack.Windows.OfType<Dialog_MessageBox>()
+            .Count(box => box.title == title);
+    }
 
     [Test]
     public static IEnumerator LostItemsAreExplainedOncePerRenegotiation()

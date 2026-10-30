@@ -246,6 +246,40 @@ internal static class Rimworld_CompTransporter_SubtractFromToLoadList
             ?.tradeAgreement?.ReleaseReservationsBeyondNeed();
 }
 
+// A sold pawn drops what it carries, its weapon and its inventory onto the map as it boards, the way
+// Pawn.PreTraded does for a pawn sold on the map. PreTraded runs again on takeoff, when the pawn is
+// enclosed in the shuttle and would put them in the shuttle instead.
+[HarmonyPatch(typeof(CompTransporter), nameof(CompTransporter.Notify_ThingAdded))]
+internal static class Rimworld_CompTransporter_Notify_ThingAdded_SoldPawnDropsGear
+{
+    internal static void Postfix(CompTransporter __instance, Thing t)
+    {
+        var shuttle = __instance.parent;
+        if (
+            t is Pawn pawn
+            && shuttle.Spawned
+            && shuttle.TryGetComp<CompTradeShuttle>()?.tradeAgreement is { } tradeAgreement
+            && tradeAgreement.pawnsSoldToTrader.Contains(pawn)
+        )
+        {
+            DropGear(pawn, shuttle.Position);
+        }
+    }
+
+    private static void DropGear(Pawn pawn, IntVec3 position)
+    {
+        if (pawn.carryTracker?.CarriedThing != null)
+        {
+            _ = pawn.carryTracker.TryDropCarriedThing(position, ThingPlaceMode.Near, out _);
+        }
+        pawn.equipment?.DropAllEquipment(position, forbid: true);
+        if (pawn.inventory != null && pawn.inventory.innerContainer.TotalStackCount > 0)
+        {
+            pawn.inventory.DropAllNearPawn(position, forbid: true);
+        }
+    }
+}
+
 // These two fix not hauling books out of book cases:
 #if v1_5
 [HarmonyPatch(

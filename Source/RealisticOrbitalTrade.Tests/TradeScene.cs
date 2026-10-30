@@ -1,5 +1,6 @@
 using DevTools.Testing;
 using RealisticOrbitalTrade.Comps;
+using Verse.AI;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -143,7 +144,8 @@ internal sealed class TradeScene : IDisposable
         sceneRandSetAside = false;
     }
 
-    // Random colonists can be unable to trade or haul, which would make the sale depend on luck.
+    // Random colonists can be unable to trade or haul, which would make the sale depend on luck. A
+    // negotiator who talks or hears poorly gets a message box with every trade dialog.
     private static Pawn GenerateCapableColonist()
     {
         Pawn pawn;
@@ -153,6 +155,8 @@ internal sealed class TradeScene : IDisposable
         } while (
             StatDefOf.TradePriceImprovement.Worker.IsDisabledFor(pawn)
             || pawn.WorkTypeIsDisabled(WorkTypeDefOf.Hauling)
+            || pawn.health.capacities.GetLevel(PawnCapacityDefOf.Talking) < 0.95f
+            || pawn.health.capacities.GetLevel(PawnCapacityDefOf.Hearing) < 0.95f
         );
         return pawn;
     }
@@ -530,12 +534,17 @@ internal sealed class TradeScene : IDisposable
         delay.delayTicks -= delay.TicksLeft - 60;
     }
 
-    // Turns hauling off for the colonists, so nothing gets loaded.
+    // Turns hauling off for the colonists and ends whatever they are doing, so nothing more gets
+    // loaded. Call before selling for a shuttle that stays empty.
     internal void StopColonistsHauling()
     {
         foreach (var pawn in spawned.OfType<Pawn>())
         {
             pawn.workSettings.SetPriority(WorkTypeDefOf.Hauling, 0);
+            if (pawn.Spawned && pawn.CurJob != null)
+            {
+                pawn.jobs.EndCurrentJob(JobCondition.InterruptForced);
+            }
         }
     }
 
@@ -581,7 +590,7 @@ internal sealed class TradeScene : IDisposable
 
     // Matched by title, since other message boxes, such as vanilla's first-trade tutorial, can be
     // open too.
-    private static Dialog_MessageBox? FindDepartureExplanation()
+    internal static Dialog_MessageBox? FindDepartureExplanation()
     {
         string title = "RealisticOrbitalTrade.DepartureRenegotiationExplanationTitle".Translate();
         return Find

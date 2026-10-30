@@ -23,33 +23,31 @@ internal sealed class HaulJobEndingEndToEndTests
         using var scene = new TradeScene(Find.CurrentMap);
         scene.PlaceOnMap(steel, SteelToSell);
         yield return scene.SellAndWaitForLanding(steel, SteelToSell);
-        yield return scene.WaitForPartialLoad();
 
         var map = Find.CurrentMap;
         var transporter = scene.CurrentSale!.Shuttles[0].TransporterComp;
-        var haulers = Utils.PawnsWithHaulToTransporterJob(transporter, map).ToList();
-        Expect.GreaterThan(haulers.Count, 0, "Nobody is hauling to the shuttle");
-        if (haulers.Count == 0)
+        List<Pawn> haulers = [];
+        Pawn? hauler = null;
+        yield return scene.TickUntil(() =>
+        {
+            haulers = [.. Utils.PawnsWithHaulToTransporterJob(transporter, map)];
+            hauler = haulers.FirstOrDefault(p => HauledThing(p) != null);
+            return hauler != null;
+        });
+        Expect.IsNotNull(hauler, "Nobody ever hauled to the shuttle");
+        if (hauler == null)
         {
             yield break;
         }
 
-        var target = HauledThing(haulers[0]);
-        Expect.IsNotNull(target, "Couldn't tell what the first hauler is hauling");
-        if (target == null)
-        {
-            yield break;
-        }
+        var target = HauledThing(hauler);
         bool Matches(Thing t)
         {
             return t == target;
         }
         var expectedEnded = haulers.Where(p => Utils.IsHauling(p, Matches)).ToList();
         var expectedKept = haulers.Except(expectedEnded).ToList();
-        Expect.IsTrue(
-            expectedEnded.Contains(haulers[0]),
-            "IsHauling missed the hauler's own thing"
-        );
+        Expect.IsTrue(expectedEnded.Contains(hauler), "IsHauling missed the hauler's own thing");
 
         Utils.EndHaulJobsFor(transporter, map, Matches);
 
@@ -71,11 +69,14 @@ internal sealed class HaulJobEndingEndToEndTests
         using var scene = new TradeScene(Find.CurrentMap);
         scene.PlaceOnMap(steel, SteelToSell);
         yield return scene.SellAndWaitForLanding(steel, SteelToSell);
-        yield return scene.WaitForPartialLoad();
 
         var map = Find.CurrentMap;
         var transporter = scene.CurrentSale!.Shuttles[0].TransporterComp;
+        yield return scene.TickUntil(() =>
+            Utils.PawnsWithHaulToTransporterJob(transporter, map).Any()
+        );
         var before = Utils.PawnsWithHaulToTransporterJob(transporter, map).ToList();
+        Expect.GreaterThan(before.Count, 0, "Nobody ever hauled to the shuttle");
 
         Utils.EndHaulJobsFor(transporter, map, _ => false);
 

@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > [!IMPORTANT]  
 > This release requires an update to ilyvion's Laboratory!
 
+### Fixed
+
+- A sold prisoner, slave or animal now drops its weapon, what it's carrying and its inventory next to the trade shuttle as it boards, the way pawns sold in vanilla trades do, instead of them flying off with the shuttle.
+- Fixed some sold goods on the ground losing their protection from other colony jobs when a colonist hauling to a trade shuttle was interrupted and dropped what they carried.
+
 ## [0.15.0] - 2026-10-25
 
 ### Added

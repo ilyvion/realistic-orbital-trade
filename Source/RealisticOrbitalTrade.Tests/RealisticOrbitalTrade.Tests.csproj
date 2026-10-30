@@ -29,7 +29,8 @@
     <ItemGroup>
         <Publicize Include="Assembly-CSharp:RimWorld.TradeShip.things" />
         <Publicize Include="Assembly-CSharp:RimWorld.TradeShip.soldPrisoners" />
-        <Publicize Include="Assembly-CSharp:Verse.Rand.StateCompressed" />    </ItemGroup>
+        <Publicize Include="Assembly-CSharp:Verse.Rand.StateCompressed" />
+    </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\RealisticOrbitalTrade\RealisticOrbitalTrade.csproj">
             <CopyLocal>False</CopyLocal>

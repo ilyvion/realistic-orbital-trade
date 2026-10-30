@@ -76,6 +76,7 @@ internal sealed class QuestPartTests
         var silver = ThingMaker.MakeThing(RimWorld.ThingDefOf.Silver);
         silver.stackCount = 30;
         var silverBefore = scene.HeldByTrader(RimWorld.ThingDefOf.Silver);
+        agreement.pawnsSoldToTrader.Add(pawn);
         _ = shuttle.TransporterComp.innerContainer.TryAdd(pawn);
         _ = shuttle.TransporterComp.innerContainer.TryAdd(silver);
         var part = new QuestPart_TransferItemsToTrader
@@ -93,6 +94,7 @@ internal sealed class QuestPartTests
         Expect.IsEmpty(shuttle.TransporterComp.innerContainer);
         Expect.IsFalse(Find.WorldPawns.Contains(pawn), "Pawn is owned by both trader and world");
 
+        _ = agreement.pawnsSoldToTrader.Remove(pawn);
         _ = agreement.tradeShip.soldPrisoners.Remove(pawn);
         _ = agreement.tradeShip.things.Remove(pawn);
         Discard(pawn);
