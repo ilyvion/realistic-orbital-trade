@@ -37,6 +37,7 @@
         </li>
     </modDependencies>
     <loadAfter>
+        <li>ludeon.rimworld</li>
         <li>aoba.deadmanswitch.core</li>
         <li>brrainz.harmony</li>
         <li>Ludeon.RimWorld.Royalty</li>

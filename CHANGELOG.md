@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > [!IMPORTANT]  
 > This release requires an update to ilyvion's Laboratory!
 
+### Changed
+
+- The mod now asks to be loaded after the RimWorld Core in the mod list.
+
 ### Fixed
 
 - A sold prisoner, slave or animal now drops its weapon, what it's carrying and its inventory next to the trade shuttle as it boards, the way pawns sold in vanilla trades do, instead of them flying off with the shuttle.
