@@ -54,7 +54,8 @@ internal static class Rimworld_LoadTransportersJobUtility_HasJobOnTransporter
     private static void Prefix(Pawn pawn, CompTransporter transporter, out IDisposable __state) =>
         __state = TradeHaulReservationContext.Enter(pawn, transporter);
 
-    private static void Postfix(IDisposable __state) => __state.Dispose();
+    // __state is null when another mod's prefix skips the original, since our prefix doesn't run.
+    private static void Finalizer(IDisposable? __state) => __state?.Dispose();
 }
 
 /// <summary>
@@ -73,7 +74,8 @@ internal static class Rimworld_LoadTransportersJobUtility_JobOnTransporter
     private static void Prefix(Pawn p, CompTransporter transporter, out IDisposable __state) =>
         __state = TradeHaulReservationContext.Enter(p, transporter);
 
-    private static void Postfix(IDisposable? __state) => __state?.Dispose();
+    // __state is null when another mod's prefix skips the original, since our prefix doesn't run.
+    private static void Finalizer(IDisposable? __state) => __state?.Dispose();
 }
 
 /// <summary>

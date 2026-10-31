@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A sold prisoner, slave or animal now drops its weapon, what it's carrying and its inventory next to the trade shuttle as it boards, the way pawns sold in vanilla trades do, instead of them flying off with the shuttle.
 - Fixed some sold goods on the ground losing their protection from other colony jobs when a colonist hauling to a trade shuttle was interrupted and dropped what they carried.
 - Fixed the Tweaks Galore integration failing to load on RimWorld 1.7 with an error at startup, which left Tweaks Galore's orbital trader alert without the note on when a trader closes its comms.
+- Fixed colonists never loading transporters or shuttles, with an error logged over and over, when playing with Hauler's Dream and its 'Bulk load transporters' setting turned on.
 
 ## [0.15.0] - 2026-10-25
 
