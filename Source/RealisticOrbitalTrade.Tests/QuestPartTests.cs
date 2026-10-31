@@ -1,7 +1,6 @@
 using DevTools.Testing;
 using RealisticOrbitalTrade.Core;
 using RealisticOrbitalTrade.Quests;
-using RealisticOrbitalTrade.ShipJobs;
 
 namespace RealisticOrbitalTrade.Tests;
 
@@ -301,47 +300,6 @@ internal sealed class QuestPartTests
         Expect.IsTrue(agreement.thingsSoldToPlayer.Contains(item));
         _ = agreement.thingsSoldToPlayer.Remove(item);
         item.Destroy();
-    }
-
-    [Test]
-    public static IEnumerator DropSoldItemsHandsBackSoldGoodsButKeepsOtherThings()
-    {
-        var steel = RimWorld.ThingDefOf.Steel;
-        using var scene = new TradeScene(Find.CurrentMap);
-        var pawn = scene.SpawnPawn();
-        var carried = MakeItem(steel);
-        var stashed = MakeItem(steel);
-        var other = MakeItem(RimWorld.ThingDefOf.WoodLog);
-        _ = pawn.carryTracker.innerContainer.TryAdd(carried);
-        _ = pawn.inventory.innerContainer.TryAdd(stashed);
-        _ = pawn.inventory.innerContainer.TryAdd(other);
-
-        ShipJob_CancelLoad.DropSoldItems(pawn, [steel]);
-
-        Expect.IsNull(pawn.carryTracker.CarriedThing, "The pawn still carries sold goods");
-        Expect.IsFalse(pawn.inventory.innerContainer.Contains(stashed));
-        Expect.IsTrue(pawn.inventory.innerContainer.Contains(other), "A non-sold item was dropped");
-        Expect.AreEqual(10, scene.CountOnMap(steel), "The sold goods aren't back on the map");
-        yield break;
-    }
-
-    [Test]
-    public static IEnumerator SoldDefsIsNullWithoutAnAgreement()
-    {
-        Expect.IsNull(ShipJob_CancelLoad.SoldDefs(null));
-        yield break;
-    }
-
-    [Test]
-    public static IEnumerator SoldDefsListsTheSoldKinds()
-    {
-        using var scene = new TradeScene(Find.CurrentMap);
-        yield return Landed(scene);
-
-        var defs = ShipJob_CancelLoad.SoldDefs(scene.TradeAgreement);
-
-        Expect.IsNotNull(defs);
-        Expect.IsTrue(defs!.Contains(RimWorld.ThingDefOf.Steel));
     }
 
     [Test]

@@ -6,9 +6,8 @@ namespace RealisticOrbitalTrade.Tests;
 
 // Regression guard: ShipJob_CancelLoad used to only end pawns running vanilla's own
 // JobDefOf.HaulToTransporter, so a pawn mid-haul via this mod's own bulk-haul job
-// (JobDefOf.ROT_HaulMultipleToTransporter - the default loading path per
-// Settings._multiItemShuttleLoading) kept walking cargo to a shuttle whose trade had already been
-// cancelled.
+// (JobDefOf.ROT_HaulMultipleToTransporter) kept walking cargo to a shuttle whose trade had already
+// been cancelled.
 [TestFixture(TestType.MainMenu)]
 internal sealed class IsLoadingCancelledShipTests
 {

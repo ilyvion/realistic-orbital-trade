@@ -19,7 +19,7 @@ This mod requires:
 A few highlights beyond the core shuttle-loading behavior:
 
 - Renegotiate a trade (right-click the trade shuttle with a pawn) at any time, even after a trade agreement has already been reached. Also useful if an item you sold becomes unavailable or too damaged to be sold anymore.
-- With the 'multi-item shuttle loading' feature, colonists carry several stacks of goods per trip instead of one, speeding up large trades considerably.
+- Colonists carry several stacks of goods per trip when loading a trade shuttle instead of one, speeding up large trades considerably.
 - Pay silver to 'buy more time' on a shuttle's departure timer if a big trade needs longer to load than it would normally wait around for.
 - Trades too heavy for one shuttle aren't a problem: a big sale is divided across several shuttles that take off together once they're all loaded, and a big purchase is delivered by shuttles arriving one after another. The trade window shows how much cargo each side of the deal adds up to.
 - Genepacks and xenogerms stored in genebanks (vanilla or modded) get hauled out to the shuttle automatically.
@@ -34,7 +34,7 @@ Mod compatibility is probably generally good, but there might be issues with mod
 
 - [Dynamic Trade Interface](https://steamcommunity.com/sharedfiles/filedetails/?id=3020706506) — A compatibility layer has been added to make DTI's custom trade window work correctly with ROT.
 - [Auto Seller](https://steamcommunity.com/sharedfiles/filedetails/?id=1440321094) — A compatibility layer has been added to make Auto Seller's AI trader work correctly with ROT.
-- [Bulk Load For Transporters](https://steamcommunity.com/sharedfiles/filedetails/?id=3559292908) — With ROT's 'Multi-item shuttle loading' setting on (the default), ROT is the sole authority for loading trade shuttles, so Bulk Load For Transporters' own loading logic doesn't interfere with it. Turning that setting off lets Bulk Load For Transporters take over shuttle loading instead, though it currently can't haul genepacks or xenogerms out of genebanks, so those get left behind in that case.
+- [Bulk Load For Transporters](https://steamcommunity.com/sharedfiles/filedetails/?id=3559292908) and [Hauler's Dream](https://steamcommunity.com/sharedfiles/filedetails/?id=3742459652) — Trade shuttles are only ever loaded by ROT's own hauling, so these mods' automatic loading leaves them alone and keeps working on every other transporter and shuttle. A few of these mods' own features, such as their right-click loading orders, can still load a trade shuttle, though.
 - [Social Experience from Trade](https://steamcommunity.com/sharedfiles/filedetails/?id=3400608063) — A compatibility layer has been added to defer the social experience grant until ROT knows the trade actually delivered, instead of granting it the instant the trade dialog's 'Accept' succeeds.
 - [Find / Trade](https://steamcommunity.com/sharedfiles/filedetails/?id=3736861965) — A compatibility layer has been added so Find / Trade's automatic bartering with orbital traders goes through ROT's trade shuttles instead of trading instantly.
 

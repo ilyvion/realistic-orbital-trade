@@ -17,10 +17,7 @@ internal class Settings : ModSettings
     internal static int _buyMoreTimeTicksPerPurchase = 7500;
     internal static readonly NumericField<int> _buyMoreTimeBaseSilverCost = new(200);
     internal static float _buyMoreTimeCostGrowthFactor = 1.5f;
-    internal static bool _multiItemShuttleLoading = true;
     internal static int _hitPointsTolerancePercent = 2;
-
-    internal const string BulkLoadForTransportersPackageId = "ilarion.bulkloadfortransporters";
 
     private static Vector2 _scrollPosition = Vector2.zero;
     private static float _scrollViewHeight;
@@ -52,7 +49,6 @@ internal class Settings : ModSettings
         Scribe_Values.Look(ref _buyMoreTimeTicksPerPurchase, "buyMoreTimeTicksPerPurchase", 7500);
         Scribe_Values.Look(ref _buyMoreTimeBaseSilverCost.Value, "buyMoreTimeBaseSilverCost", 200);
         Scribe_Values.Look(ref _buyMoreTimeCostGrowthFactor, "buyMoreTimeCostGrowthFactor", 1.5f);
-        Scribe_Values.Look(ref _multiItemShuttleLoading, "multiItemShuttleLoading", true);
         Scribe_Values.Look(ref _hitPointsTolerancePercent, "hitPointsTolerancePercent", 2);
     }
 
@@ -87,29 +83,6 @@ internal class Settings : ModSettings
             ref _useMinimumTradeThreshold,
             "RealisticOrbitalTrade.UseMinimumTradeThresholdTooltip".Translate()
         );
-
-        listingStandard.CheckboxLabeled(
-            "RealisticOrbitalTrade.MultiItemShuttleLoadingLabel".Translate(),
-            ref _multiItemShuttleLoading,
-            "RealisticOrbitalTrade.MultiItemShuttleLoadingTooltip".Translate()
-        );
-
-        if (
-            ShouldShowBlftGenebankWarning(
-                _multiItemShuttleLoading,
-                ModsConfig.IsActive(BulkLoadForTransportersPackageId)
-            )
-        )
-        {
-            using (GUIScope.Font(GameFont.Tiny))
-            {
-                listingStandard.Label(
-                    "<color=#ffff00>"
-                        + "RealisticOrbitalTrade.MultiItemShuttleLoadingBlftWarning".Translate()
-                        + "</color>"
-                );
-            }
-        }
 
         listingStandard.Label(
             "RealisticOrbitalTrade.HitPointsTolerancePercentLabel".Translate(
@@ -248,11 +221,6 @@ internal class Settings : ModSettings
 
         Widgets.EndScrollView();
     }
-
-    internal static bool ShouldShowBlftGenebankWarning(
-        bool multiItemShuttleLoading,
-        bool blftActive
-    ) => !multiItemShuttleLoading && blftActive;
 
     public static int GenerateDeviatingMinimumTradeThreshold() =>
         ApplyDeviation(

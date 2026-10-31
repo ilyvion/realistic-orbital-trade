@@ -34,55 +34,9 @@ internal static class Rimworld_ReservationManager_CanReserve
 }
 
 /// <summary>
-/// Wraps the vanilla haul-candidate scan (reached from vanilla's own
-/// <see cref="WorkGiver_LoadTransporters"/> and <see cref="JobGiver_LoadTransporters"/>) in a
-/// <see cref="TradeHaulReservationContext"/> scope, so <see cref="LoadTransportersJobUtility.FindThingToLoad"/>'s
-/// internal <c>CanReserve</c> checks see items this pawn is entitled to haul to this transporter
-/// as reservable, even before any job exists to reserve them through. Our own
-/// <see cref="WorkGiver_HaulMultipleToTransporter.HasJobOnThing"/> enters the same scope directly
-/// around its own <see cref="LoadTransportersJobUtility.FindThingToLoad"/> call instead of going
-/// through <see cref="LoadTransportersJobUtility.HasJobOnTransporter"/>, since a third-party mod
-/// patching that method with its own competing loading logic (e.g. Bulk Load For Transporters)
-/// would otherwise hijack the call.
-/// </summary>
-[HarmonyPatch(
-    typeof(LoadTransportersJobUtility),
-    nameof(LoadTransportersJobUtility.HasJobOnTransporter)
-)]
-internal static class Rimworld_LoadTransportersJobUtility_HasJobOnTransporter
-{
-    private static void Prefix(Pawn pawn, CompTransporter transporter, out IDisposable __state) =>
-        __state = TradeHaulReservationContext.Enter(pawn, transporter);
-
-    // __state is null when another mod's prefix skips the original, since our prefix doesn't run.
-    private static void Finalizer(IDisposable? __state) => __state?.Dispose();
-}
-
-/// <summary>
-/// Same wrapping as <see cref="Rimworld_LoadTransportersJobUtility_HasJobOnTransporter"/>, but for
-/// <see cref="LoadTransportersJobUtility.JobOnTransporter"/> - a third-party mod's replacement
-/// logic for that method (e.g. Bulk Load For Transporters' planner) can re-scan and re-check
-/// reservability of the same candidates <c>HasJobOnTransporter</c> already vetted, so the
-/// exemption has to cover both calls, not just the first.
-/// </summary>
-[HarmonyPatch(
-    typeof(LoadTransportersJobUtility),
-    nameof(LoadTransportersJobUtility.JobOnTransporter)
-)]
-internal static class Rimworld_LoadTransportersJobUtility_JobOnTransporter
-{
-    private static void Prefix(Pawn p, CompTransporter transporter, out IDisposable __state) =>
-        __state = TradeHaulReservationContext.Enter(p, transporter);
-
-    // __state is null when another mod's prefix skips the original, since our prefix doesn't run.
-    private static void Finalizer(IDisposable? __state) => __state?.Dispose();
-}
-
-/// <summary>
-/// Wraps vanilla's own <see cref="JobDriver_HaulToTransporter.Notify_Starting"/> (used when
-/// <see cref="Settings._multiItemShuttleLoading"/> is off, or for pawns leading a live
-/// animal/prisoner our own driver hands off to it) in the same
-/// <see cref="TradeHaulReservationContext"/> scope, and - once it's done - moves whatever it
+/// Wraps vanilla's own <see cref="JobDriver_HaulToTransporter.Notify_Starting"/>, for a vanilla
+/// hauling job that targets a trade shuttle, in a <see cref="TradeHaulReservationContext"/>
+/// scope, and - once it's done - moves whatever it
 /// actually reserved from the trade's reserved-for-protection list to the real reservation it just
 /// took out, mirroring what <see cref="JobDriver_HaulMultipleToTransporter"/> does for itself.
 /// </summary>

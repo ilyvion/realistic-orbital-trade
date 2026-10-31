@@ -1,0 +1,18 @@
+<TestPlan>
+    <name>HaulersDream</name>
+    <jobs>
+        <li>
+            <name>Hauler's Dream E2E</name>
+            <commandLineArgs>--test --where "class =~ HaulersDream"</commandLineArgs>
+            <loadWithMods>
+                <li>brrainz.harmony</li>
+                <li>ludeon.rimworld</li>
+                <li>ludeon.rimworld.royalty</li>
+                <li>ilyvion.laboratory</li>
+                <li>giwaffed.haulersdream</li>
+                <li>ilyvion.realisticorbitaltrade</li>
+            </loadWithMods>
+            <timeOut>600000</timeOut>
+        </li>
+    </jobs>
+</TestPlan>

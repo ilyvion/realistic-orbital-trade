@@ -446,19 +446,40 @@ internal sealed class TradeScene : IDisposable
         );
     }
 
-    // Ticks until a colonist carries some of the sold goods in their inventory, as a bulk loader
-    // does between picking them up and loading them.
-    internal IEnumerator WaitForSoldGoodsInAnInventory()
+    // Sells as SellAndWaitForCompletion does, adding the def of every job other than this mod's
+    // own loading job that a colonist runs on one of the sale's shuttles to otherJobsSeen.
+    internal IEnumerator SellAndWatchShuttleJobs(
+        ThingDef def,
+        int count,
+        HashSet<JobDef> otherJobsSeen
+    )
     {
-        var def = CurrentSale!.Def;
-        bool inAnInventory()
+        yield return SellAndWaitForLanding(def, count);
+        var sale = CurrentSale;
+        if (sale?.Quest == null)
         {
-            return spawned
-                .OfType<Pawn>()
-                .Any(pawn => pawn.inventory.innerContainer.Any(thing => thing.def == def));
+            yield break;
         }
-        yield return TickUntil(inAnInventory);
-        Expect.IsTrue(inAnInventory(), "No colonist ever carried the sold goods in inventory");
+        var shuttles = sale.Shuttles.Select(ship => ship.shipThing).ToList();
+        yield return WaitForQuestToEnd(() =>
+        {
+            foreach (var pawn in spawned.OfType<Pawn>())
+            {
+                var job = pawn.CurJob;
+                if (
+                    job != null
+                    && job.def != JobDefOf.ROT_HaulMultipleToTransporter
+                    && shuttles.Any(shuttle =>
+                        job.targetA.Thing == shuttle
+                        || job.targetB.Thing == shuttle
+                        || job.targetC.Thing == shuttle
+                    )
+                )
+                {
+                    _ = otherJobsSeen.Add(job.def);
+                }
+            }
+        });
     }
 
     // Ticks one tick at a time until one of the scene's colonists meets the condition, and returns
@@ -928,7 +949,6 @@ internal sealed class TradeScene : IDisposable
         int BuyMoreTimeTicksPerPurchase,
         int BuyMoreTimeBaseSilverCost,
         float BuyMoreTimeCostGrowthFactor,
-        bool MultiItemShuttleLoading,
         int HitPointsTolerancePercent
     )
     {
@@ -947,7 +967,6 @@ internal sealed class TradeScene : IDisposable
                 BuyMoreTimeTicksPerPurchase: 7500,
                 BuyMoreTimeBaseSilverCost: 200,
                 BuyMoreTimeCostGrowthFactor: 1.5f,
-                MultiItemShuttleLoading: true,
                 HitPointsTolerancePercent: 2
             );
 
@@ -965,7 +984,6 @@ internal sealed class TradeScene : IDisposable
                 Settings._buyMoreTimeTicksPerPurchase,
                 Settings._buyMoreTimeBaseSilverCost.Value,
                 Settings._buyMoreTimeCostGrowthFactor,
-                Settings._multiItemShuttleLoading,
                 Settings._hitPointsTolerancePercent
             );
 
@@ -983,7 +1001,6 @@ internal sealed class TradeScene : IDisposable
             Settings._buyMoreTimeTicksPerPurchase = BuyMoreTimeTicksPerPurchase;
             Settings._buyMoreTimeBaseSilverCost.Value = BuyMoreTimeBaseSilverCost;
             Settings._buyMoreTimeCostGrowthFactor = BuyMoreTimeCostGrowthFactor;
-            Settings._multiItemShuttleLoading = MultiItemShuttleLoading;
             Settings._hitPointsTolerancePercent = HitPointsTolerancePercent;
         }
     }

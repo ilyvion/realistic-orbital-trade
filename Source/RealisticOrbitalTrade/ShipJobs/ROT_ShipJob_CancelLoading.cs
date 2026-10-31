@@ -36,57 +36,19 @@ internal class ShipJob_CancelLoad : ShipJob
             transportShip.TransporterComp.leftToLoad?.Clear();
 
             // End any jobs currently involved in loading the transport ship - both vanilla's
-            // own single-item hauling and this mod's bulk-haul job (JobDefOf.ROT_HaulMultipleToTransporter,
-            // the default loading path per Settings._multiItemShuttleLoading) target the shuttle
-            // thing itself via targetB, so both are matched the same way.
-            var soldDefs = SoldDefs(compTradeShuttle.tradeAgreement);
+            // own single-item hauling and this mod's bulk-haul job
+            // (JobDefOf.ROT_HaulMultipleToTransporter) target the shuttle thing itself via
+            // targetB, so both are matched the same way.
             foreach (var humanLike in transportShip.shipThing.Map.mapPawns.GetAllHumanLike())
             {
                 if (IsLoadingCancelledShip(humanLike.CurJob, transportShip.shipThing))
                 {
                     humanLike.jobs.EndCurrentJob(JobCondition.Incompletable, true, true);
-                    if (soldDefs != null)
-                    {
-                        DropSoldItems(humanLike, soldDefs);
-                    }
                 }
             }
 
             // We only need to do this once
             done = true;
-        }
-    }
-
-    // Loading jobs from other mods (Bulk Load For Transporters) stash sold items in the pawn's
-    // hands and inventory and don't hand them back when they're ended. Anything of a sold kind the
-    // pawn still holds goes back on the ground so the goods stay in the colony.
-    internal static HashSet<ThingDef>? SoldDefs(TradeAgreement? tradeAgreement) =>
-        tradeAgreement?.thingsSoldToTrader.Select(t => t.thing?.def).OfType<ThingDef>().ToHashSet();
-
-    internal static void DropSoldItems(Pawn pawn, HashSet<ThingDef> soldDefs)
-    {
-        if (pawn.carryTracker.CarriedThing is { } carried && soldDefs.Contains(carried.def))
-        {
-            _ = pawn.carryTracker.TryDropCarriedThing(
-                pawn.PositionHeld,
-                ThingPlaceMode.Near,
-                out _
-            );
-        }
-
-        foreach (var thing in pawn.inventory.innerContainer.ToList())
-        {
-            if (soldDefs.Contains(thing.def))
-            {
-                _ = pawn.inventory.innerContainer.TryDrop(
-                    thing,
-                    pawn.PositionHeld,
-                    pawn.MapHeld,
-                    ThingPlaceMode.Near,
-                    thing.stackCount,
-                    out _
-                );
-            }
         }
     }
 
@@ -97,7 +59,6 @@ internal class ShipJob_CancelLoad : ShipJob
         && (
             curJob.def == RimWorld.JobDefOf.HaulToTransporter
             || curJob.def == JobDefOf.ROT_HaulMultipleToTransporter
-            || curJob.def == JobDefOf.LoadTransportersInBulk_Load
         )
         && curJob.targetB == shipThing;
 }

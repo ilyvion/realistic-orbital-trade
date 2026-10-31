@@ -19,11 +19,9 @@ namespace RealisticOrbitalTrade;
 /// For the pre-job scan phase there's no job yet to read the transporter off of, so that phase
 /// still relies on the explicit <see cref="Scope"/> above. Once a job exists, <see cref="IsExempt"/>
 /// also falls back to reading the transporter straight off the claimant's own current job (target
-/// B is the convention every transporter-loading job - vanilla or third-party - uses for the
-/// transporter), so a job's execution stays exempt for as long as it runs, even long after
-/// whichever <see cref="Scope"/> built the job has closed. This matters for third-party loading
-/// mods (e.g. Bulk Load For Transporters) whose own toils re-check reservability of their job's
-/// target well into execution, not just while the job is being built.
+/// B is the convention transporter-loading jobs use for the transporter), so a job's execution
+/// stays exempt for as long as it runs, even long after whichever <see cref="Scope"/> built the
+/// job has closed.
 /// </summary>
 internal static class TradeHaulReservationContext
 {

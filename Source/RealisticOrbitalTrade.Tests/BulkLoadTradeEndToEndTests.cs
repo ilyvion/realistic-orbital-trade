@@ -2,51 +2,25 @@ using DevTools.Testing;
 
 namespace RealisticOrbitalTrade.Tests;
 
-// With the mod's own multi-item loading off, Bulk Load For Transporters loads the trade shuttle.
-// Goods its loaders carry in their inventories still count as the colony's. Needs Bulk Load For
-// Transporters and Pick Up And Haul active; see TestPlans/BulkLoad.xml.
+// With Bulk Load For Transporters active, only this mod's own loading job loads a trade shuttle.
+// Needs Bulk Load For Transporters and Pick Up And Haul active; see TestPlans/BulkLoad.xml.
 [TestFixture(TestType.Playing)]
-[LoadIfModsActive(Settings.BulkLoadForTransportersPackageId)]
+[LoadIfModsActive(PackageId)]
 internal sealed class BulkLoadTradeEndToEndTests
 {
-    private const int SteelOnMap = 500;
-    private const int SteelSold = 400;
-
-    private static TradeScene NewScene() =>
-        new(
-            Find.CurrentMap,
-            TradeScene.SettingsSnapshot.Defaults with
-            {
-                MultiItemShuttleLoading = false,
-            }
-        );
+    internal const string PackageId = "ilarion.bulkloadfortransporters";
 
     [Test]
-    public static IEnumerator ASaleLoadedByBulkLoadCompletes()
+    public static IEnumerator ASaleIsLoadedOnlyByThisModsJob()
     {
         var steel = RimWorld.ThingDefOf.Steel;
-        using var scene = NewScene();
-        scene.PlaceOnMap(steel, SteelOnMap);
+        using var scene = new TradeScene(Find.CurrentMap);
+        scene.PlaceOnMap(steel, 500);
+        HashSet<JobDef> otherJobs = [];
 
-        yield return scene.SellAndWaitForCompletion(steel, SteelSold);
+        yield return scene.SellAndWatchShuttleJobs(steel, 400, otherJobs);
 
         scene.ExpectSaleCompleted();
-    }
-
-    [Test]
-    public static IEnumerator RenegotiatingOffersGoodsBulkLoadIsCarrying()
-    {
-        var steel = RimWorld.ThingDefOf.Steel;
-        using var scene = NewScene();
-        scene.PlaceOnMap(steel, SteelOnMap);
-
-        yield return scene.SellAndWaitForLanding(steel, SteelSold);
-        yield return scene.WaitForSoldGoodsInAnInventory();
-
-        Expect.AreEqual(
-            SteelOnMap,
-            scene.OfferedInRenegotiation(steel),
-            "Renegotiating didn't offer all of the colony's steel"
-        );
+        Expect.IsEmpty(otherJobs, "Another job worked on the trade shuttle");
     }
 }

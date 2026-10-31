@@ -5,12 +5,9 @@ namespace RealisticOrbitalTrade;
 
 /// <summary>
 /// Only fires for trade shuttles (transporters carrying a <see cref="CompTradeShuttle"/>), so
-/// vanilla transport-pod launches and caravan packing are unaffected. When
-/// <see cref="Settings._multiItemShuttleLoading"/> is off, this work giver skips entirely and
-/// vanilla's own <see cref="WorkGiver_LoadTransporters"/> handles shuttle loading as usual - when
-/// it's on, <see cref="Patch.Rimworld_WorkGiver_LoadTransporters_HasJobOnThing"/> and <see
-/// cref="Patch.Rimworld_WorkGiver_LoadTransporters_JobOnThing"/> keep vanilla's WorkGiver from
-/// also being offered the same trade shuttle, so this one is its sole authority.
+/// vanilla transport-pod launches and caravan packing are unaffected. It is the only source of
+/// loading jobs for trade shuttles; see
+/// <see cref="Patch.Rimworld_LoadTransportersJobUtility_HasJobOnTransporter"/>.
 /// </summary>
 [HotSwappable]
 internal class WorkGiver_HaulMultipleToTransporter : WorkGiver_Scanner
@@ -24,7 +21,7 @@ internal class WorkGiver_HaulMultipleToTransporter : WorkGiver_Scanner
 
     public override bool ShouldSkip(Pawn pawn, bool forced = false)
     {
-        var shouldSkip = base.ShouldSkip(pawn, forced) || !Settings._multiItemShuttleLoading;
+        var shouldSkip = base.ShouldSkip(pawn, forced);
         DebugLog($"Should skip: {shouldSkip}", pawn);
         return shouldSkip;
     }
@@ -50,11 +47,9 @@ internal class WorkGiver_HaulMultipleToTransporter : WorkGiver_Scanner
         // Exempts the scan below from Patch.Rimworld_ReservationManager_CanReserve's protection
         // of not-yet-hauled sold items - see TradeHaulReservationContext.
         // JobDriver_HaulMultipleToTransporter.Notify_Starting wraps its own FindThingToLoad call
-        // the same way once the job actually starts. Deliberately not routed through
-        // LoadTransportersJobUtility.HasJobOnTransporter (which duplicates this same
-        // FindThingToLoad search internally) - a third-party mod that Harmony-patches that method
-        // with its own competing bulk-loading logic (e.g. Bulk Load For Transporters) would hijack
-        // this call too, since Harmony patches apply regardless of caller.
+        // the same way once the job actually starts. Not routed through
+        // LoadTransportersJobUtility.HasJobOnTransporter, which finds no work on trade shuttles
+        // (see Patch.Rimworld_LoadTransportersJobUtility_HasJobOnTransporter).
         using var haulReservationScope = TradeHaulReservationContext.Enter(pawn, transporter);
 
         // FindThingToLoad only checks whether some leftToLoad entry still has CountToTransfer > 0

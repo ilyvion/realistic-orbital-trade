@@ -501,46 +501,9 @@ internal static class Utils
                 {
                     yield return thing;
                 }
-                foreach (var thing in BulkLoadForTransportersThingsCarriedBy(pawn, compTransporter))
-                {
-                    yield return thing;
-                }
             }
         }
     }
-
-    /// <summary>
-    /// <c>JobDriver_BulkLoadBase.HauledThings</c> from Bulk Load For Transporters, or
-    /// <see langword="null"/> when that mod isn't active.
-    /// </summary>
-    private static readonly PropertyInfo? BulkLoadHauledThingsProperty = ModsConfig.IsActive(
-        Settings.BulkLoadForTransportersPackageId
-    )
-        ? GenTypes
-            .GetTypeInAnyAssembly("BulkLoadForTransporters.Jobs.JobDriver_BulkLoadBase")
-            ?.GetProperty("HauledThings")
-        : null;
-
-    /// <summary>
-    /// What a pawn running Bulk Load For Transporters' loading job toward
-    /// <paramref name="compTransporter"/> has picked up and still holds in its inventory or hands.
-    /// </summary>
-    private static IEnumerable<Thing> BulkLoadForTransportersThingsCarriedBy(
-        Pawn pawn,
-        CompTransporter compTransporter
-    ) =>
-        BulkLoadHauledThingsProperty != null
-        && pawn.CurJobDef == JobDefOf.LoadTransportersInBulk_Load
-        && pawn.CurJob.targetB.Thing == compTransporter.parent
-        && BulkLoadHauledThingsProperty.GetValue(pawn.jobs.curDriver) is List<Thing> hauledThings
-            ? hauledThings.Where(thing =>
-                thing is { Destroyed: false }
-                && (
-                    pawn.inventory.innerContainer.Contains(thing)
-                    || pawn.carryTracker.CarriedThing == thing
-                )
-            )
-            : [];
 
     /// <summary>
     /// The subset of <see cref="ThingsCarriedTowardTransporter"/> riding with pawns running this

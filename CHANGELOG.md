@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - The mod now asks to be loaded after the RimWorld Core in the mod list.
+- Trade shuttles are now always loaded by the mod's own hauling, with colonists carrying several stacks per trip. The 'Multi-item shuttle loading' setting has been removed.
+- Other mods' automatic transporter loading, such as Bulk Load For Transporters' and Hauler's Dream's, now leaves trade shuttles alone and keeps loading every other transporter and shuttle.
 
 ### Fixed
 
