@@ -171,9 +171,8 @@ internal class TradeAgreement : IExposable, ILoadReferenceable, IThingHolder
     // Things sold to the trader but not yet claimed by a hauling job, kept protected from other
     // colony jobs (eating, crafting, wearing, etc.) by Patch/Rimworld_ReservationManager.cs. An
     // entry's count shrinks (and is removed once it hits 0) the moment a hauling job actually
-    // reserves that portion of the stack for real - see
-    // JobDriver_HaulMultipleToTransporter/Rimworld_JobDriver_HaulToTransporter_Notify_Starting -
-    // so it only ever covers the portion still sitting unclaimed in the colony. Missing on saves
+    // reserves that portion of the stack for real - see JobDriver_HaulMultipleToTransporter - so
+    // it only ever covers the portion still sitting unclaimed in the colony. Missing on saves
     // from before this feature existed; PostExposeData defaults it to empty, so trades already in
     // progress simply get no protection for items sold before the update, same as if the feature
     // silently failed to find anything to protect.

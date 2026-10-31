@@ -4,10 +4,9 @@ using Verse.AI;
 
 namespace RealisticOrbitalTrade.Tests;
 
-// Regression guard: ShipJob_CancelLoad used to only end pawns running vanilla's own
-// JobDefOf.HaulToTransporter, so a pawn mid-haul via this mod's own bulk-haul job
-// (JobDefOf.ROT_HaulMultipleToTransporter) kept walking cargo to a shuttle whose trade had already
-// been cancelled.
+// ShipJob_CancelLoad ends every pawn running this mod's hauling job
+// (JobDefOf.ROT_HaulMultipleToTransporter) toward the cancelled shuttle, so none keeps walking
+// cargo to it.
 [TestFixture(TestType.MainMenu)]
 internal sealed class IsLoadingCancelledShipTests
 {
@@ -15,15 +14,6 @@ internal sealed class IsLoadingCancelledShipTests
 
     private static Thing NewShipThing() =>
         new() { def = RimWorld.ThingDefOf.Steel, thingIDNumber = _nextThingId++ };
-
-    [Test]
-    public static void TrueForVanillaHaulJobTargetingTheShip()
-    {
-        var shipThing = NewShipThing();
-        var job = new Job { def = RimWorld.JobDefOf.HaulToTransporter, targetB = shipThing };
-
-        Expect.IsTrue(ShipJob_CancelLoad.IsLoadingCancelledShip(job, shipThing));
-    }
 
     [Test]
     public static void TrueForBulkHaulJobTargetingTheShip()

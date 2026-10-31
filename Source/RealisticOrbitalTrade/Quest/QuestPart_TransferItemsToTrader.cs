@@ -58,9 +58,8 @@ internal class QuestPart_TransferItemsToTrader : QuestPart
 
     // The shuttle is taking off with whatever made it into the transporter's inner container - by
     // this point every sold item should either be loaded or gone from
-    // tradeAgreement.reservedTraderThings (see JobDriver_HaulMultipleToTransporter/
-    // Rimworld_JobDriver_HaulToTransporter_Notify_Starting, which shrink it as hauling jobs claim
-    // real reservations, and TradeAgreement.ReleaseReservationsBeyondNeed, which shrinks it to
+    // tradeAgreement.reservedTraderThings (see JobDriver_HaulMultipleToTransporter, which shrinks
+    // it as hauling jobs claim real reservations, and TradeAgreement.ReleaseReservationsBeyondNeed, which shrinks it to
     // what's still needed on every deposit). Anything still sitting untouched on the map here
     // means a sold item was never released - a bug in the mod's own logic, not something the
     // player did.

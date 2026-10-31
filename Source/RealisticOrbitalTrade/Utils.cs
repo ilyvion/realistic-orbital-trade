@@ -419,15 +419,8 @@ internal static class Utils
         foreach (var pawn in pawns)
         {
             if (
-                (
-                    pawn.CurJobDef == RimWorld.JobDefOf.HaulToTransporter
-                    && pawn.jobs?.curDriver is JobDriver_HaulToTransporter jobDriver
-                    && compTransporter == jobDriver.Transporter
-                )
-                || (
-                    pawn.jobs?.curDriver is JobDriver_HaulMultipleToTransporter bulkDriver
-                    && compTransporter == bulkDriver.Transporter
-                )
+                pawn.jobs?.curDriver is JobDriver_HaulMultipleToTransporter bulkDriver
+                && compTransporter == bulkDriver.Transporter
             )
             {
                 yield return pawn;
@@ -474,9 +467,10 @@ internal static class Utils
 
     /// <summary>
     /// Everything currently physically split off a colony stack and in a pawn's hands or
-    /// inventory en route to <paramref name="compTransporter"/> - already gone from the map's
-    /// reachable stockpiles, but not yet inside the transporter either, so neither vanilla's own
-    /// colony scan nor a straight read of the transporter's contents will find it.
+    /// inventory en route to <paramref name="compTransporter"/> by this mod's bulk hauling job -
+    /// already gone from the map's reachable stockpiles, but not yet inside the transporter
+    /// either, so neither vanilla's own colony scan nor a straight read of the transporter's
+    /// contents will find it.
     /// </summary>
     public static IEnumerable<Thing> ThingsCarriedTowardTransporter(
         CompTransporter compTransporter,
@@ -486,54 +480,20 @@ internal static class Utils
         foreach (var pawn in map.mapPawns.AllPawnsSpawned)
         {
             if (
-                pawn.jobs.curDriver is JobDriver_HaulToTransporter vanillaDriver
-                && vanillaDriver.Transporter == compTransporter
+                pawn.jobs.curDriver is JobDriver_HaulMultipleToTransporter bulkDriver
+                && bulkDriver.Transporter == compTransporter
             )
             {
-                if (pawn.carryTracker.CarriedThing is { } carried)
-                {
-                    yield return carried;
-                }
-            }
-            else
-            {
-                foreach (var thing in BulkHauledThingsCarriedBy(pawn, compTransporter))
+                foreach (
+                    var thing in JobDriver_HaulMultipleToTransporter.InFlightCargo(
+                        pawn.carryTracker.CarriedThing,
+                        bulkDriver.CarriedThings
+                    )
+                )
                 {
                     yield return thing;
                 }
             }
         }
     }
-
-    /// <summary>
-    /// The subset of <see cref="ThingsCarriedTowardTransporter"/> riding with pawns running this
-    /// mod's own bulk hauling job - the part vanilla's
-    /// <see cref="TransporterUtility.ThingsBeingHauledTo"/> cannot see (see
-    /// Patch/Rimworld_TransporterUtility_ThingsBeingHauledTo.cs).
-    /// </summary>
-    public static IEnumerable<Thing> BulkHauledThingsTowardTransporter(
-        CompTransporter compTransporter,
-        Map map
-    )
-    {
-        foreach (var pawn in map.mapPawns.AllPawnsSpawned)
-        {
-            foreach (var thing in BulkHauledThingsCarriedBy(pawn, compTransporter))
-            {
-                yield return thing;
-            }
-        }
-    }
-
-    private static IEnumerable<Thing> BulkHauledThingsCarriedBy(
-        Pawn pawn,
-        CompTransporter compTransporter
-    ) =>
-        pawn.jobs.curDriver is JobDriver_HaulMultipleToTransporter bulkDriver
-        && bulkDriver.Transporter == compTransporter
-            ? JobDriver_HaulMultipleToTransporter.InFlightCargo(
-                pawn.carryTracker.CarriedThing,
-                bulkDriver.CarriedThings
-            )
-            : [];
 }

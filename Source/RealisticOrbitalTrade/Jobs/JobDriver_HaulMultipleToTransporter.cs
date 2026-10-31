@@ -9,8 +9,7 @@ namespace RealisticOrbitalTrade;
 /// <c>JobDriver_UnloadYourHauledInventory</c>) rather than PUAH's code directly, since PUAH has no
 /// transporter-loading logic to hook into: picks up the primary item the same way vanilla's
 /// <see cref="JobDriver_HaulToTransporter"/> does (via
-/// <see cref="LoadTransportersJobUtility.FindThingToLoad"/>, which also accounts for what other
-/// pawns already running vanilla's own hauling job are carrying), sweeps up nearby still-needed
+/// <see cref="LoadTransportersJobUtility.FindThingToLoad"/>), sweeps up nearby still-needed
 /// stacks into inventory nearest-first the way PUAH's own search does, then walks to the shuttle
 /// and unloads them into its hands one at a time with a short pause between each, instead of
 /// teleporting the whole batch in at once. A live animal/prisoner/slave takes both hands to lead
@@ -381,9 +380,8 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
 
     /// <summary>
     /// Sums, per still-needed transferable, how much other pawns already have committed to
-    /// hauling to this transporter (queued, currently held, or actively being carried) - whether
-    /// they're running this same job or vanilla's own single-item <see
-    /// cref="JobDriver_HaulToTransporter"/> - so a pawn computing its own pickups doesn't count
+    /// hauling to this transporter (queued, currently held, or actively being carried) through
+    /// this same job, so a pawn computing its own pickups doesn't count
     /// stacks that other colonists have already claimed toward the same requirement. Without this,
     /// several pawns independently sweeping up "still needed" stacks at the same time each think
     /// the full remaining amount is theirs to grab, and the shuttle ends up loaded with more than
@@ -434,19 +432,12 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
     }
 
     /// <summary>
-    /// The transporter <paramref name="pawn"/> is currently loading, through either this driver or
-    /// vanilla's <see cref="JobDriver_HaulToTransporter"/>.
+    /// The transporter <paramref name="pawn"/> is currently loading through this driver.
     /// </summary>
     internal static Thing? HaulingTransporter(Pawn pawn) =>
-        pawn.jobs?.curDriver switch
-        {
-            JobDriver_HaulMultipleToTransporter driver => driver.Transporter?.parent,
-            JobDriver_HaulToContainer vanillaDriver
-                when pawn.CurJobDef == RimWorld.JobDefOf.HaulToTransporter => vanillaDriver
-                .job.GetTarget(TargetIndex.B)
-                .Thing,
-            _ => null,
-        };
+        pawn.jobs?.curDriver is JobDriver_HaulMultipleToTransporter driver
+            ? driver.Transporter?.parent
+            : null;
 
     /// <summary>
     /// What <paramref name="pawn"/>'s current <see cref="HaulingTransporter"/> job has claimed and
@@ -486,13 +477,6 @@ internal class JobDriver_HaulMultipleToTransporter : JobDriver
             {
                 yield return (carried, carried.stackCount);
             }
-        }
-        else if (pawn.jobs?.curDriver is JobDriver_HaulToContainer vanillaDriver)
-        {
-            yield return (
-                vanillaDriver.job.GetTarget(TargetIndex.A).Thing,
-                vanillaDriver.job.count
-            );
         }
     }
 

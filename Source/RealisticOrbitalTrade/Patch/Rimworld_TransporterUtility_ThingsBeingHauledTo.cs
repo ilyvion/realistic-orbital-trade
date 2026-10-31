@@ -22,7 +22,7 @@ internal static class Rimworld_TransporterUtility_ThingsBeingHauledTo
     ) =>
         __result = __result.Concat(
             transporters.SelectMany(transporter =>
-                Utils.BulkHauledThingsTowardTransporter(transporter, map)
+                Utils.ThingsCarriedTowardTransporter(transporter, map)
             )
         );
 }

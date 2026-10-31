@@ -417,7 +417,7 @@ internal class CompTradeShuttle : ThingComp
         tmpAllSendableItems.AddRange(tmpCarriedSendableItems);
 
         // What's already been split off and promised to this transporter by an in-flight haul
-        // (this mod's own bulk driver or vanilla's single-item one) - excluding: null since
+        // - excluding: null since
         // nothing here should be excluded from this global tally, unlike the hauling job's own
         // use of this method, which excludes the pawn currently making its own hauling decision.
         // Below, this floors each existing entry's corrected count so a still-running autoload
@@ -671,9 +671,7 @@ internal class CompTradeShuttle : ThingComp
     /// off and physically being hauled toward the transporter) always counts toward the
     /// requirement regardless of forbidden status, since <see
     /// cref="JobDriver_HaulMultipleToTransporter"/> hauls with <c>job.ignoreForbidden</c> set and
-    /// keeps delivering it even if it's forbidden after being picked up - the same behavior
-    /// vanilla's own single-item <c>JobDriver_HaulToTransporter</c> uses for shuttle loading.
-    /// <paramref name="isForbidden"/> is injected (rather than calling <c>Thing.IsForbidden</c>
+    /// keeps delivering it even if it's forbidden after being picked up. <paramref name="isForbidden"/> is injected (rather than calling <c>Thing.IsForbidden</c>
     /// directly) so this can be unit tested without a live map.
     /// </summary>
     internal static bool AnyRequiredItemForbidden(
